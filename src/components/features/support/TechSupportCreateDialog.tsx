@@ -45,6 +45,13 @@ interface FormState {
   description: string;
 }
 
+function getCurrentTime(): string {
+  const now = new Date();
+  const hh = now.getHours().toString().padStart(2, '0');
+  const mm = now.getMinutes().toString().padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 function getInitialForm(): FormState {
   return {
     title: '',
@@ -52,7 +59,7 @@ function getInitialForm(): FormState {
     support_type: null,
     support_date: new Date().toISOString().split('T')[0],
     support_method: null,
-    start_time: '',
+    start_time: getCurrentTime(),
     end_time: '',
     description: '',
   };
@@ -73,6 +80,8 @@ export function TechSupportCreateDialog({ open, onClose }: TechSupportCreateDial
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [comboOpen, setComboOpen] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
+  const [startMinuteTouched, setStartMinuteTouched] = useState(false);
+  const [endMinuteTouched, setEndMinuteTouched] = useState(false);
 
   // 열릴 때 폼 초기화
   useEffect(() => {
@@ -80,8 +89,26 @@ export function TechSupportCreateDialog({ open, onClose }: TechSupportCreateDial
       setForm(getInitialForm());
       setErrors({});
       setCustomerSearch('');
+      setStartMinuteTouched(false);
+      setEndMinuteTouched(false);
     }
   }, [open]);
+
+  const handleHourChange = (field: 'start_time' | 'end_time', newHour: string) => {
+    const minuteTouched = field === 'start_time' ? startMinuteTouched : endMinuteTouched;
+    const currentValue = form[field];
+    const currentMinute = currentValue ? currentValue.split(':')[1] : '00';
+    const minute = minuteTouched ? currentMinute : '00';
+    setForm({ ...form, [field]: `${newHour}:${minute}` });
+  };
+
+  const handleMinuteChange = (field: 'start_time' | 'end_time', newMinute: string) => {
+    if (field === 'start_time') setStartMinuteTouched(true);
+    else setEndMinuteTouched(true);
+    const currentValue = form[field];
+    const currentHour = currentValue ? currentValue.split(':')[0] : '00';
+    setForm({ ...form, [field]: `${currentHour}:${newMinute}` });
+  };
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -252,19 +279,59 @@ export function TechSupportCreateDialog({ open, onClose }: TechSupportCreateDial
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-sm font-medium">시작 시간</label>
-              <Input
-                type="time"
-                value={form.start_time}
-                onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-              />
+              <div className="flex items-center gap-1">
+                <select
+                  value={form.start_time ? form.start_time.split(':')[0] : ''}
+                  onChange={(e) => handleHourChange('start_time', e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="" disabled>--</option>
+                  {Array.from({ length: 24 }, (_, i) => {
+                    const v = String(i).padStart(2, '0');
+                    return <option key={v} value={v}>{v}</option>;
+                  })}
+                </select>
+                <span className="text-sm font-medium">:</span>
+                <select
+                  value={form.start_time ? form.start_time.split(':')[1] : ''}
+                  onChange={(e) => handleMinuteChange('start_time', e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="" disabled>--</option>
+                  {Array.from({ length: 60 }, (_, i) => {
+                    const v = String(i).padStart(2, '0');
+                    return <option key={v} value={v}>{v}</option>;
+                  })}
+                </select>
+              </div>
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">종료 시간</label>
-              <Input
-                type="time"
-                value={form.end_time}
-                onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-              />
+              <div className="flex items-center gap-1">
+                <select
+                  value={form.end_time ? form.end_time.split(':')[0] : ''}
+                  onChange={(e) => handleHourChange('end_time', e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="" disabled>--</option>
+                  {Array.from({ length: 24 }, (_, i) => {
+                    const v = String(i).padStart(2, '0');
+                    return <option key={v} value={v}>{v}</option>;
+                  })}
+                </select>
+                <span className="text-sm font-medium">:</span>
+                <select
+                  value={form.end_time ? form.end_time.split(':')[1] : ''}
+                  onChange={(e) => handleMinuteChange('end_time', e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="" disabled>--</option>
+                  {Array.from({ length: 60 }, (_, i) => {
+                    const v = String(i).padStart(2, '0');
+                    return <option key={v} value={v}>{v}</option>;
+                  })}
+                </select>
+              </div>
               {errors.end_time && <p className="text-xs text-destructive">{errors.end_time}</p>}
             </div>
           </div>
