@@ -3,7 +3,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  serverExternalPackages: ['oracledb', 'typeorm', 'reflect-metadata'],
+  experimental: {
+    serverComponentsExternalPackages: ['oracledb', 'typeorm', 'reflect-metadata'],
+  },
 };
 
 module.exports = nextConfig;
