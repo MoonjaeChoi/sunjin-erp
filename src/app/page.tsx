@@ -1,9 +1,7 @@
-// Generated: 2026-01-24 21:10:00 KST
+// Generated: 2026-01-24 18:50:00 KST
+
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-2xl font-bold">Sunjin ERP</h1>
-    </main>
-  );
+  redirect('/dashboard');
 }
