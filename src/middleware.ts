@@ -38,6 +38,8 @@ export default withAuth(
 
 export const config = {
   matcher: [
+    // 루트 경로
+    '/',
     // (main) 그룹 경로들
     '/dashboard/:path*',
     '/tasks/:path*',
