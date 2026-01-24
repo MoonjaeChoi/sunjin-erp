@@ -18,7 +18,7 @@ sunjin-erp (Next.js 14) 프로젝트를 스테이징 서버에 배포합니다.
 | 앱 URL | http://192.168.75.194:3200 |
 | 컨테이너명 | `sunjin-erp-app` |
 | 포트 매핑 | 3200 (외부) → 3000 (내부) |
-| 네트워크 | `sunjin-network` (172.21.0.0/16) |
+| 네트워크 | `sunjin-network` (172.22.0.0/16) |
 | DB 스키마 | `sunjin_admin` (공유 Oracle XE 인스턴스) |
 | 리소스 제한 | CPU 3코어, RAM 8GB |
 
@@ -269,7 +269,7 @@ UPLOAD_DIR=/app/uploads
 ### Docker 네트워크 생성 (최초 1회)
 
 ```bash
-ssh pro301@192.168.75.194 'docker network create --driver bridge --subnet 172.21.0.0/16 sunjin-network'
+ssh pro301@192.168.75.194 'docker network create --driver bridge --subnet 172.22.0.0/16 sunjin-network'
 ```
 
 ---

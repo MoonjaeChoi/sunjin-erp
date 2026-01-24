@@ -153,5 +153,5 @@ Branch naming: `feat/feature-name` or `fix/bug-description`
 
 - **URL**: `http://192.168.75.194:3200`
 - **Oracle schema**: `sunjin_admin` (isolated from existing `ocr_admin`)
-- **Docker network**: `sunjin-network` (172.21.0.0/16, isolated from existing `zine-network`)
+- **Docker network**: `sunjin-network` (172.22.0.0/16, isolated from existing `zine-network`)
 - Details in `docs/operation/` documents
