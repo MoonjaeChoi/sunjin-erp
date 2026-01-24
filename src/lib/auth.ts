@@ -44,7 +44,8 @@ export const authOptions: NextAuthOptions = {
             role: employee.role,
             department: employee.department_id,
           };
-        } catch {
+        } catch (error) {
+          console.error('[AUTH] authorize error:', error);
           return null;
         }
       },
