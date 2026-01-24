@@ -4,6 +4,7 @@
 
 import { type Session } from 'next-auth';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 import { useSidebarStore } from '@/stores/sidebar-store';
 import { getFilteredNavigation } from '@/lib/navigation-config';
 import { UserRole } from '@/types/navigation';
@@ -25,6 +26,14 @@ export function Sidebar({ session }: SidebarProps) {
   const userRole = (session.user as any).role as UserRole;
   const groups = getFilteredNavigation(userRole);
   const isSmallScreen = useMediaQuery('(max-width: 767px)');
+  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1279px)');
+
+  // Tablet: 첫 로드 시 축소 상태로 시작 (localStorage에 저장된 값 없을 때)
+  useEffect(() => {
+    if (isTablet && !localStorage.getItem('sidebar-state')) {
+      useSidebarStore.setState({ isCollapsed: true });
+    }
+  }, [isTablet]);
 
   // Small screen: Sheet 오버레이
   if (isSmallScreen) {

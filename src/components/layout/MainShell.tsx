@@ -21,13 +21,14 @@ export function MainShell({ session, children }: MainShellProps) {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
         const target = e.target as HTMLElement;
-        if (
-          target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable
-        ) {
-          return;
-        }
+
+        // input, textarea, contentEditable 포커스 시 비활성화
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+        if (target.isContentEditable) return;
+
+        // Dialog/Modal 열려있을 때 비활성화
+        if (document.querySelector('[role="dialog"]')) return;
+
         e.preventDefault();
         toggle();
       }
