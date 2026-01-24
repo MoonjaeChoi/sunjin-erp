@@ -1,109 +1,168 @@
 ---
 name: deploy-staging
-description: "Deploy sunjin-erp to staging server (192.168.75.194:3200)"
+description: "Deploy sunjin-erp to staging server (192.168.75.194:3200) - Single-container Next.js deployment"
 ---
 
-# deploy-staging - 스테이징 서버 배포
+# deploy-staging - sunjin-erp 스테이징 서버 배포
 
-sunjin-erp 프로젝트를 스테이징 서버(192.168.75.194:3200)에 배포합니다.
+sunjin-erp (Next.js 14) 프로젝트를 스테이징 서버에 배포합니다.
+단일 컨테이너 구조로, Docker Compose를 사용하여 빌드 및 배포합니다.
 
-## 배포 대상 정보
+## 배포 대상
 
 | 항목 | 값 |
 |------|-----|
 | 서버 | 192.168.75.194 (Oracle Linux 9) |
-| SSH | pro301@192.168.75.194 |
-| 작업 디렉토리 | /home/pro301/sunjin-erp |
+| SSH | `pro301@192.168.75.194` (password: 1234) |
+| 작업 디렉토리 | `/home/pro301/sunjin-erp` |
 | 앱 URL | http://192.168.75.194:3200 |
-| 컨테이너 | sunjin-erp-app |
+| 컨테이너명 | `sunjin-erp-app` |
 | 포트 매핑 | 3200 (외부) → 3000 (내부) |
-| 네트워크 | sunjin-network (172.21.0.0/16) |
+| 네트워크 | `sunjin-network` (172.21.0.0/16) |
+| DB 스키마 | `sunjin_admin` (공유 Oracle XE 인스턴스) |
+| 리소스 제한 | CPU 3코어, RAM 8GB |
 
 ---
 
-## 실행 절차
+## 자동 실행 규칙
 
-아래 단계를 순서대로 수행하세요. 각 단계에서 오류 발생 시 즉시 중단하고 사용자에게 보고합니다.
+**이 커맨드는 사용자 확인 없이 자동으로 전체 워크플로우를 실행합니다.**
+각 단계의 진행 상황을 출력하며, 오류 발생 시 즉시 중단하고 보고합니다.
 
-### Step 1: 사전 검증 (Local)
+---
+
+## 배포 워크플로우
+
+### Phase 1: 로컬 사전 검증 (Local Validation)
+
+#### 1.1: 브랜치 확인
 
 ```bash
-# 1-1. 현재 브랜치 확인 (main이 아니면 경고 후 사용자 확인)
 git branch --show-current
+```
 
-# 1-2. Working tree 상태 확인 (uncommitted 변경사항 있으면 경고)
+- `main` 브랜치가 아니면 경고 출력 후 **배포 중단**
+- 사용자에게 main 브랜치로 전환 안내
+
+#### 1.2: Working Tree 상태 확인
+
+```bash
 git status --porcelain
+```
 
-# 1-3. 빌드 검증 (type-check만 수행, 빌드 실패 시 배포 중단)
+- uncommitted 변경사항이 있으면 **배포 중단**
+- "커밋 후 다시 시도하세요" 안내
+
+#### 1.3: 빌드 검증
+
+```bash
 npm run type-check
 ```
 
-- 현재 브랜치가 main이 아니면 사용자에게 확인 후 진행 여부 결정
-- uncommitted 변경사항이 있으면 배포 중단, 커밋 먼저 안내
-- type-check 실패 시 배포 중단
+- type-check 실패 시 **배포 중단**
+- 에러 내용 출력
 
-### Step 2: Git Push (Local → Remote)
+---
+
+### Phase 2: Git Push
+
+#### 2.1: Remote 동기화 상태 확인
 
 ```bash
-# 2-1. Remote와의 차이 확인
 git log origin/main..HEAD --oneline
+```
 
-# 2-2. Push (unpushed commits가 있는 경우)
+- push할 커밋이 없으면 스킵
+
+#### 2.2: Push 실행
+
+```bash
 git push origin main
 ```
 
-- push할 커밋이 없으면 이 단계 스킵
-- push 실패 시 배포 중단
+- push 실패 시 **배포 중단** (pull --rebase 필요 여부 안내)
 
-### Step 3: 서버 배포 (SSH)
+---
+
+### Phase 3: 서버 배포 (SSH)
+
+#### 3.1: Git Pull
 
 ```bash
-# 3-1. SSH 접속 후 순차 실행
 ssh pro301@192.168.75.194 'cd /home/pro301/sunjin-erp && git pull origin main'
+```
 
-# 3-2. Docker 이미지 빌드
-ssh pro301@192.168.75.194 'cd /home/pro301/sunjin-erp && docker compose build'
+- 충돌 발생 시 **배포 중단** (수동 해결 안내)
 
-# 3-3. 서비스 기동 (기존 컨테이너 교체)
+#### 3.2: Docker 이미지 빌드
+
+```bash
+ssh pro301@192.168.75.194 'cd /home/pro301/sunjin-erp && docker compose build --no-cache'
+```
+
+- 빌드 실패 시 **배포 중단** (마지막 30줄 로그 출력)
+
+#### 3.3: 서비스 교체 기동
+
+```bash
 ssh pro301@192.168.75.194 'cd /home/pro301/sunjin-erp && docker compose up -d'
 ```
 
-- git pull 충돌 시 배포 중단
-- docker compose build 실패 시 배포 중단
-- docker compose up -d 실행 후 이전 컨테이너는 자동 교체됨
+- 기존 컨테이너를 새 이미지로 자동 교체
 
-### Step 4: 헬스체크
+---
+
+### Phase 4: 헬스체크
+
+#### 4.1: 컨테이너 상태 확인
 
 ```bash
-# 4-1. 컨테이너 상태 확인
 ssh pro301@192.168.75.194 'docker ps --filter name=sunjin-erp-app --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+```
 
-# 4-2. HTTP 응답 확인 (최대 30초 대기, 5초 간격 재시도)
+#### 4.2: HTTP 응답 확인 (최대 30초 대기, 5초 간격)
+
+```bash
+# 6회 재시도 (5초 간격 = 최대 30초)
 for i in 1 2 3 4 5 6; do
   STATUS=$(ssh pro301@192.168.75.194 "curl -s -o /dev/null -w '%{http_code}' http://localhost:3200" 2>/dev/null)
   if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ]; then
     echo "Health check passed (HTTP $STATUS)"
     break
   fi
-  echo "Waiting... (attempt $i, HTTP $STATUS)"
+  echo "Waiting... (attempt $i/6, HTTP $STATUS)"
   sleep 5
 done
+```
 
-# 4-3. 최근 로그 확인 (오류 여부)
+- HTTP 200 또는 307 (NextAuth 리다이렉트) → 성공
+- 6회 모두 실패 시 → 로그 확인 후 보고
+
+#### 4.3: 컨테이너 로그 확인
+
+```bash
 ssh pro301@192.168.75.194 'docker logs --tail 20 sunjin-erp-app'
 ```
 
-### Step 5: 결과 보고
+- 에러 패턴 (Error, FATAL, panic) 존재 시 경고 출력
+
+---
+
+### Phase 5: 배포 보고
 
 배포 완료 후 아래 형식으로 보고:
 
-```
-=== 배포 완료 ===
-브랜치: main
-커밋: <latest commit hash + message>
-URL: http://192.168.75.194:3200
-상태: <컨테이너 상태>
-시간: <완료 시각 KST>
+```markdown
+## 배포 완료
+
+| 항목 | 값 |
+|------|-----|
+| 브랜치 | main |
+| 커밋 | <hash> <message> |
+| URL | http://192.168.75.194:3200 |
+| 컨테이너 상태 | <status> |
+| HTTP 응답 | <status code> |
+| 완료 시각 | <YYYY-MM-DD HH:MM:SS KST> |
 ```
 
 ---
@@ -112,29 +171,114 @@ URL: http://192.168.75.194:3200
 
 | 상황 | 대응 |
 |------|------|
+| main 브랜치 아님 | "main 브랜치에서 실행하세요" 안내 |
 | uncommitted changes | "커밋 후 다시 시도하세요" 안내 |
-| type-check 실패 | 에러 내용 표시, 배포 중단 |
-| git push 실패 | pull --rebase 필요 여부 안내 |
+| type-check 실패 | 에러 내용 출력, 배포 중단 |
+| git push 실패 | `git pull --rebase` 안내 |
 | git pull 충돌 | 서버에서 수동 해결 필요 안내 |
 | docker build 실패 | 빌드 로그 마지막 30줄 표시 |
-| 컨테이너 미기동 | docker logs 표시 |
-| health check 실패 | 로그 확인 후 롤백 안내 |
+| 컨테이너 미기동 | `docker logs sunjin-erp-app` 출력 |
+| health check 실패 | 로그 출력 + 이전 커밋 롤백 방법 안내 |
 
-## 롤백 (필요 시)
+---
+
+## 초기 설정 (최초 1회)
+
+서버에 아래 파일이 없으면 배포 전에 생성이 필요합니다:
+
+### 필수 파일 확인
 
 ```bash
-# 이전 버전으로 롤백
-ssh pro301@192.168.75.194 'cd /home/pro301/sunjin-erp && git log --oneline -5'
-# 사용자가 선택한 커밋으로 reset
-ssh pro301@192.168.75.194 'cd /home/pro301/sunjin-erp && git checkout <commit> && docker compose build && docker compose up -d'
+# 서버에서 확인
+ssh pro301@192.168.75.194 'ls /home/pro301/sunjin-erp/Dockerfile /home/pro301/sunjin-erp/docker-compose.yml /home/pro301/sunjin-erp/.env 2>&1'
+```
+
+### Dockerfile (프로젝트 루트)
+
+```dockerfile
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+### docker-compose.yml (프로젝트 루트)
+
+```yaml
+services:
+  app:
+    container_name: sunjin-erp-app
+    build: .
+    ports:
+      - "3200:3000"
+    env_file:
+      - .env
+    networks:
+      - sunjin-network
+    deploy:
+      resources:
+        limits:
+          cpus: "3"
+          memory: 8G
+    restart: unless-stopped
+
+networks:
+  sunjin-network:
+    external: true
+```
+
+### next.config.js 수정 (standalone 출력 필요)
+
+```javascript
+// next.config.js에 output: 'standalone' 추가
+const nextConfig = {
+  output: 'standalone',
+  // ... 기존 설정
+};
+```
+
+### 서버 .env 파일
+
+```bash
+# /home/pro301/sunjin-erp/.env (서버에서 직접 생성, git에 포함하지 않음)
+ORACLE_HOST=192.168.75.194
+ORACLE_PORT=1521
+ORACLE_SERVICE_NAME=XEPDB1
+ORACLE_USERNAME=sunjin_admin
+ORACLE_PASSWORD=<password>
+NEXTAUTH_SECRET=<openssl rand -base64 32 결과>
+NEXTAUTH_URL=http://192.168.75.194:3200
+UPLOAD_DIR=/app/uploads
+```
+
+### Docker 네트워크 생성 (최초 1회)
+
+```bash
+ssh pro301@192.168.75.194 'docker network create --driver bridge --subnet 172.21.0.0/16 sunjin-network'
 ```
 
 ---
 
 ## 주의사항
 
-- **포트 3200 전용**: 다른 포트 사용 금지 (기존 시스템 충돌 방지)
-- **sunjin-network 사용**: zine-network 연결 금지
-- **ocr_admin 접근 금지**: sunjin_admin 스키마만 사용
-- **리소스 제한**: CPU 3코어, RAM 8GB 이내
-- **.env 파일**: 서버의 `/home/pro301/sunjin-erp/.env`에 별도 관리 (git에 포함하지 않음)
+1. **포트 3200 전용** — 3000, 3001 등 기존 시스템 포트 사용 금지
+2. **sunjin-network만 사용** — zine-network 연결 금지
+3. **sunjin_admin 스키마만 사용** — ocr_admin 접근 금지
+4. **리소스 제한 준수** — CPU 3코어, RAM 8GB 이내
+5. **.env 파일은 서버에서만 관리** — git에 커밋하지 않음
+6. **--no-cache 빌드** — 항상 최신 코드 반영을 보장
