@@ -116,7 +116,7 @@ export class CreateTechSupportTable20260125053000 implements MigrationInterface 
         columnNames: ['employee_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
+        // Oracle default behavior (no cascade) = restrict
       })
     );
     await queryRunner.createForeignKey(
@@ -126,7 +126,7 @@ export class CreateTechSupportTable20260125053000 implements MigrationInterface 
         columnNames: ['customer_id'],
         referencedTableName: 'CUSTOMER',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
+        // Oracle default behavior (no cascade) = restrict
       })
     );
 
