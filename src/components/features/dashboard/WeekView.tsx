@@ -23,7 +23,7 @@ function groupTasksByDate(tasks: TaskListItem[]): Record<string, TaskListItem[]>
 }
 
 export function WeekView({ date, tasks }: WeekViewProps) {
-  const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+  const weekStart = startOfWeek(date, { weekStartsOn: 0 });
   const weekDays = eachDayOfInterval({
     start: weekStart,
     end: addDays(weekStart, 6),

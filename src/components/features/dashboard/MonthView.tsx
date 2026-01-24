@@ -33,8 +33,8 @@ function groupTasksByDate(tasks: TaskListItem[]): Record<string, TaskListItem[]>
 export function MonthView({ date, tasks }: MonthViewProps) {
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   const tasksByDate = groupTasksByDate(tasks);
@@ -42,7 +42,7 @@ export function MonthView({ date, tasks }: MonthViewProps) {
   return (
     <div>
       <div className="grid grid-cols-7 border-b">
-        {['월', '화', '수', '목', '금', '토', '일'].map((day) => (
+        {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
           <div
             key={day}
             className="py-2 text-center text-sm font-medium text-gray-500"

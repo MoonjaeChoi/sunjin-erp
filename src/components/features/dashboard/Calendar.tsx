@@ -27,16 +27,16 @@ function getDateRange(
   if (view === 'month') {
     const monthStart = startOfMonth(date);
     const monthEnd = endOfMonth(date);
-    const calStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-    const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+    const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
     return {
       dateFrom: format(calStart, 'yyyy-MM-dd'),
       dateTo: format(calEnd, 'yyyy-MM-dd'),
     };
   }
   if (view === 'week') {
-    const weekStart = startOfWeek(date, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
+    const weekStart = startOfWeek(date, { weekStartsOn: 0 });
+    const weekEnd = endOfWeek(date, { weekStartsOn: 0 });
     return {
       dateFrom: format(weekStart, 'yyyy-MM-dd'),
       dateTo: format(weekEnd, 'yyyy-MM-dd'),

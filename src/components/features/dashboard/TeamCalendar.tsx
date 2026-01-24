@@ -87,8 +87,8 @@ export function TeamCalendar() {
     }
   }
 
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   // 직원 색상 맵
@@ -128,7 +128,7 @@ export function TeamCalendar() {
 
       <div>
         <div className="grid grid-cols-7 border-b">
-          {['월', '화', '수', '목', '금', '토', '일'].map((day) => (
+          {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
             <div
               key={day}
               className="py-2 text-center text-sm font-medium text-gray-500"
