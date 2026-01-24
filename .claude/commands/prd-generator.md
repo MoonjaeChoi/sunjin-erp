@@ -18,7 +18,7 @@ Receive initial feature requirements or problem descriptions from the user and g
 
 1.  Receive initial high-level requirements or a problem statement from the user.
 2.  Elaborate on these requirements to construct a detailed PRD, filling in standard PRD sections.
-3.  **Crucially, embed sunjin-erp's architectural principles and technical constraints directly into the PRD.** Apply appropriate architecture rules based on the ERP module context. Explicitly state how features will utilize Next.js App Router, Oracle XE 23, TypeORM, and conform to code quality standards.
+3.  **Crucially, embed sunjin-erp's architectural principles and technical constraints directly into the PRD.** Apply appropriate architecture rules based on the ERP module context. Explicitly state how features will utilize Next.js App Router, Oracle XE 21c, TypeORM, and conform to code quality standards.
 4.  **DO NOT include code examples in the PRD.** This is a technical specification document that should be concise and comprehensive without implementation code.
 5.  **Write in a clean, technical documentation style.** Focus on "what" needs to be built, not "how" to implement it in code.
 6.  Generate a comprehensive Markdown document following the specified output format.
@@ -53,7 +53,7 @@ The user will provide:
         - **Frontend:** React Server Components + Client Components (use `"use client"` directive when needed)
         - **Backend:** Next.js Route Handlers (`src/app/api/`)
         - **Rendering:** SSR/SSG where appropriate, client-side for interactive UI
-    *   **Database:** Oracle XE 23 (`XEPDB1`, TypeORM entities, `ON DELETE RESTRICT`, soft delete, no CASCADE DELETE).
+    *   **Database:** Oracle XE 21c (`XEPDB1`, TypeORM entities, `ON DELETE RESTRICT`, soft delete, no CASCADE DELETE).
     *   **Tech Stack:** Next.js 14, TypeScript, Tailwind CSS, shadcn/ui, Zustand, TanStack Query, TypeORM, NextAuth.js.
     *   **State Management:**
         - **Client State:** Zustand stores
@@ -146,7 +146,7 @@ Save as a Markdown file with this structure:
 *   `PUT /api/[module]/[id]` - 수정
 *   `DELETE /api/[module]/[id]` - 삭제 (soft delete)
 
-### 5.3 Database (Oracle XE 23 + TypeORM)
+### 5.3 Database (Oracle XE 21c + TypeORM)
 *   **Entity 정의:** `src/entities/[EntityName].ts`
 *   **Migration:** `src/migrations/` 에 마이그레이션 파일 생성
 *   **Oracle 규칙 준수:**

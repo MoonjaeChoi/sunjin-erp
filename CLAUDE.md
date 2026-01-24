@@ -25,7 +25,7 @@ docker-compose up -d             # Start app (port 3000) + Oracle XE (port 1521)
 
 ## Architecture Overview
 
-### Full-Stack Next.js 14 (App Router) + Oracle XE 23
+### Full-Stack Next.js 14 (App Router) + Oracle XE 21c
 
 This is a single full-stack project: Next.js handles both frontend rendering and backend API routes. No separate backend server.
 
@@ -75,7 +75,7 @@ src/app/
 [Notice] ──── [NoticeComment]
 ```
 
-## Database Rules (Oracle XE 23)
+## Database Rules (Oracle XE 21c)
 
 ### Oracle-Specific Types
 

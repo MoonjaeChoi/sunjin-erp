@@ -137,7 +137,7 @@ For input file: `docs/prd/1020_기술지원_관리_prd.md`
   - Clarity & Ambiguity
   - Completeness & Edge Cases
   - Architecture Compliance (Next.js App Router, Server/Client Components)
-  - Database Design (Oracle XE 23, TypeORM, soft delete, ON DELETE RESTRICT)
+  - Database Design (Oracle XE 21c, TypeORM, soft delete, ON DELETE RESTRICT)
   - Authentication & Authorization (NextAuth.js, RBAC)
   - ERP Module Dependencies (Phase 순서)
   - UI/UX & Responsive Design (shadcn/ui, Desktop-first)
@@ -225,7 +225,7 @@ For input file: `docs/prd/1020_기술지원_관리_prd.md`
 This pipeline enforces sunjin-erp's architecture standards across all 3 steps:
 
 - **Next.js App Router**: Server/Client Component 분리 검증
-- **Oracle XE 23**: CASCADE DELETE 금지, soft delete 필수, ON DELETE RESTRICT
+- **Oracle XE 21c**: CASCADE DELETE 금지, soft delete 필수, ON DELETE RESTRICT
 - **TypeORM**: Entity 설계 및 마이그레이션 전략 검증
 - **NextAuth.js**: RBAC (ADMIN/MANAGER/USER) 권한 설계 검증
 - **ERP Module**: Phase 순서에 따른 의존성 검증

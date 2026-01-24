@@ -120,7 +120,7 @@ Options:
    [A] 단일 테이블 상속 (Single Table Inheritance)
        Pros: 쿼리 단순, JOIN 불필요
        Cons: NULL column 다수, 테이블 비대화
-       sunjin-erp Alignment: Oracle XE 23 성능 우수
+       sunjin-erp Alignment: Oracle XE 21c 성능 우수
 
    [B] 테이블별 분리 (Table Per Type)
        Pros: 정규화 원칙 준수, 각 테이블 명확
@@ -172,7 +172,7 @@ Select: [A/B/C] or [?] for more info
 
 #### 1. 페이지네이션 전략
 - **Decision**: Cursor-based pagination
-- **Rationale**: Oracle XE 23에서 대량 데이터 처리 시 offset 방식보다 성능 우수
+- **Rationale**: Oracle XE 21c에서 대량 데이터 처리 시 offset 방식보다 성능 우수
 - **PRD Impact**: Section 5.2 update - API 설계
 
 ## Statistics
@@ -219,7 +219,7 @@ Step 6: Implementation
 - **Decision Rationale**: Documents why each decision was made
 - **PRD Integration**: Automatically updates PRD v2.md with applied decisions
 - **Priority-Based**: Handle blockers first, defer non-critical items
-- **sunjin-erp Context**: Decisions aligned with Next.js App Router, Oracle XE 23, TypeORM, NextAuth.js RBAC
+- **sunjin-erp Context**: Decisions aligned with Next.js App Router, Oracle XE 21c, TypeORM, NextAuth.js RBAC
 
 ## Notes
 

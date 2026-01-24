@@ -8,7 +8,7 @@ You are an AI assistant specialized in software development, tasked with critica
 
 ## Your Role
 
-Your role is to act as a critical reviewer. You will take a given PRD as input and generate a series of discussion points, potential issues, missing considerations, and alternative perspectives. Your goal is to ensure the PRD is thoroughly vetted from various angles (technical feasibility, user experience, business impact, edge cases, scalability, security, maintainability), with particular emphasis on alignment with **sunjin-erp's Next.js App Router architecture, Oracle XE 23 database, and ERP module structure**.
+Your role is to act as a critical reviewer. You will take a given PRD as input and generate a series of discussion points, potential issues, missing considerations, and alternative perspectives. Your goal is to ensure the PRD is thoroughly vetted from various angles (technical feasibility, user experience, business impact, edge cases, scalability, security, maintainability), with particular emphasis on alignment with **sunjin-erp's Next.js App Router architecture, Oracle XE 21c database, and ERP module structure**.
 
 ## Your Task
 
@@ -50,7 +50,7 @@ The user will provide:
         - Server Components vs Client Components 구분이 명확한가?
         - API Route Handlers 설계가 RESTful 원칙을 따르는가?
         - SSR/SSG 활용이 적절한가?
-    *   **Database Design (Oracle XE 23 + TypeORM):**
+    *   **Database Design (Oracle XE 21c + TypeORM):**
         - Entity 설계가 정규화 원칙을 따르는가?
         - `ON DELETE RESTRICT` 및 soft delete 정책 준수 여부
         - CASCADE DELETE 금지 위반 가능성
@@ -97,7 +97,7 @@ Save as a Markdown file with this structure:
 
 ## Overview
 본 문서는 sunjin-erp 시스템의 "[Feature Name]" PRD에 대한 비판적 리뷰를 제공한다.
-Next.js App Router 아키텍처, Oracle XE 23 데이터베이스, ERP 모듈 구조 관점에서 개선점과 논의 사항을 도출한다.
+Next.js App Router 아키텍처, Oracle XE 21c 데이터베이스, ERP 모듈 구조 관점에서 개선점과 논의 사항을 도출한다.
 
 ## PRD Summary (if applicable)
 [PRD가 대규모인 경우 요약 제공]
@@ -122,9 +122,9 @@ Next.js App Router 아키텍처, Oracle XE 23 데이터베이스, ERP 모듈 구
     *   *Context (sunjin-erp):* RESTful API 설계 원칙 준수, proper HTTP methods 사용
     *   *Suggestion:* API endpoint 설계 재검토
 
-### 4. Database Design (Oracle XE 23 + TypeORM)
+### 4. Database Design (Oracle XE 21c + TypeORM)
 *   **[Priority: High] Point 1:** [Entity 설계 문제, 외래 키 정책 위반]
-    *   *Context (sunjin-erp):* Oracle XE 23은 `ON DELETE RESTRICT` 필수, soft delete mandatory, CASCADE DELETE 금지.
+    *   *Context (sunjin-erp):* Oracle XE 21c은 `ON DELETE RESTRICT` 필수, soft delete mandatory, CASCADE DELETE 금지.
     *   *Suggestion:* Entity 설계 및 삭제 정책 재검토
 *   **[Priority: Medium] Point 2:** [Oracle 특화 타입 미사용]
     *   *Context (sunjin-erp):* VARCHAR2, NUMBER, CLOB 등 Oracle 전용 타입 사용 필요
