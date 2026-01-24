@@ -1,12 +1,17 @@
-// Generated: 2026-01-25 02:00:00 KST
+// Generated: 2026-01-25 06:30:00 KST
+
+import { Suspense } from 'react';
+import { Metadata } from 'next';
+import { TechSupportClient } from '@/components/features/support/TechSupportClient';
+
+export const metadata: Metadata = {
+  title: '기술지원 관리 | 선진ERP',
+};
 
 export default function SupportPage() {
   return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold text-gray-700 mb-2">기술지원</h1>
-        <p className="text-sm text-gray-400">준비 중입니다.</p>
-      </div>
-    </div>
+    <Suspense fallback={<div className="animate-pulse h-96" />}>
+      <TechSupportClient />
+    </Suspense>
   );
 }

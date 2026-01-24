@@ -4,6 +4,8 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Task } from '@/entities/Task';
 import { Employee } from '@/entities/Employee';
+import { Customer } from '@/entities/Customer';
+import { TechSupport } from '@/entities/TechSupport';
 
 let dataSource: DataSource | null = null;
 
@@ -19,7 +21,7 @@ export async function getDataSource(): Promise<DataSource> {
     serviceName: process.env.ORACLE_SERVICE_NAME || 'XEPDB1',
     username: process.env.ORACLE_USERNAME || 'sunjin_admin',
     password: process.env.ORACLE_PASSWORD || '',
-    entities: [Task, Employee],
+    entities: [Task, Employee, Customer, TechSupport],
     synchronize: false,
     logging: process.env.NODE_ENV === 'development',
   });
