@@ -1,6 +1,8 @@
 // Generated: 2026-01-24 21:10:00 KST
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  output: 'standalone',
+};
 
 module.exports = nextConfig;
