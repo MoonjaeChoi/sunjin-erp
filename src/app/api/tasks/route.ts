@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
     const queryBuilder = taskRepository
       .createQueryBuilder('task')
       .where('task.deleted_at IS NULL')
-      .andWhere('task.task_date BETWEEN :dateFrom AND :dateTo', {
+      .andWhere("task.task_date BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')", {
         dateFrom,
         dateTo,
       });
