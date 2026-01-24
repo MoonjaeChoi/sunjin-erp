@@ -27,7 +27,7 @@ export class Task {
   @Column({ type: 'varchar', length: 200, nullable: false })
   title!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'clob', nullable: true })
   description!: string | null;
 
   @Column({ type: 'date', nullable: false })
