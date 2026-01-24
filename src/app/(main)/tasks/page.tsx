@@ -1,12 +1,17 @@
-// Generated: 2026-01-25 02:00:00 KST
+// Generated: 2026-01-25 03:45:00 KST
+
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { TaskSearchClient } from '@/components/features/tasks/TaskSearchClient';
+
+export const metadata: Metadata = {
+  title: '업무 검색 - Sunjin ERP',
+};
 
 export default function TasksPage() {
   return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold text-gray-700 mb-2">업무 검색</h1>
-        <p className="text-sm text-gray-400">준비 중입니다.</p>
-      </div>
-    </div>
+    <Suspense>
+      <TaskSearchClient />
+    </Suspense>
   );
 }

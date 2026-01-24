@@ -1,10 +1,16 @@
-// Generated: 2026-01-24 21:20:00 KST
+// Generated: 2026-01-25 04:10:00 KST
 
 'use client';
 
-/**
- * 글로벌 Toaster 컴포넌트 (shadcn/ui toast 연동 시 교체)
- */
+import { Toaster as SonnerToaster } from 'sonner';
+
 export function Toaster() {
-  return null;
+  return (
+    <SonnerToaster
+      position="top-right"
+      richColors
+      closeButton
+      duration={3000}
+    />
+  );
 }
