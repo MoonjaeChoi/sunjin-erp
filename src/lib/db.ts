@@ -1,16 +1,10 @@
 // Generated: 2026-01-25 20:30:00 KST
 
-// Lazy load reflect-metadata to avoid circular dependencies at build time
-let reflectMetadataLoaded = false;
-function ensureReflectMetadata() {
-  if (!reflectMetadataLoaded) {
-    try {
-      require('reflect-metadata');
-      reflectMetadataLoaded = true;
-    } catch (e) {
-      // Ignore during build
-    }
-  }
+// Load reflect-metadata immediately for decorators
+try {
+  require('reflect-metadata');
+} catch (e) {
+  console.warn('[DB] Warning: reflect-metadata could not be loaded');
 }
 
 let dataSource: any = null;
@@ -21,8 +15,6 @@ export async function getDataSource(): Promise<any> {
   }
 
   try {
-    // Lazy load everything to avoid circular dependencies
-    ensureReflectMetadata();
     console.log('[DB] Loading TypeORM modules...');
 
     const { DataSource } = require('typeorm');
