@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:25:00 KST
+// Generated: 2026-01-24 23:30:00 KST
 
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
@@ -13,10 +13,13 @@ import { IssueAttachment } from '@/entities/IssueAttachment';
 import { IssueHistory } from '@/entities/IssueHistory';
 
 let dataSource: DataSource | null = null;
-let isInitializing = false;
 
-function createDataSource(): DataSource {
-  return new DataSource({
+export async function getDataSource(): Promise<DataSource> {
+  if (dataSource && dataSource.isInitialized) {
+    return dataSource;
+  }
+
+  dataSource = new DataSource({
     type: 'oracle',
     host: process.env.ORACLE_HOST || 'localhost',
     port: Number(process.env.ORACLE_PORT) || 1521,
@@ -36,32 +39,9 @@ function createDataSource(): DataSource {
     ],
     migrations: ['src/migrations/*.ts'],
     synchronize: false,
-    logging: false, // Disable logging to avoid build issues
+    logging: process.env.NODE_ENV === 'development',
   });
-}
 
-export async function getDataSource(): Promise<DataSource> {
-  // Skip initialization during build phase if no connection available
-  if (isInitializing) {
-    return dataSource!;
-  }
-
-  if (dataSource && dataSource.isInitialized) {
-    return dataSource;
-  }
-
-  dataSource = createDataSource();
-  isInitializing = true;
-
-  try {
-    await dataSource.initialize();
-  } catch (error) {
-    // During build, connection may fail - that's ok
-    console.warn('Database initialization skipped or failed during build');
-    // Return uninitialized datasource to prevent further issues
-    isInitializing = false;
-  }
-
-  isInitializing = false;
+  await dataSource.initialize();
   return dataSource;
 }
