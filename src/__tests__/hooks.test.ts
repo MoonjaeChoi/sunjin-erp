@@ -18,9 +18,9 @@
  * - useDeleteAttachmentMutation: Attachment deletion flow
  */
 
+import React, { ReactNode } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode } from 'react';
 import {
   useIssueListQuery,
   useIssueDetailQuery,
@@ -40,7 +40,7 @@ const createWrapper = () => {
       },
     },
   });
-  return ({ children }: { children: ReactNode }) => (
+  return ({ children }: { children: ReactNode }): JSX.Element => (
     <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
