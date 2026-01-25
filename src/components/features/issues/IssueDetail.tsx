@@ -1,12 +1,13 @@
 'use client';
 
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 22:30:00 KST
 
 import { useSession } from 'next-auth/react';
 import { Issue } from '@/types/issue';
 import {
   useUpdateIssueMutation,
   useRollbackIssueMutation,
+  useDeleteAttachmentMutation,
 } from '@/hooks/issues';
 import {
   formatTreatmentTime,
@@ -179,25 +180,13 @@ export default function IssueDetail({ issue }: IssueDetailProps) {
         <h2 className="text-lg font-semibold mb-4">첨부파일</h2>
         <div className="space-y-3">
           {issue.attachments?.map((att) => (
-            <div
+            <AttachmentItem
               key={att.id}
-              className="flex justify-between items-center p-2 bg-gray-50 rounded"
-            >
-              <div>
-                <p className="font-medium">{att.file_name}</p>
-                <p className="text-sm text-gray-500">
-                  {(att.file_size / 1024).toFixed(1)}KB
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline">
-                  다운로드
-                </Button>
-                <Button size="sm" variant="ghost">
-                  삭제
-                </Button>
-              </div>
-            </div>
+              issueId={issue.id}
+              attachment={att}
+              currentUserId={(session.data?.user as any)?.id}
+              userRole={(session.data?.user as any)?.role}
+            />
           ))}
         </div>
         <FileUploadArea issueId={issue.id} />
@@ -229,6 +218,55 @@ export default function IssueDetail({ issue }: IssueDetailProps) {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+interface AttachmentItemProps {
+  issueId: number;
+  attachment: any;
+  currentUserId: number;
+  userRole: string;
+}
+
+function AttachmentItem({
+  issueId,
+  attachment,
+  currentUserId,
+  userRole,
+}: AttachmentItemProps) {
+  const deleteMutation = useDeleteAttachmentMutation(issueId, attachment.id);
+  const canDeleteFile =
+    userRole === 'ADMIN' || currentUserId === attachment.uploaded_by_id;
+
+  return (
+    <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+      <div>
+        <p className="font-medium">{attachment.file_name}</p>
+        <p className="text-sm text-gray-500">
+          {(attachment.file_size / 1024).toFixed(1)}KB
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled
+          title="다운로드 기능은 추후 지원됩니다"
+        >
+          다운로드
+        </Button>
+        {canDeleteFile && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => deleteMutation.mutate()}
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? '삭제 중...' : '삭제'}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

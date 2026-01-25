@@ -1,6 +1,6 @@
 'use client';
 
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 22:30:00 KST
 
 import { IssueHistory } from '@/types/issue';
 import { format } from 'date-fns';
