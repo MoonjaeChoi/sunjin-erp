@@ -31,9 +31,9 @@ export const authOptions: NextAuthOptions = {
           const queryRunner = ds.createQueryRunner();
           try {
             const result = await queryRunner.query(
-              `SELECT id, name, username, password_hash, role, department_id
+              `SELECT "ID", "NAME", "USERNAME", "PASSWORD_HASH", "ROLE", "DEPARTMENT_ID"
                FROM EMPLOYEE
-               WHERE username = :username AND deleted_at IS NULL`,
+               WHERE "USERNAME" = :username AND "DELETED_AT" IS NULL`,
               { username: credentials.username }
             );
 
@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptions = {
 
             const isValid = await bcrypt.compare(
               credentials.password,
-              employee.password_hash
+              employee.PASSWORD_HASH
             );
 
             if (!isValid) {
@@ -53,10 +53,10 @@ export const authOptions: NextAuthOptions = {
             }
 
             return {
-              id: String(employee.id),
-              name: employee.name,
-              role: employee.role,
-              department: employee.department_id,
+              id: String(employee.ID),
+              name: employee.NAME,
+              role: employee.ROLE,
+              department: employee.DEPARTMENT_ID,
             };
           } finally {
             await queryRunner.release();
