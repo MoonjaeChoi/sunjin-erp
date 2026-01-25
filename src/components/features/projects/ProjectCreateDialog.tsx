@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -225,6 +226,9 @@ export function ProjectCreateDialog({ open, onClose }: ProjectCreateDialogProps)
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>신규 프로젝트 등록</DialogTitle>
+          <DialogDescription>
+            새로운 프로젝트를 등록합니다. 필수 필드(*)를 모두 입력해주세요.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
