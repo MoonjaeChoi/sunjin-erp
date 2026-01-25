@@ -18,22 +18,22 @@ export type ProjectStatus = 'PREPARING' | 'IN_PROGRESS' | 'COMPLETED' | 'ON_HOLD
 @Index('IDX_PROJECT_STATUS', ['status'])
 @Index('IDX_PROJECT_DELETED_AT', ['deleted_at'])
 export class Project {
-  @PrimaryGeneratedColumn({ type: 'number' })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id!: number;
 
-  @Column({ name: 'project_code', type: 'varchar2', length: 30, nullable: true, unique: true })
+  @Column({ name: 'project_code', type: 'varchar', length: 30, nullable: true, unique: true })
   project_code!: string | null;
 
-  @Column({ name: 'project_name', type: 'varchar2', length: 200, nullable: false })
+  @Column({ name: 'project_name', type: 'varchar', length: 200, nullable: false })
   project_name!: string;
 
-  @Column({ name: 'customer_id', type: 'number', nullable: false })
+  @Column({ name: 'customer_id', type: 'int', nullable: false })
   customer_id!: number;
 
-  @Column({ name: 'employee_id', type: 'number', nullable: false })
+  @Column({ name: 'employee_id', type: 'int', nullable: false })
   employee_id!: number;
 
-  @Column({ name: 'status', type: 'varchar2', length: 20, default: "'PREPARING'" })
+  @Column({ name: 'status', type: 'varchar', length: 20, default: "'PREPARING'" })
   status!: ProjectStatus;
 
   @Column({ name: 'start_date', type: 'date', nullable: true })

@@ -21,49 +21,49 @@ import { TaskType, WorkType, TaskStatus } from '@/types/task';
 @Index('IDX_TASK_EMPLOYEE_STATUS', ['employee_id', 'status'])
 @Index('IDX_TASK_DELETED_AT', ['deleted_at'])
 export class Task {
-  @PrimaryGeneratedColumn({ type: 'int' })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id!: number;
 
-  @Column({ type: 'varchar', length: 200, nullable: false })
+  @Column({ name: 'title', type: 'varchar', length: 200, nullable: false })
   title!: string;
 
-  @Column({ type: 'clob', nullable: true })
+  @Column({ name: 'description', type: 'clob', nullable: true })
   description!: string | null;
 
-  @Column({ type: 'date', nullable: false })
+  @Column({ name: 'task_date', type: 'date', nullable: false })
   task_date!: Date;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ name: 'start_time', type: 'int', nullable: true })
   start_time!: number | null;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ name: 'end_time', type: 'int', nullable: true })
   end_time!: number | null;
 
-  @Column({ type: 'varchar', length: 20, nullable: false })
+  @Column({ name: 'task_type', type: 'varchar', length: 20, nullable: false })
   task_type!: TaskType;
 
-  @Column({ type: 'varchar', length: 10, nullable: false })
+  @Column({ name: 'work_type', type: 'varchar', length: 10, nullable: false })
   work_type!: WorkType;
 
-  @Column({ type: 'varchar', length: 20, nullable: false, default: "'READY'" })
+  @Column({ name: 'status', type: 'varchar', length: 20, nullable: false, default: "'READY'" })
   status!: TaskStatus;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ name: 'employee_id', type: 'int', nullable: false })
   employee_id!: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ name: 'customer_id', type: 'int', nullable: true })
   customer_id!: number | null;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'completed_at', type: 'timestamp', nullable: true })
   completed_at!: Date | null;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
   deleted_at!: Date | null;
 
   // Relations (Phase 1 구현 후 활성화)

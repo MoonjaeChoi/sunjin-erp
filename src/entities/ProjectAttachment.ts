@@ -14,22 +14,22 @@ export type AttachmentCategory = 'CONTRACT' | 'PROPOSAL' | 'QUOTATION' | 'REPORT
 @Index('IDX_PROJECT_ATTACHMENT_PROJECT', ['project_id'])
 @Index('IDX_PROJECT_ATTACHMENT_CATEGORY', ['category'])
 export class ProjectAttachment {
-  @PrimaryGeneratedColumn({ type: 'number' })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id!: number;
 
-  @Column({ name: 'project_id', type: 'number', nullable: false })
+  @Column({ name: 'project_id', type: 'int', nullable: false })
   project_id!: number;
 
-  @Column({ name: 'file_path', type: 'varchar2', length: 500, nullable: false })
+  @Column({ name: 'file_path', type: 'varchar', length: 500, nullable: false })
   file_path!: string;
 
-  @Column({ name: 'file_name', type: 'varchar2', length: 200, nullable: false })
+  @Column({ name: 'file_name', type: 'varchar', length: 200, nullable: false })
   file_name!: string;
 
-  @Column({ name: 'file_size', type: 'number', nullable: false })
+  @Column({ name: 'file_size', type: 'int', nullable: false })
   file_size!: number;
 
-  @Column({ name: 'category', type: 'varchar2', length: 20, nullable: false })
+  @Column({ name: 'category', type: 'varchar', length: 20, nullable: false })
   category!: AttachmentCategory;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })

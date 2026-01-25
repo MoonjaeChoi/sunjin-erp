@@ -24,54 +24,54 @@ export type SupportStatus = 'RECEIVED' | 'IN_PROGRESS' | 'COMPLETED';
 @Index('IDX_TECHSUPPORT_STATUS', ['status'])
 @Index('IDX_TECHSUPPORT_DELETED_AT', ['deleted_at'])
 export class TechSupport {
-  @PrimaryGeneratedColumn({ type: 'int' })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id!: number;
 
-  @Column({ type: 'varchar', length: 200, nullable: false })
+  @Column({ name: 'title', type: 'varchar', length: 200, nullable: false })
   title!: string;
 
-  @Column({ type: 'clob', nullable: true })
+  @Column({ name: 'description', type: 'clob', nullable: true })
   description!: string | null;
 
-  @Column({ type: 'date', nullable: false })
+  @Column({ name: 'support_date', type: 'date', nullable: false })
   support_date!: Date;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ name: 'start_time', type: 'int', nullable: true })
   start_time!: number | null;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ name: 'end_time', type: 'int', nullable: true })
   end_time!: number | null;
 
-  @Column({ type: 'varchar', length: 20, nullable: false })
+  @Column({ name: 'support_type', type: 'varchar', length: 20, nullable: false })
   support_type!: SupportType;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ name: 'support_method', type: 'varchar', length: 20, nullable: true })
   support_method!: SupportMethod | null;
 
-  @Column({ type: 'varchar', length: 20, nullable: false, default: "'RECEIVED'" })
+  @Column({ name: 'status', type: 'varchar', length: 20, nullable: false, default: "'RECEIVED'" })
   status!: SupportStatus;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ name: 'employee_id', type: 'int', nullable: false })
   employee_id!: number;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ name: 'customer_id', type: 'int', nullable: false })
   customer_id!: number;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'attachment_path', type: 'varchar', length: 500, nullable: true })
   attachment_path!: string | null;
 
-  @Column({ type: 'varchar', length: 200, nullable: true })
+  @Column({ name: 'attachment_name', type: 'varchar', length: 200, nullable: true })
   attachment_name!: string | null;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ name: 'completed_at', type: 'timestamp', nullable: true })
   completed_at!: Date | null;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
   deleted_at!: Date | null;
 }

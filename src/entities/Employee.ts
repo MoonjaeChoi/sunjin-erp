@@ -16,36 +16,36 @@ export type EmployeeRole = 'ADMIN' | 'MANAGER' | 'USER';
 @Index('IDX_EMPLOYEE_USERNAME', ['username'], { unique: true })
 @Index('IDX_EMPLOYEE_DELETED_AT', ['deleted_at'])
 export class Employee {
-  @PrimaryGeneratedColumn({ type: 'int' })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id!: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: false })
+  @Column({ name: 'name', type: 'varchar', length: 50, nullable: false })
   name!: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: false, unique: true })
+  @Column({ name: 'username', type: 'varchar', length: 50, nullable: false, unique: true })
   username!: string;
 
-  @Column({ type: 'varchar', length: 200, nullable: false })
+  @Column({ name: 'password_hash', type: 'varchar', length: 200, nullable: false })
   password_hash!: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: false, default: "'USER'" })
+  @Column({ name: 'role', type: 'varchar', length: 20, nullable: false, default: "'USER'" })
   role!: EmployeeRole;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ name: 'department_id', type: 'int', nullable: true })
   department_id!: number | null;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ name: 'email', type: 'varchar', length: 100, nullable: true })
   email!: string | null;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ name: 'position', type: 'varchar', length: 50, nullable: true })
   position!: string | null;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
   deleted_at!: Date | null;
 }

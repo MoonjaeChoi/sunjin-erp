@@ -16,21 +16,21 @@ export type CustomerCategory = 'RESELLER' | 'END_USER' | 'MAINTENANCE' | 'GENERA
 @Index('IDX_CUSTOMER_DELETED_AT', ['deleted_at'])
 @Index('IDX_CUSTOMER_CATEGORY', ['category'])
 export class Customer {
-  @PrimaryGeneratedColumn({ type: 'int' })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id!: number;
 
-  @Column({ type: 'varchar', length: 100, nullable: false, unique: true })
+  @Column({ name: 'name', type: 'varchar', length: 100, nullable: false, unique: true })
   name!: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: false })
+  @Column({ name: 'category', type: 'varchar', length: 20, nullable: false })
   category!: CustomerCategory;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at!: Date;
 
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
   deleted_at!: Date | null;
 }
