@@ -244,10 +244,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           "c"."name" AS customer_name,
           "e_created"."name" AS created_by_name,
           "e_assigned"."name" AS assigned_to_name
-        FROM ISSUE "i"
-        LEFT JOIN CUSTOMER "c" ON "i"."customer_id" = "c"."id"
-        LEFT JOIN EMPLOYEE "e_created" ON "i"."created_by_id" = "e_created"."id"
-        LEFT JOIN EMPLOYEE "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
+        FROM "ISSUE" "i"
+        LEFT JOIN "CUSTOMER" "c" ON "i"."customer_id" = "c"."id"
+        LEFT JOIN "EMPLOYEE" "e_created" ON "i"."created_by_id" = "e_created"."id"
+        LEFT JOIN "EMPLOYEE" "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
         WHERE ${whereClauses.join(' AND ')}
         ORDER BY "i"."${finalSortBy}" ${finalSortOrder}
         OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
@@ -255,8 +255,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       const countQuery = `
         SELECT COUNT(*) as total
-        FROM ISSUE "i"
-        LEFT JOIN EMPLOYEE "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
+        FROM "ISSUE" "i"
+        LEFT JOIN "EMPLOYEE" "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
         WHERE ${whereClauses.join(' AND ')}
       `;
 
