@@ -7,6 +7,8 @@ import { getDataSource } from '@/lib/db';
 import { Customer } from '@/entities/Customer';
 import { IsNull } from 'typeorm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);

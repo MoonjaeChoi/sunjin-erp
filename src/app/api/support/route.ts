@@ -6,6 +6,8 @@ import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
 import { TechSupport, SupportType, SupportMethod } from '@/entities/TechSupport';
 
+export const dynamic = 'force-dynamic';
+
 interface CreateSupportDto {
   title: string;
   customer_id: number;

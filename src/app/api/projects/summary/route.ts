@@ -7,6 +7,8 @@ import { getDataSource } from '@/lib/db';
 import { Project } from '@/entities/Project';
 import { Employee } from '@/entities/Employee';
 
+export const dynamic = 'force-dynamic';
+
 interface ProjectSummaryResponse {
   preparing: number;
   in_progress: number;

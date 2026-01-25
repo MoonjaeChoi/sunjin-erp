@@ -1,7 +1,9 @@
-// Generated: 2026-01-24 18:45:00 KST
+// Generated: 2026-01-25 19:00:00 KST
 
 import NextAuth from 'next-auth';
 import { authOptions } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 
 const handler = NextAuth(authOptions);
 

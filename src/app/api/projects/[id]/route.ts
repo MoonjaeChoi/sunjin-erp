@@ -12,6 +12,8 @@ import { Customer } from '@/entities/Customer';
 import { Employee } from '@/entities/Employee';
 import { IsNull, Not } from 'typeorm';
 
+export const dynamic = 'force-dynamic';
+
 interface UpdateProjectRequest {
   project_name?: string;
   project_code?: string;

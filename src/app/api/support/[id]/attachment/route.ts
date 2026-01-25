@@ -11,6 +11,8 @@ import { randomUUID } from 'crypto';
 import { mkdir, writeFile, unlink, readFile, chmod } from 'fs/promises';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 function getUploadDir(): string {
   return process.env.UPLOAD_DIR || './uploads';
 }

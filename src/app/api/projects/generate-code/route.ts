@@ -5,6 +5,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 interface GenerateCodeResponse {
   code: string;
 }

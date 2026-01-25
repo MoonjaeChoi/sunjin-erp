@@ -9,6 +9,8 @@ import { TechSupport, SupportType, SupportMethod, SupportStatus } from '@/entiti
 import { unlink } from 'fs/promises';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 interface UpdateSupportDto {
   title?: string;
   description?: string;

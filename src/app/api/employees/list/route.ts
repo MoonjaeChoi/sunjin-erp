@@ -7,6 +7,8 @@ import { getDataSource } from '@/lib/db';
 import { Employee } from '@/entities/Employee';
 import { IsNull } from 'typeorm';
 
+export const dynamic = 'force-dynamic';
+
 interface EmployeeListItem {
   id: number;
   name: string;

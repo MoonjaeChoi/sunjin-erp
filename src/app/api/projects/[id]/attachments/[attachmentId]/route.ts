@@ -12,6 +12,8 @@ import { getMimeType, getExtension } from '@/lib/file-utils';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 function getUploadDir(): string {
   return process.env.UPLOAD_DIR || './uploads';
 }

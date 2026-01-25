@@ -13,6 +13,8 @@ import { randomUUID } from 'crypto';
 import { mkdir, writeFile, chmod } from 'fs/promises';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 interface ProjectAttachmentResponse {
   id: number;
   file_name: string;

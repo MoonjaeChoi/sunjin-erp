@@ -8,6 +8,8 @@ import { getDataSource } from '@/lib/db';
 import { Task } from '@/entities/Task';
 import { TaskType, WorkType, TaskStatus } from '@/types/task';
 
+export const dynamic = 'force-dynamic';
+
 interface UpdateTaskDto {
   title?: string;
   description?: string;
