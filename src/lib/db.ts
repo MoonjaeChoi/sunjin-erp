@@ -1,4 +1,4 @@
-// Generated: 2026-01-24 23:30:00 KST
+// Generated: 2026-01-25 18:15:00 KST
 
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
@@ -14,12 +14,8 @@ import { IssueHistory } from '@/entities/IssueHistory';
 
 let dataSource: DataSource | null = null;
 
-export async function getDataSource(): Promise<DataSource> {
-  if (dataSource && dataSource.isInitialized) {
-    return dataSource;
-  }
-
-  dataSource = new DataSource({
+function createDataSource(): DataSource {
+  return new DataSource({
     type: 'oracle',
     host: process.env.ORACLE_HOST || 'localhost',
     port: Number(process.env.ORACLE_PORT) || 1521,
@@ -41,7 +37,24 @@ export async function getDataSource(): Promise<DataSource> {
     synchronize: false,
     logging: process.env.NODE_ENV === 'development',
   });
+}
 
-  await dataSource.initialize();
+export async function getDataSource(): Promise<DataSource> {
+  if (dataSource && dataSource.isInitialized) {
+    return dataSource;
+  }
+
+  dataSource = createDataSource();
+
+  try {
+    await dataSource.initialize();
+  } catch (error) {
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
+    // During build, connection may fail - that's ok
+    console.warn('Database initialization warning:', (error as any)?.message);
+  }
+
   return dataSource;
 }
