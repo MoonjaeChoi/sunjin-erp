@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { IsNull } from 'typeorm';
 
 export const dynamic = 'force-dynamic';
 
@@ -216,89 +215,92 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const finalSortOrder = sort_order === 'ASC' ? 'ASC' : 'DESC';
 
     // 6. 데이터베이스 연결 및 쿼리 실행
-    const { Issue } = await import('@/entities/Issue');
     const ds = await getDataSource();
-    const offset = (page - 1) * page_size;
+    const queryRunner = ds.createQueryRunner();
 
-    const query = `
-      SELECT
-        "i"."id",
-        "i"."customer_id",
-        "i"."title",
-        "i"."description",
-        "i"."severity",
-        "i"."status",
-        "i"."is_public",
-        "i"."created_by_id",
-        "i"."assigned_to_id",
-        "i"."treatment_method",
-        "i"."treatment_time_minutes",
-        "i"."treatment_result",
-        "i"."created_at",
-        "i"."completed_at",
-        "i"."updated_at",
-        "i"."deleted_at",
-        "c"."name" AS customer_name,
-        "e_created"."name" AS created_by_name,
-        "e_assigned"."name" AS assigned_to_name
-      FROM "ISSUE" "i"
-      LEFT JOIN "CUSTOMER" "c" ON "i"."customer_id" = "c"."id"
-      LEFT JOIN "EMPLOYEE" "e_created" ON "i"."created_by_id" = "e_created"."id"
-      LEFT JOIN "EMPLOYEE" "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
-      WHERE ${whereClauses.join(' AND ')}
-      ORDER BY "i"."${finalSortBy}" ${finalSortOrder}
-      OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
-    `;
+    try {
+      const offset = (page - 1) * page_size;
+      params.offset = offset;
+      params.pageSize = page_size;
 
-    const countQuery = `
-      SELECT COUNT(*) as total
-      FROM "ISSUE" "i"
-      LEFT JOIN "EMPLOYEE" "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
-      WHERE ${whereClauses.join(' AND ')}
-    `;
+      const query = `
+        SELECT
+          "i"."id",
+          "i"."customer_id",
+          "i"."title",
+          "i"."description",
+          "i"."severity",
+          "i"."status",
+          "i"."is_public",
+          "i"."created_by_id",
+          "i"."assigned_to_id",
+          "i"."treatment_method",
+          "i"."treatment_time_minutes",
+          "i"."treatment_result",
+          "i"."created_at",
+          "i"."completed_at",
+          "i"."updated_at",
+          "i"."deleted_at",
+          "c"."name" AS customer_name,
+          "e_created"."name" AS created_by_name,
+          "e_assigned"."name" AS assigned_to_name
+        FROM ISSUE "i"
+        LEFT JOIN CUSTOMER "c" ON "i"."customer_id" = "c"."id"
+        LEFT JOIN EMPLOYEE "e_created" ON "i"."created_by_id" = "e_created"."id"
+        LEFT JOIN EMPLOYEE "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
+        WHERE ${whereClauses.join(' AND ')}
+        ORDER BY "i"."${finalSortBy}" ${finalSortOrder}
+        OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
+      `;
 
-    const [issues, countResult] = await Promise.all([
-      ds.getRepository(Issue).query(query, {
-        ...params,
-        offset,
-        pageSize: page_size,
-      }),
-      ds.getRepository(Issue).query(countQuery, params),
-    ]);
+      const countQuery = `
+        SELECT COUNT(*) as total
+        FROM ISSUE "i"
+        LEFT JOIN EMPLOYEE "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
+        WHERE ${whereClauses.join(' AND ')}
+      `;
 
-    const total = parseInt(countResult[0]?.total || '0', 10);
+      const [issues, countResult] = await Promise.all([
+        queryRunner.query(query, params),
+        queryRunner.query(countQuery, params),
+      ]);
 
-    // 7. 응답 반환
-    const formattedIssues: IssueListItem[] = issues.map((row: any) => ({
-      id: row.id,
-      customer_id: row.customer_id,
-      customer_name: row.customer_name || '',
-      title: row.title,
-      description: row.description,
-      severity: row.severity,
-      status: row.status,
-      is_public: row.is_public,
-      created_by_id: row.created_by_id,
-      created_by_name: row.created_by_name || '',
-      assigned_to_id: row.assigned_to_id,
-      assigned_to_name: row.assigned_to_name || null,
-      treatment_method: row.treatment_method,
-      treatment_time_minutes: row.treatment_time_minutes,
-      treatment_result: row.treatment_result,
-      created_at: row.created_at,
-      completed_at: row.completed_at,
-      updated_at: row.updated_at,
-    }));
+      const total = parseInt(countResult[0]?.total || '0', 10);
 
-    return NextResponse.json<IssueListResponse>({
-      data: formattedIssues,
-      pagination: {
-        page,
-        page_size,
-        total,
-        total_pages: Math.ceil(total / page_size),
-      },
-    });
+      // 7. 응답 반환
+      const formattedIssues: IssueListItem[] = issues.map((row: any) => ({
+        id: row.id,
+        customer_id: row.customer_id,
+        customer_name: row.customer_name || '',
+        title: row.title,
+        description: row.description,
+        severity: row.severity,
+        status: row.status,
+        is_public: row.is_public,
+        created_by_id: row.created_by_id,
+        created_by_name: row.created_by_name || '',
+        assigned_to_id: row.assigned_to_id,
+        assigned_to_name: row.assigned_to_name || null,
+        treatment_method: row.treatment_method,
+        treatment_time_minutes: row.treatment_time_minutes,
+        treatment_result: row.treatment_result,
+        created_at: row.created_at,
+        completed_at: row.completed_at,
+        updated_at: row.updated_at,
+      }));
+
+      return NextResponse.json<IssueListResponse>({
+        data: formattedIssues,
+        pagination: {
+          page,
+          page_size,
+          total,
+          total_pages: Math.ceil(total / page_size),
+        },
+      });
+    } finally {
+      await queryRunner.release();
+    }
   } catch (error) {
     console.error('GET /api/issues error:', error);
     return NextResponse.json(
