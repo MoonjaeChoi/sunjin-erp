@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { Task } from '@/entities/Task';
 import { TaskType, WorkType, TaskStatus } from '@/types/task';
 
 export const dynamic = 'force-dynamic';
@@ -190,79 +189,101 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 4. DB 연결 및 쿼리 빌드
+    // 4. DB 연결 및 쿼리 빌드 (Raw SQL)
     const ds = await getDataSource();
-    const taskRepository = ds.getRepository(Task);
+    const queryRunner = ds.createQueryRunner();
 
-    const queryBuilder = taskRepository
-      .createQueryBuilder('task')
-      .where('"task"."deleted_at" IS NULL')
-      .andWhere('"task"."task_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')', {
+    try {
+      // 5. RBAC 필터링을 위한 사용자 정보
+      const user = session.user as any;
+
+      // 6. 동적 쿼리 빌드
+      let whereClauses: string[] = ['"deleted_at" IS NULL'];
+      whereClauses.push(`"task_date" BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')`);
+
+      // RBAC 필터링
+      if (user.role === 'USER' || user.role === 'MANAGER') {
+        whereClauses.push(`"employee_id" = :userId`);
+      }
+      // ADMIN: no additional filtering
+
+      // 선택 필터
+      if (employeeId) {
+        whereClauses.push(`"employee_id" = :employeeId`);
+      }
+      if (type) {
+        whereClauses.push(`"task_type" = :type`);
+      }
+      if (status) {
+        whereClauses.push(`"status" = :status`);
+      }
+      if (workType) {
+        whereClauses.push(`"work_type" = :workType`);
+      }
+      if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
+        whereClauses.push(`"title" LIKE :keyword`);
+      }
+
+      const whereClause = whereClauses.join(' AND ');
+
+      // 정렬
+      let orderClause = '';
+      if (isPaginationMode) {
+        const sortBy = (sortByParam || 'task_date') as typeof VALID_SORT_BY[number];
+        const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
+        orderClause = ` ORDER BY "${sortBy}" ${sortOrder}`;
+      } else {
+        orderClause = ' ORDER BY "task_date" ASC, "start_time" ASC';
+      }
+
+      // 쿼리 매개변수
+      const params: any = {
         dateFrom,
         dateTo,
-      });
+      };
 
-    // 5. RBAC 필터링
-    const user = session.user as any;
-    if (user.role === 'USER') {
-      queryBuilder.andWhere('"task"."employee_id" = :userId', {
-        userId: user.id,
-      });
-    } else if (user.role === 'MANAGER') {
-      // Phase 2-A: 본인 업무만 반환
-      // Phase 2-B: 부서 내 직원 ID 목록으로 필터링
-      queryBuilder.andWhere('"task"."employee_id" = :userId', {
-        userId: user.id,
-      });
-    }
-    // ADMIN: 전체 조회 (추가 필터 없음)
+      if (user.role === 'USER' || user.role === 'MANAGER') {
+        params.userId = user.id;
+      }
+      if (employeeId) {
+        params.employeeId = Number(employeeId);
+      }
+      if (type) {
+        params.type = type;
+      }
+      if (status) {
+        params.status = status;
+      }
+      if (workType) {
+        params.workType = workType;
+      }
+      if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
+        params.keyword = `%${keyword}%`;
+      }
 
-    // 6. 선택 필터
-    if (employeeId) {
-      queryBuilder.andWhere('"task"."employee_id" = :employeeId', {
-        employeeId: Number(employeeId),
-      });
-    }
-    if (type) {
-      queryBuilder.andWhere('"task"."task_type" = :type', { type });
-    }
-    if (status) {
-      queryBuilder.andWhere('"task"."status" = :status', { status });
-    }
-    if (workType) {
-      queryBuilder.andWhere('"task"."work_type" = :workType', { workType });
-    }
-    if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
-      queryBuilder.andWhere('"task"."title" LIKE :keyword', {
-        keyword: `%${keyword}%`,
-      });
-    }
+      // 전체 개수 쿼리
+      const countSql = `SELECT COUNT(*) as total FROM TASK WHERE ${whereClause}`;
+      const countResult = await queryRunner.query(countSql, params);
+      const total = parseInt(countResult[0].total || '0', 10);
 
-    // 7. 정렬
-    if (isPaginationMode) {
-      const sortBy = (sortByParam || 'task_date') as typeof VALID_SORT_BY[number];
-      const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
-      queryBuilder.orderBy(`"task"."${sortBy}"`, sortOrder);
-    } else {
-      // 하위 호환: 기존 대시보드 정렬
-      queryBuilder
-        .orderBy('"task"."task_date"', 'ASC')
-        .addOrderBy('"task"."start_time"', 'ASC');
-    }
+      // 데이터 쿼리
+      let dataSql = `SELECT * FROM TASK WHERE ${whereClause}${orderClause}`;
 
-    // 8. 페이지네이션 (page 모드에서만)
-    if (isPaginationMode) {
-      queryBuilder.skip((page - 1) * pageSize).take(pageSize);
-    }
+      if (isPaginationMode) {
+        const offset = (page - 1) * pageSize;
+        dataSql += ` OFFSET ${offset} ROWS FETCH NEXT ${pageSize} ROWS ONLY`;
+      }
 
-    // 9. 실행
-    const [tasks, total] = await queryBuilder.getManyAndCount();
+      const tasks = await queryRunner.query(dataSql, params);
 
-    // 10. 응답 분기
-    if (isPaginationMode) {
-      return NextResponse.json({ tasks, total, page, page_size: pageSize });
+      // 응답 분기
+      if (isPaginationMode) {
+        return NextResponse.json({ tasks, total, page, page_size: pageSize });
+      }
+      return NextResponse.json({ tasks, total });
+    } finally {
+      await queryRunner.release();
     }
-    return NextResponse.json({ tasks, total });
   } catch (error) {
     console.error('GET /api/tasks error:', error);
     return NextResponse.json(
@@ -302,27 +323,50 @@ export async function POST(request: NextRequest) {
   const sanitizedTitle = sanitizeHtml(body.title.trim());
 
   try {
-    // 4. DB 저장
+    // 4. DB 저장 (Raw SQL)
     const ds = await getDataSource();
-    const taskRepository = ds.getRepository(Task);
+    const queryRunner = ds.createQueryRunner();
 
-    const user = session.user as any;
-    const task = taskRepository.create({
-      title: sanitizedTitle,
-      description: body.description || null,
-      task_date: new Date(body.task_date),
-      start_time: body.start_time ?? null,
-      end_time: body.end_time ?? null,
-      task_type: body.task_type,
-      work_type: body.work_type,
-      status: body.status || TaskStatus.READY,
-      employee_id: user.id,
-      customer_id: body.customer_id ?? null,
-      completed_at: body.status === TaskStatus.DONE ? new Date() : null,
-    });
+    try {
+      const user = session.user as any;
+      const taskDate = new Date(body.task_date);
+      const completedAt = body.status === TaskStatus.DONE ? new Date() : null;
+      const now = new Date();
 
-    const saved = await taskRepository.save(task);
-    return NextResponse.json(saved, { status: 201 });
+      const sql = `
+        INSERT INTO TASK (
+          "title", "description", "task_date", "start_time", "end_time",
+          "task_type", "work_type", "status", "employee_id", "customer_id",
+          "completed_at", "created_at", "updated_at"
+        ) VALUES (
+          :title, :description, :taskDate, :startTime, :endTime,
+          :taskType, :workType, :status, :employeeId, :customerId,
+          :completedAt, :createdAt, :updatedAt
+        )
+        RETURNING *
+      `;
+
+      const result = await queryRunner.query(sql, {
+        title: sanitizedTitle,
+        description: body.description || null,
+        taskDate,
+        startTime: body.start_time ?? null,
+        endTime: body.end_time ?? null,
+        taskType: body.task_type,
+        workType: body.work_type,
+        status: body.status || TaskStatus.READY,
+        employeeId: user.id,
+        customerId: body.customer_id ?? null,
+        completedAt,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      const saved = result[0] || result;
+      return NextResponse.json(saved, { status: 201 });
+    } finally {
+      await queryRunner.release();
+    }
   } catch (error) {
     console.error('POST /api/tasks error:', error);
     return NextResponse.json(
