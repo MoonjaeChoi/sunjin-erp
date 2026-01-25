@@ -534,3 +534,104 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: RouteParams
+): Promise<NextResponse> {
+  try {
+    // 1. 세션 확인
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const user = session.user as any;
+    const userId = user.id;
+    const userRole = user.role;
+
+    // 2. ID 검증
+    const issueId = parseInt(params.id, 10);
+    if (isNaN(issueId)) {
+      return NextResponse.json(
+        { message: 'Invalid issue ID' },
+        { status: 400 }
+      );
+    }
+
+    // 3. ADMIN만 삭제 가능
+    if (userRole !== 'ADMIN') {
+      return NextResponse.json(
+        { message: 'Only ADMIN can delete issues' },
+        { status: 403 }
+      );
+    }
+
+    // 4. 데이터베이스 연결
+    const ds = await getDataSource();
+    const issueRepo = ds.getRepository(Issue);
+    const attachmentRepo = ds.getRepository(IssueAttachment);
+    const historyRepo = ds.getRepository(IssueHistory);
+
+    // 5. Issue 조회
+    const issue = await issueRepo.findOne({
+      where: { id: issueId, deleted_at: IsNull() },
+    });
+
+    if (!issue) {
+      return NextResponse.json(
+        { message: 'Issue not found' },
+        { status: 404 }
+      );
+    }
+
+    // 6. 첨부파일 존재 여부 확인 (ON DELETE RESTRICT)
+    const attachmentCount = await attachmentRepo.count({
+      where: { issue_id: issueId, deleted_at: IsNull() },
+    });
+
+    if (attachmentCount > 0) {
+      return NextResponse.json(
+        {
+          message: 'Cannot delete issue with attachments',
+          error_code: 'ATTACHMENTS_EXIST',
+          attachments_count: attachmentCount,
+        },
+        { status: 409 }
+      );
+    }
+
+    // 7. 소프트 삭제 (deleted_at 설정)
+    issue.deleted_at = new Date();
+    await issueRepo.save(issue);
+
+    // 8. 선택: 삭제 이력 기록
+    const history = new IssueHistory();
+    history.issue_id = issueId;
+    history.change_type = 'STATUS_CHANGE' as any; // Deletion marker
+    history.old_value = 'ACTIVE';
+    history.new_value = 'DELETED';
+    history.changed_by_id = userId;
+    history.remark = `Soft deleted at ${issue.deleted_at.toISOString()}`;
+
+    await historyRepo.save(history);
+
+    // 9. 응답 반환
+    return NextResponse.json({
+      message: 'Issue deleted successfully',
+      data: {
+        id: issue.id,
+        deleted_at: issue.deleted_at,
+      },
+    });
+  } catch (error) {
+    console.error('DELETE /api/issues/[id] error:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
