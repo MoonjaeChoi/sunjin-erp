@@ -37,33 +37,26 @@ export async function GET(): Promise<NextResponse<EmployeeListResponse | { error
     const ds = await getDataSource();
     const user = session.user as any;
 
-    // QueryBuilder를 사용하여 DEPARTMENT와 LEFT JOIN
-    let query = ds
-      .getRepository(Employee)
-      .createQueryBuilder('e')
-      .leftJoin(
-        'DEPARTMENT',
-        'd',
-        '"d"."id" = "e"."department_id"'
-      )
-      .where('"e"."deleted_at" IS NULL')
-      .select('e.id', 'id')
-      .addSelect('e.name', 'name')
-      .addSelect('d.name', 'department_name')
-      .orderBy('"e"."name"', 'ASC');
+    // RBAC 조건에 따른 Raw SQL 쿼리 작성
+    let sql = `SELECT "e"."id", "e"."name", "d"."name" AS "department_name"
+               FROM "EMPLOYEE" "e"
+               LEFT JOIN "DEPARTMENT" "d" ON "d"."id" = "e"."department_id"
+               WHERE "e"."deleted_at" IS NULL`;
+    const params: any[] = [];
 
-    // RBAC: MANAGER는 본인 부서만
     if (user.role === 'MANAGER' && user.department_id) {
-      query = query.andWhere('"e"."department_id" = :departmentId', {
-        departmentId: user.department_id,
-      });
+      sql += ' AND "e"."department_id" = ?';
+      params.push(user.department_id);
     }
     // ADMIN과 USER는 전체 직원 목록 조회 가능
 
-    const results = await query.getRawMany<any>();
+    sql += ' ORDER BY "e"."name" ASC';
+
+    // Raw SQL 쿼리 실행 (모든 컬럼명을 명시적으로 인용)
+    const results = await ds.getRepository(Employee).query(sql, params);
 
     // 응답 형태 변환
-    const employees: EmployeeListItem[] = results.map((row) => ({
+    const employees: EmployeeListItem[] = results.map((row: any) => ({
       id: row.id,
       name: row.name,
       department_name: row.department_name || null,
