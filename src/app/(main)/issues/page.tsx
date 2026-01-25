@@ -5,6 +5,8 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import IssueListPageClient from './page.client';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: '장애 현황 관리',
   description: '장애 현황을 관리합니다.',

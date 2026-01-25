@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { TaskSearchClient } from '@/components/features/tasks/TaskSearchClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: '업무 검색 - Sunjin ERP',
 };

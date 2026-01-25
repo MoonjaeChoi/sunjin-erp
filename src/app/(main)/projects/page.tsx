@@ -3,6 +3,8 @@
 import { Metadata } from 'next';
 import { ProjectPage } from '@/components/features/projects/ProjectPage';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: '프로젝트 관리',
   description: '프로젝트 목록 및 상세 정보 관리',

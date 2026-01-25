@@ -4,6 +4,8 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { TechSupportClient } from '@/components/features/support/TechSupportClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: '기술지원 관리 | 선진ERP',
 };

@@ -5,6 +5,8 @@ import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import IssueDetailPageClient from './page.client';
 
+export const dynamic = 'force-dynamic';
+
 interface IssueDetailPageProps {
   params: {
     id: string;

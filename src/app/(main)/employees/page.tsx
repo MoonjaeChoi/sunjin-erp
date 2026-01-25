@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // Generated: 2026-01-25 02:00:00 KST
 
 export default function EmployeesPage() {
