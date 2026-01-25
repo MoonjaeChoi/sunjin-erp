@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 22:00:00 KST
 
 import { useQuery, useMutation, useQueryClient, UseQueryResult } from '@tanstack/react-query';
 import {
@@ -16,15 +16,15 @@ import {
  * Query Key Factory
  */
 export const issueKeys = {
-  all: ['issues'] as const,
-  lists: () => [...issueKeys.all, 'list'] as const,
+  all: () => ['issues'] as const,
+  lists: () => [...issueKeys.all(), 'list'] as const,
   list: (params: IssueListQueryParams) => [...issueKeys.lists(), params] as const,
-  details: () => [...issueKeys.all, 'detail'] as const,
+  details: () => [...issueKeys.all(), 'detail'] as const,
   detail: (id: number) => [...issueKeys.details(), id] as const,
-  summary: () => [...issueKeys.all, 'summary'] as const,
-  summaryWithParams: (params: IssueSummaryQueryParams) =>
-    [...issueKeys.summary(), params] as const,
-  attachments: () => [...issueKeys.all, 'attachments'] as const,
+  summaries: () => [...issueKeys.all(), 'summary'] as const,
+  summary: (params?: IssueSummaryQueryParams) =>
+    [...issueKeys.summaries(), params] as const,
+  attachments: () => [...issueKeys.all(), 'attachments'] as const,
   attachment: (id: number) => [...issueKeys.attachments(), id] as const,
 };
 
@@ -80,7 +80,15 @@ async function fetchIssueSummary(
   const queryString = new URLSearchParams();
   if (params?.customer_id)
     queryString.append('customer_id', params.customer_id.toString());
+  if (params?.status) queryString.append('status', params.status);
   if (params?.severity) queryString.append('severity', params.severity);
+  if (params?.assignee_id)
+    queryString.append('assignee_id', params.assignee_id.toString());
+  if (params?.created_by_id)
+    queryString.append('created_by_id', params.created_by_id.toString());
+  if (params?.date_from) queryString.append('date_from', params.date_from);
+  if (params?.date_to) queryString.append('date_to', params.date_to);
+  if (params?.keyword) queryString.append('keyword', params.keyword);
 
   const response = await fetch(`/api/issues/summary?${queryString}`, {
     method: 'GET',
@@ -124,10 +132,10 @@ export function useIssueSummaryQuery(
   options?: any
 ) {
   return useQuery({
-    queryKey: issueKeys.summaryWithParams(params || {}),
+    queryKey: issueKeys.summary(params),
     queryFn: () => fetchIssueSummary(params),
-    staleTime: 1000 * 60 * 2, // 2分 (자주 변함)
-    gcTime: 1000 * 60 * 30, // 30分
+    staleTime: 1000 * 60 * 2, // 2분 (자주 변함)
+    gcTime: 1000 * 60 * 30, // 30분
     ...options,
   });
 }
@@ -156,7 +164,7 @@ export function useCreateIssueMutation() {
     onSuccess: () => {
       // 목록과 요약 캐시 무효화
       queryClient.invalidateQueries({ queryKey: issueKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: issueKeys.summary() });
+      queryClient.invalidateQueries({ queryKey: issueKeys.summaries() });
     },
   });
 }
@@ -182,7 +190,7 @@ export function useUpdateIssueMutation(id: number) {
       // 해당 Issue 상세와 목록, 요약 캐시 무효화
       queryClient.invalidateQueries({ queryKey: issueKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: issueKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: issueKeys.summary() });
+      queryClient.invalidateQueries({ queryKey: issueKeys.summaries() });
     },
   });
 }
@@ -206,7 +214,7 @@ export function useDeleteIssueMutation(id: number) {
       // 해당 Issue 상세와 목록, 요약 캐시 무효화
       queryClient.removeQueries({ queryKey: issueKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: issueKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: issueKeys.summary() });
+      queryClient.invalidateQueries({ queryKey: issueKeys.summaries() });
     },
   });
 }
@@ -230,7 +238,7 @@ export function useRollbackIssueMutation(id: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: issueKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: issueKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: issueKeys.summary() });
+      queryClient.invalidateQueries({ queryKey: issueKeys.summaries() });
     },
   });
 }
