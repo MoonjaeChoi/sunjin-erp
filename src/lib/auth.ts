@@ -13,6 +13,12 @@ export const authOptions: NextAuthOptions = {
         password: { label: '비밀번호', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('[Auth] authorize called with credentials:', {
+          hasUsername: !!credentials?.username,
+          hasPassword: !!credentials?.password,
+          credentialsKeys: credentials ? Object.keys(credentials) : []
+        });
+
         if (!credentials?.username || !credentials?.password) {
           console.log('[Auth] Missing credentials');
           return null;
