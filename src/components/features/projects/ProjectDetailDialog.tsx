@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -199,6 +200,7 @@ export function ProjectDetailDialog({
               </div>
             )}
           </div>
+          <DialogDescription>프로젝트 정보를 조회하고 관리합니다.</DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
@@ -297,19 +299,21 @@ export function ProjectDetailDialog({
             </div>
 
             {/* 체크리스트 */}
-            <div className="border-t pt-4">
-              <ProjectChecklist
-                projectId={project.id}
-                stages={Object.fromEntries(
-                  PROJECT_STAGES_ORDER.map((stage) => [
-                    stage,
-                    (project.checklist as any).find((c: any) => c.stage === stage)
-                      ?.completed_at || null,
-                  ])
-                )}
-                canEdit={canEdit}
-              />
-            </div>
+            {project.checklist && (
+              <div className="border-t pt-4">
+                <ProjectChecklist
+                  projectId={project.id}
+                  stages={Object.fromEntries(
+                    PROJECT_STAGES_ORDER.map((stage) => [
+                      stage,
+                      (project.checklist as any).find((c: any) => c.stage === stage)
+                        ?.completed_at || null,
+                    ])
+                  )}
+                  canEdit={canEdit}
+                />
+              </div>
+            )}
 
             {/* 설명 */}
             {project.description && (
