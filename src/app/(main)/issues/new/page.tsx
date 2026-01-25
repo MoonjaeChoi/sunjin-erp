@@ -3,19 +3,19 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import IssueListPageClient from './page.client';
+import IssueCreatePageClient from './page.client';
 
 export const metadata = {
-  title: '장애 현황 관리',
-  description: '장애 현황을 관리합니다.',
+  title: '신규 장애 등록',
+  description: '새로운 장애를 등록합니다.',
 };
 
-export default async function IssueListPage() {
+export default async function IssueCreatePage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
     redirect('/login');
   }
 
-  return <IssueListPageClient />;
+  return <IssueCreatePageClient />;
 }
