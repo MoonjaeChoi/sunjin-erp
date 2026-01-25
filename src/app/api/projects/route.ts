@@ -160,12 +160,13 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
                         LEFT JOIN EMPLOYEE "e" ON "e"."id" = "p"."employee_id"
                         WHERE ${whereClauses.join(' AND ')}`;
 
-      params.offset = (page - 1) * pageSize;
-      params.pageSize = pageSize;
+      // Separate params for count query (no offset/pageSize) and data query
+      const countParams = { ...params };
+      const dataParams = { ...params, offset: (page - 1) * pageSize, pageSize };
 
       const [results, countResult] = await Promise.all([
-        queryRunner.query(sql, params),
-        queryRunner.query(countSql, params),
+        queryRunner.query(sql, dataParams),
+        queryRunner.query(countSql, countParams),
       ]);
 
       const total = parseInt(countResult[0]?.total || '0', 10);

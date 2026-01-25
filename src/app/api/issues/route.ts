@@ -260,9 +260,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         WHERE ${whereClauses.join(' AND ')}
       `;
 
+      // Separate params for count query (no offset/pageSize) and data query
+      const countParams = { ...params };
+      delete countParams.offset;
+      delete countParams.pageSize;
+
       const [issues, countResult] = await Promise.all([
         queryRunner.query(query, params),
-        queryRunner.query(countQuery, params),
+        queryRunner.query(countQuery, countParams),
       ]);
 
       const total = parseInt(countResult[0]?.total || '0', 10);
