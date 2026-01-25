@@ -223,6 +223,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       params.offset = offset;
       params.pageSize = page_size;
 
+      // Convert quoted identifiers to unquoted for Oracle compatibility
+      const whereClausesUnquoted = whereClauses.map(clause =>
+        clause
+          .replace(/"i"\."/g, 'i.')
+          .replace(/"i"\./g, 'i.')
+          .replace(/"e_created"\."/g, 'e_created.')
+          .replace(/"e_created"\./g, 'e_created.')
+          .replace(/"e_assigned"\."/g, 'e_assigned.')
+          .replace(/"e_assigned"\./g, 'e_assigned.')
+          .replace(/"c"\."/g, 'c.')
+          .replace(/"c"\./g, 'c.')
+          .replace(/"/g, '')
+      );
+
       const query = `
         SELECT
           i.id,
@@ -264,20 +278,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const countParams = { ...params };
       delete countParams.offset;
       delete countParams.pageSize;
-
-      // Convert quoted identifiers to unquoted for Oracle compatibility
-      const whereClausesUnquoted = whereClauses.map(clause =>
-        clause
-          .replace(/"i"\."/g, 'i.')
-          .replace(/"i"\./g, 'i.')
-          .replace(/"e_created"\."/g, 'e_created.')
-          .replace(/"e_created"\./g, 'e_created.')
-          .replace(/"e_assigned"\."/g, 'e_assigned.')
-          .replace(/"e_assigned"\./g, 'e_assigned.')
-          .replace(/"c"\."/g, 'c.')
-          .replace(/"c"\./g, 'c.')
-          .replace(/"/g, '')
-      );
 
       console.log('Main query:', query);
       console.log('Count query:', countQuery);
