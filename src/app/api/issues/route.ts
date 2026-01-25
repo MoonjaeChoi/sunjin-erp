@@ -265,6 +265,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       delete countParams.offset;
       delete countParams.pageSize;
 
+      console.log('Main query:', query);
+      console.log('Count query:', countQuery);
+      console.log('Params:', params);
+      console.log('CountParams:', countParams);
+
       const [issues, countResult] = await Promise.all([
         queryRunner.query(query, params),
         queryRunner.query(countQuery, countParams),
@@ -306,8 +311,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     } finally {
       await queryRunner.release();
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('GET /api/issues error:', error);
+    console.error('Error message:', error?.message);
+    console.error('Error code:', error?.code);
+    console.error('Error driverError:', error?.driverError);
+    console.error('SQL Query:', error?.query);
+    console.error('Parameters:', error?.parameters);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
