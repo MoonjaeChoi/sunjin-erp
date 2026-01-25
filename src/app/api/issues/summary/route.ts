@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 21:50:00 KST
+// Generated: 2026-01-26 23:30:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
@@ -137,48 +137,53 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // 5. Execute count query per status
-    const dataSource = await getDataSource();
+    const ds = await getDataSource();
+    const queryRunner = ds.createQueryRunner();
 
-    const query = `
-      SELECT
-        "i"."status",
-        COUNT(*) as count
-      FROM "ISSUE" "i"
-      LEFT JOIN "EMPLOYEE" "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
-      WHERE ${whereClauses.join(' AND ')}
-      GROUP BY "i"."status"
-    `;
+    try {
+      const query = `
+        SELECT
+          "i"."status",
+          COUNT(*) as count
+        FROM "ISSUE" "i"
+        LEFT JOIN "EMPLOYEE" "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
+        WHERE ${whereClauses.join(' AND ')}
+        GROUP BY "i"."status"
+      `;
 
-    const results = await dataSource.query(query, params);
+      const results = await queryRunner.query(query, params);
 
-    // 6. Format results
-    const statusCounts: Record<string, number> = {
-      INTAKE: 0,
-      IN_PROGRESS: 0,
-      COMPLETED: 0,
-    };
+      // 6. Format results
+      const statusCounts: Record<string, number> = {
+        INTAKE: 0,
+        IN_PROGRESS: 0,
+        COMPLETED: 0,
+      };
 
-    results.forEach((r: any) => {
-      const status = r.status || r.STATUS;
-      if (status in statusCounts) {
-        statusCounts[status] = parseInt(r.count || r.COUNT, 10);
-      }
-    });
+      results.forEach((r: any) => {
+        const status = r.status || r.STATUS;
+        if (status in statusCounts) {
+          statusCounts[status] = parseInt(r.count || r.COUNT, 10);
+        }
+      });
 
-    const total = Object.values(statusCounts).reduce(
-      (a: number, b: number) => a + b,
-      0
-    );
+      const total = Object.values(statusCounts).reduce(
+        (a: number, b: number) => a + b,
+        0
+      );
 
-    // 7. Response
-    return NextResponse.json({
-      data: {
-        total,
-        intake: statusCounts.INTAKE,
-        in_progress: statusCounts.IN_PROGRESS,
-        completed: statusCounts.COMPLETED,
-      },
-    });
+      // 7. Response
+      return NextResponse.json({
+        data: {
+          total,
+          intake: statusCounts.INTAKE,
+          in_progress: statusCounts.IN_PROGRESS,
+          completed: statusCounts.COMPLETED,
+        },
+      });
+    } finally {
+      await queryRunner.release();
+    }
   } catch (error) {
     console.error('GET /api/issues/summary error:', error);
     return NextResponse.json(
