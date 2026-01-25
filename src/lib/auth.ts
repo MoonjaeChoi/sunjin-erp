@@ -1,11 +1,8 @@
-// Generated: 2026-01-25 01:00:00 KST
+// Generated: 2026-01-25 20:00:00 KST
 
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { getDataSource } from '@/lib/db';
-import { Employee } from '@/entities/Employee';
-import { IsNull } from 'typeorm';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -23,6 +20,11 @@ export const authOptions: NextAuthOptions = {
 
         try {
           console.log(`[Auth] Attempting login for: ${credentials.username}`);
+          // Lazy load database modules only at runtime
+          const { getDataSource } = await import('@/lib/db');
+          const { Employee } = await import('@/entities/Employee');
+          const { IsNull } = await import('typeorm');
+
           const ds = await getDataSource();
           const repo = ds.getRepository(Employee);
           const employee = await repo.findOne({
