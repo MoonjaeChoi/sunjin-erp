@@ -20,44 +20,58 @@ export const authOptions: NextAuthOptions = {
 
         try {
           console.log(`[Auth] Attempting login for: ${credentials.username}`);
-          // Lazy load database modules only at runtime
+          // Use database directly via DataSource
           const { getDataSource } = await import('@/lib/db');
-          const { Employee } = await import('@/entities/Employee');
-          const { IsNull } = await import('typeorm');
 
           const ds = await getDataSource();
-          const repo = ds.getRepository(Employee);
-          const employee = await repo.findOne({
-            where: {
-              username: credentials.username,
-              deleted_at: IsNull(),
-            },
-          });
-
-          if (!employee) {
-            console.log(`[Auth] Employee not found: ${credentials.username}`);
+          if (!ds.isInitialized) {
+            console.error('[Auth] Database not initialized');
             return null;
           }
 
-          const isValid = await bcrypt.compare(
-            credentials.password,
-            employee.password_hash
-          );
+          // Use raw SQL to query employee (avoids ORM metadata issues)
+          const queryRunner = ds.createQueryRunner();
+          try {
+            const result = await queryRunner.query(
+              `SELECT "id", "name", "username", "password_hash", "role", "department_id"
+               FROM EMPLOYEE
+               WHERE "username" = :username AND "deleted_at" IS NULL`,
+              [credentials.username]
+            );
 
-          if (!isValid) {
-            console.log(`[Auth] Invalid password for: ${credentials.username}`);
-            return null;
+            if (!result || result.length === 0) {
+              console.log(`[Auth] Employee not found: ${credentials.username}`);
+              return null;
+            }
+
+            const employee = result[0];
+            console.log(`[Auth] Employee found: ${employee.username}`);
+
+            const isValid = await bcrypt.compare(
+              credentials.password,
+              employee.password_hash
+            );
+
+            if (!isValid) {
+              console.log(`[Auth] Invalid password for: ${credentials.username}`);
+              return null;
+            }
+
+            console.log(`[Auth] Login successful: ${credentials.username}`);
+            return {
+              id: String(employee.id),
+              name: employee.name,
+              role: employee.role,
+              department: employee.department_id,
+            };
+          } finally {
+            await queryRunner.release();
           }
-
-          console.log(`[Auth] Login successful: ${credentials.username}`);
-          return {
-            id: String(employee.id),
-            name: employee.name,
-            role: employee.role,
-            department: employee.department_id,
-          };
         } catch (error) {
           console.error('[Auth] Error during authorization:', error);
+          if (error instanceof Error) {
+            console.error('[Auth] Error message:', error.message);
+          }
           return null;
         }
       },
