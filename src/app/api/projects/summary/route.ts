@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
 import { Project } from '@/entities/Project';
+import { Employee } from '@/entities/Employee';
 
 interface ProjectSummaryResponse {
   preparing: number;
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
     let query = ds
       .getRepository(Project)
       .createQueryBuilder('p')
-      .leftJoin('EMPLOYEE', 'e', '"e"."id" = "p"."employee_id"')
+      .leftJoin(Employee, 'e', '"e"."id" = "p"."employee_id"')
       .where('"p"."deleted_at" IS NULL')
       .select([
         `COUNT(CASE WHEN "p"."status" = 'PREPARING' THEN 1 END) AS preparing`,

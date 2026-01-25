@@ -100,18 +100,17 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
     let query = ds
       .getRepository(Project)
       .createQueryBuilder('p')
-      .leftJoin('CUSTOMER', 'c', '"c"."id" = "p"."customer_id"')
-      .leftJoin('EMPLOYEE', 'e', '"e"."id" = "p"."employee_id"')
-      .leftJoin('DEPARTMENT', 'd', '"d"."id" = "e"."department_id"')
+      .leftJoin(Customer, 'c', '"c"."id" = "p"."customer_id"')
+      .leftJoin(Employee, 'e', '"e"."id" = "p"."employee_id"')
       .where('"p"."deleted_at" IS NULL')
       .select([
         '"p"."id"',
         '"p"."project_code"',
         '"p"."project_name"',
         '"p"."customer_id"',
-        '"c"."name" AS customer_name',
+        '"c"."name"',
         '"p"."employee_id"',
-        '"e"."name" AS employee_name',
+        '"e"."name"',
         '"p"."status"',
         '"p"."start_date"',
         '"p"."end_date"',
@@ -171,7 +170,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
       project_code: row.p_project_code,
       project_name: row.p_project_name,
       customer_id: row.p_customer_id,
-      customer_name: row.customer_name,
+      customer_name: row.c_name,
       employee_id: row.p_employee_id,
       employee_name: row.e_name,
       status: row.p_status,
