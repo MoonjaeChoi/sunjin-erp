@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     // 4. 응답 구성
     return NextResponse.json({
       date,
-      tasks: tasks.map((task) => ({
+      tasks: tasks.map((task: any) => ({
         id: task.id,
         title: task.title,
         task_type: task.task_type,

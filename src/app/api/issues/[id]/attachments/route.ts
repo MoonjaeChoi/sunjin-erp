@@ -1,11 +1,9 @@
-// Generated: 2026-01-25 18:55:00 KST
+// Generated: 2026-01-25 21:00:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { getDataSource } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
-import { Issue } from '@/entities/Issue';
-import { IssueAttachment } from '@/entities/IssueAttachment';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 // @ts-ignore
@@ -68,6 +66,8 @@ export async function POST(
 
     // 2. Get datasource and repositories
     const dataSource = await getDataSource();
+    const { Issue } = await import('@/entities/Issue');
+    const { IssueAttachment } = await import('@/entities/IssueAttachment');
     const issueRepo = dataSource.getRepository(Issue);
     const attachmentRepo = dataSource.getRepository(IssueAttachment);
 

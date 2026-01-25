@@ -4,8 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { getDataSource } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
-import { Issue } from '@/entities/Issue';
-import { IssueHistory } from '@/entities/IssueHistory';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +46,8 @@ export async function PUT(
     }
 
     // 2. Get datasource and repositories
+    const { Issue } = await import('@/entities/Issue');
+    const { IssueHistory } = await import('@/entities/IssueHistory');
     const dataSource = await getDataSource();
     const issueRepo = dataSource.getRepository(Issue);
     const historyRepo = dataSource.getRepository(IssueHistory);

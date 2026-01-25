@@ -4,10 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { Issue } from '@/entities/Issue';
-import { IssueHistory } from '@/entities/IssueHistory';
-import { Customer } from '@/entities/Customer';
-import { Employee } from '@/entities/Employee';
 import { IsNull } from 'typeorm';
 
 export const dynamic = 'force-dynamic';
@@ -220,6 +216,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const finalSortOrder = sort_order === 'ASC' ? 'ASC' : 'DESC';
 
     // 6. 데이터베이스 연결 및 쿼리 실행
+    const { Issue } = await import('@/entities/Issue');
     const ds = await getDataSource();
     const offset = (page - 1) * page_size;
 
@@ -406,6 +403,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // 4. 데이터베이스 연결
+    const { Customer } = await import('@/entities/Customer');
+    const { Employee } = await import('@/entities/Employee');
+    const { Issue } = await import('@/entities/Issue');
+    const { IssueHistory } = await import('@/entities/IssueHistory');
     const ds = await getDataSource();
     const customerRepo = ds.getRepository(Customer);
     const employeeRepo = ds.getRepository(Employee);

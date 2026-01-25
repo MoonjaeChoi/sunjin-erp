@@ -4,10 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { Issue } from '@/entities/Issue';
-import { IssueAttachment } from '@/entities/IssueAttachment';
-import { IssueHistory } from '@/entities/IssueHistory';
-import { Employee } from '@/entities/Employee';
 import { IsNull } from 'typeorm';
 
 export const dynamic = 'force-dynamic';
@@ -99,6 +95,9 @@ export async function GET(
     }
 
     // 3. 데이터베이스 연결
+    const { Issue } = await import('@/entities/Issue');
+    const { IssueAttachment } = await import('@/entities/IssueAttachment');
+    const { IssueHistory } = await import('@/entities/IssueHistory');
     const ds = await getDataSource();
     const issueRepo = ds.getRepository(Issue);
     const attachmentRepo = ds.getRepository(IssueAttachment);
@@ -197,7 +196,7 @@ export async function GET(
         created_at: issue.created_at,
         completed_at: issue.completed_at,
         updated_at: issue.updated_at,
-        attachments: attachments.map((a) => ({
+        attachments: attachments.map((a: any) => ({
           id: a.id,
           file_name: a.file_name,
           file_path: a.file_path,
@@ -206,7 +205,7 @@ export async function GET(
           uploaded_by_name: a.uploaded_by?.name || null,
           created_at: a.created_at,
         })),
-        histories: histories.map((h) => ({
+        histories: histories.map((h: any) => ({
           id: h.id,
           change_type: h.change_type,
           old_value: h.old_value,
@@ -256,6 +255,9 @@ export async function PUT(
     }
 
     // 3. 데이터베이스 연결
+    const { Issue } = await import('@/entities/Issue');
+    const { Employee } = await import('@/entities/Employee');
+    const { IssueHistory } = await import('@/entities/IssueHistory');
     const ds = await getDataSource();
     const issueRepo = ds.getRepository(Issue);
     const employeeRepo = ds.getRepository(Employee);
@@ -573,6 +575,9 @@ export async function DELETE(
     }
 
     // 4. 데이터베이스 연결
+    const { Issue } = await import('@/entities/Issue');
+    const { IssueAttachment } = await import('@/entities/IssueAttachment');
+    const { IssueHistory } = await import('@/entities/IssueHistory');
     const ds = await getDataSource();
     const issueRepo = ds.getRepository(Issue);
     const attachmentRepo = ds.getRepository(IssueAttachment);

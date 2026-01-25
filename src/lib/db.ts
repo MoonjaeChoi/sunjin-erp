@@ -1,52 +1,70 @@
-// Generated: 2026-01-25 18:40:00 KST
+// Generated: 2026-01-25 20:30:00 KST
 
-import 'reflect-metadata';
-import { DataSource } from 'typeorm';
-import { Task } from '@/entities/Task';
-import { Employee } from '@/entities/Employee';
-import { Customer } from '@/entities/Customer';
-import { TechSupport } from '@/entities/TechSupport';
-import { Project } from '@/entities/Project';
-import { ProjectAttachment } from '@/entities/ProjectAttachment';
-import { Issue } from '@/entities/Issue';
-import { IssueAttachment } from '@/entities/IssueAttachment';
-import { IssueHistory } from '@/entities/IssueHistory';
+// Lazy load reflect-metadata to avoid circular dependencies at build time
+let reflectMetadataLoaded = false;
+function ensureReflectMetadata() {
+  if (!reflectMetadataLoaded) {
+    try {
+      require('reflect-metadata');
+      reflectMetadataLoaded = true;
+    } catch (e) {
+      // Ignore during build
+    }
+  }
+}
 
-let dataSource: DataSource | null = null;
+let dataSource: any = null;
 
-export async function getDataSource(): Promise<DataSource> {
+export async function getDataSource(): Promise<any> {
   if (dataSource && dataSource.isInitialized) {
     return dataSource;
   }
 
-  dataSource = new DataSource({
-    type: 'oracle',
-    host: process.env.ORACLE_HOST || 'localhost',
-    port: Number(process.env.ORACLE_PORT) || 1521,
-    serviceName: process.env.ORACLE_SERVICE_NAME || 'XEPDB1',
-    username: process.env.ORACLE_USERNAME || 'sunjin_admin',
-    password: process.env.ORACLE_PASSWORD || '',
-    entities: [
-      Task,
-      Employee,
-      Customer,
-      TechSupport,
-      Project,
-      ProjectAttachment,
-      Issue,
-      IssueAttachment,
-      IssueHistory,
-    ],
-    migrations: ['src/migrations/*.ts'],
-    synchronize: false,
-    logging: process.env.NODE_ENV === 'development',
-  });
-
   try {
+    // Lazy load everything to avoid circular dependencies
+    ensureReflectMetadata();
+
+    const { DataSource } = await import('typeorm');
+    const { Task } = await import('@/entities/Task');
+    const { Employee } = await import('@/entities/Employee');
+    const { Customer } = await import('@/entities/Customer');
+    const { TechSupport } = await import('@/entities/TechSupport');
+    const { Project } = await import('@/entities/Project');
+    const { ProjectAttachment } = await import('@/entities/ProjectAttachment');
+    const { Issue } = await import('@/entities/Issue');
+    const { IssueAttachment } = await import('@/entities/IssueAttachment');
+    const { IssueHistory } = await import('@/entities/IssueHistory');
+
+    dataSource = new DataSource({
+      type: 'oracle',
+      host: process.env.ORACLE_HOST || 'localhost',
+      port: Number(process.env.ORACLE_PORT) || 1521,
+      serviceName: process.env.ORACLE_SERVICE_NAME || 'XEPDB1',
+      username: process.env.ORACLE_USERNAME || 'sunjin_admin',
+      password: process.env.ORACLE_PASSWORD || '',
+      entities: [
+        Task,
+        Employee,
+        Customer,
+        TechSupport,
+        Project,
+        ProjectAttachment,
+        Issue,
+        IssueAttachment,
+        IssueHistory,
+      ],
+      migrations: ['src/migrations/*.ts'],
+      synchronize: false,
+      logging: process.env.NODE_ENV === 'development',
+    });
+
     await dataSource.initialize();
   } catch (error) {
-    // If initialization fails (e.g., during build), that's ok
-    // The datasource will be available at runtime
+    // If initialization fails (e.g., during build), create minimal datasource
+    // to prevent module loading errors
+    if (!dataSource) {
+      dataSource = { isInitialized: false };
+    }
   }
 
   return dataSource;

@@ -73,7 +73,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
       query = query.andWhere('"p"."employee_id" = :employeeId', { employeeId });
     }
 
-    const result = await query.getRawOne<any>();
+    const result = await (query as any).getRawOne();
 
     return NextResponse.json({
       preparing: parseInt(result?.preparing || '0', 10),

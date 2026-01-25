@@ -211,7 +211,7 @@ export async function GET(
       stage_development_at: formatDateTime(project!.stage_development_at),
       stage_delivery_at: formatDateTime(project!.stage_delivery_at),
       stage_handover_at: formatDateTime(project!.stage_handover_at),
-      attachments: attachments.map((att) => ({
+      attachments: attachments.map((att: any) => ({
         id: att.id,
         file_name: att.file_name,
         file_size: att.file_size,

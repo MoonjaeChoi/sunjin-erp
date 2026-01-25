@@ -4,8 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { getDataSource } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
-import { IssueAttachment } from '@/entities/IssueAttachment';
-import { IssueHistory } from '@/entities/IssueHistory';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +40,8 @@ export async function DELETE(
     }
 
     // 2. Get datasource and repositories
+    const { IssueAttachment } = await import('@/entities/IssueAttachment');
+    const { IssueHistory } = await import('@/entities/IssueHistory');
     const dataSource = await getDataSource();
     const attachmentRepo = dataSource.getRepository(IssueAttachment);
     const historyRepo = dataSource.getRepository(IssueHistory);
