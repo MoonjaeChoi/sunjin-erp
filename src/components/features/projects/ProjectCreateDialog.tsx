@@ -88,10 +88,11 @@ export function ProjectCreateDialog({ open, onClose }: ProjectCreateDialogProps)
   // ============================================================================
   useEffect(() => {
     if (open) {
+      const defaultEmployeeId = session?.user ? Number((session.user as any).id) : null;
       setForm({
         project_name: '',
         customer_id: null,
-        employee_id: (session?.user as any)?.id ? Number((session.user as any).id) : null,
+        employee_id: defaultEmployeeId,
         project_code: '',
         start_date: '',
         end_date: '',
