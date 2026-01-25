@@ -25,16 +25,20 @@ export async function getDataSource(): Promise<any> {
     ensureReflectMetadata();
     console.log('[DB] Loading TypeORM modules...');
 
-    const { DataSource } = await import('typeorm');
-    const { Task } = await import('@/entities/Task');
-    const { Employee } = await import('@/entities/Employee');
-    const { Customer } = await import('@/entities/Customer');
-    const { TechSupport } = await import('@/entities/TechSupport');
-    const { Project } = await import('@/entities/Project');
-    const { ProjectAttachment } = await import('@/entities/ProjectAttachment');
-    const { Issue } = await import('@/entities/Issue');
-    const { IssueAttachment } = await import('@/entities/IssueAttachment');
-    const { IssueHistory } = await import('@/entities/IssueHistory');
+    const { DataSource } = require('typeorm');
+    console.log('[DB] DataSource imported via require');
+
+    console.log('[DB] Importing entities...');
+    const { Task } = require('@/entities/Task');
+    const { Employee } = require('@/entities/Employee');
+    const { Customer } = require('@/entities/Customer');
+    const { TechSupport } = require('@/entities/TechSupport');
+    const { Project } = require('@/entities/Project');
+    const { ProjectAttachment } = require('@/entities/ProjectAttachment');
+    const { Issue } = require('@/entities/Issue');
+    const { IssueAttachment } = require('@/entities/IssueAttachment');
+    const { IssueHistory } = require('@/entities/IssueHistory');
+    console.log('[DB] Entities loaded');
 
     console.log('[DB] Creating DataSource...');
     dataSource = new DataSource({
