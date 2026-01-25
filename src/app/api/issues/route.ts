@@ -1,4 +1,4 @@
-// Generated: 2026-01-26 23:40:00 KST
+// Generated: 2026-01-26 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -223,51 +223,41 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       params.offset = offset;
       params.pageSize = page_size;
 
-      // Convert quoted identifiers for Oracle compatibility
-      // Keep quoted aliases, remove quotes from table/column names
-      const whereClausesUnquoted = whereClauses.map(clause =>
-        clause
-          .replace(/"i"\."([^"]+)"/g, '"i".$1')
-          .replace(/"e_created"\."([^"]+)"/g, '"e_created".$1')
-          .replace(/"e_assigned"\."([^"]+)"/g, '"e_assigned".$1')
-          .replace(/"c"\."([^"]+)"/g, '"c".$1')
-      );
-
       const query = `
         SELECT
-          "i".id,
-          "i".customer_id,
-          "i".title,
-          "i".description,
-          "i".severity,
-          "i".status,
-          "i".is_public,
-          "i".created_by_id,
-          "i".assigned_to_id,
-          "i".treatment_method,
-          "i".treatment_time_minutes,
-          "i".treatment_result,
-          "i".created_at,
-          "i".completed_at,
-          "i".updated_at,
-          "i".deleted_at,
-          "c".name AS customer_name,
-          "e_created".name AS created_by_name,
-          "e_assigned".name AS assigned_to_name
+          "i"."id",
+          "i"."customer_id",
+          "i"."title",
+          "i"."description",
+          "i"."severity",
+          "i"."status",
+          "i"."is_public",
+          "i"."created_by_id",
+          "i"."assigned_to_id",
+          "i"."treatment_method",
+          "i"."treatment_time_minutes",
+          "i"."treatment_result",
+          "i"."created_at",
+          "i"."completed_at",
+          "i"."updated_at",
+          "i"."deleted_at",
+          "c"."name" AS customer_name,
+          "e_created"."name" AS created_by_name,
+          "e_assigned"."name" AS assigned_to_name
         FROM ISSUE "i"
-        LEFT JOIN CUSTOMER "c" ON "i".customer_id = "c".id
-        LEFT JOIN EMPLOYEE "e_created" ON "i".created_by_id = "e_created".id
-        LEFT JOIN EMPLOYEE "e_assigned" ON "i".assigned_to_id = "e_assigned".id
-        WHERE ${whereClausesUnquoted.join(' AND ')}
-        ORDER BY "i".${finalSortBy} ${finalSortOrder}
+        LEFT JOIN CUSTOMER "c" ON "c"."id" = "i"."customer_id" AND "c"."deleted_at" IS NULL
+        LEFT JOIN EMPLOYEE "e_created" ON "e_created"."id" = "i"."created_by_id" AND "e_created"."deleted_at" IS NULL
+        LEFT JOIN EMPLOYEE "e_assigned" ON "e_assigned"."id" = "i"."assigned_to_id" AND "e_assigned"."deleted_at" IS NULL
+        WHERE ${whereClauses.join(' AND ')}
+        ORDER BY "i"."${finalSortBy}" ${finalSortOrder}
         OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
       `;
 
       const countQuery = `
         SELECT COUNT(*) as total
         FROM ISSUE "i"
-        LEFT JOIN EMPLOYEE "e_assigned" ON "i".assigned_to_id = "e_assigned".id
-        WHERE ${whereClausesUnquoted.join(' AND ')}
+        LEFT JOIN EMPLOYEE "e_assigned" ON "e_assigned"."id" = "i"."assigned_to_id"
+        WHERE ${whereClauses.join(' AND ')}
       `;
 
       // Separate params for count query (no offset/pageSize) and data query
