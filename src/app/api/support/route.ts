@@ -182,77 +182,82 @@ export async function GET(request: NextRequest) {
 
   try {
     const ds = await getDataSource();
-    const user = session.user as any;
+    const queryRunner = ds.createQueryRunner();
 
-    // 동적 WHERE 절 구성
-    let whereClauses: string[] = ['"ts"."deleted_at" IS NULL', '"ts"."support_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')'];
-    const params: any = { dateFrom, dateTo };
-    let paramIndex = 0;
+    try {
+      const user = session.user as any;
 
-    if (user.role !== 'ADMIN') {
-      whereClauses.push(`"ts"."employee_id" = :userId${paramIndex}`);
-      params[`userId${paramIndex}`] = user.id;
-      paramIndex++;
+      // 동적 WHERE 절 구성
+      let whereClauses: string[] = ['"ts"."deleted_at" IS NULL', '"ts"."support_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')'];
+      const params: any = { dateFrom, dateTo };
+      let paramIndex = 0;
+
+      if (user.role !== 'ADMIN') {
+        whereClauses.push(`"ts"."employee_id" = :userId${paramIndex}`);
+        params[`userId${paramIndex}`] = user.id;
+        paramIndex++;
+      }
+
+      if (customerId) {
+        whereClauses.push(`"ts"."customer_id" = :customerId${paramIndex}`);
+        params[`customerId${paramIndex}`] = Number(customerId);
+        paramIndex++;
+      }
+
+      if (supportType) {
+        whereClauses.push(`"ts"."support_type" = :supportType${paramIndex}`);
+        params[`supportType${paramIndex}`] = supportType;
+        paramIndex++;
+      }
+
+      if (supportMethod) {
+        whereClauses.push(`"ts"."support_method" = :supportMethod${paramIndex}`);
+        params[`supportMethod${paramIndex}`] = supportMethod;
+        paramIndex++;
+      }
+
+      if (status) {
+        whereClauses.push(`"ts"."status" = :status${paramIndex}`);
+        params[`status${paramIndex}`] = status;
+        paramIndex++;
+      }
+
+      if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
+        whereClauses.push(`"ts"."title" LIKE :keyword${paramIndex}`);
+        params[`keyword${paramIndex}`] = `%${keyword}%`;
+        paramIndex++;
+      }
+
+      const sortBy = (sortByParam || 'support_date') as typeof VALID_SORT_BY[number];
+      const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
+
+      // Raw SQL 쿼리
+      const sql = `SELECT "ts".*, "c"."name" AS customer_name
+                   FROM TECH_SUPPORT "ts"
+                   LEFT JOIN CUSTOMER "c" ON "c"."id" = "ts"."customer_id" AND "c"."deleted_at" IS NULL
+                   WHERE ${whereClauses.join(' AND ')}
+                   ORDER BY "ts"."${sortBy}" ${sortOrder}
+                   OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
+
+      // Total count 쿼리
+      const countSql = `SELECT COUNT(*) as total
+                        FROM TECH_SUPPORT "ts"
+                        WHERE ${whereClauses.join(' AND ')}`;
+
+      params.offset = (page - 1) * pageSize;
+      params.pageSize = pageSize;
+
+      const [supports, countResult] = await Promise.all([
+        queryRunner.query(sql, params),
+        queryRunner.query(countSql, params),
+      ]);
+
+      const total = parseInt(countResult[0]?.total || '0', 10);
+
+      return NextResponse.json({ supports, total, page, page_size: pageSize });
+    } finally {
+      await queryRunner.release();
     }
-
-    if (customerId) {
-      whereClauses.push(`"ts"."customer_id" = :customerId${paramIndex}`);
-      params[`customerId${paramIndex}`] = Number(customerId);
-      paramIndex++;
-    }
-
-    if (supportType) {
-      whereClauses.push(`"ts"."support_type" = :supportType${paramIndex}`);
-      params[`supportType${paramIndex}`] = supportType;
-      paramIndex++;
-    }
-
-    if (supportMethod) {
-      whereClauses.push(`"ts"."support_method" = :supportMethod${paramIndex}`);
-      params[`supportMethod${paramIndex}`] = supportMethod;
-      paramIndex++;
-    }
-
-    if (status) {
-      whereClauses.push(`"ts"."status" = :status${paramIndex}`);
-      params[`status${paramIndex}`] = status;
-      paramIndex++;
-    }
-
-    if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
-      whereClauses.push(`"ts"."title" LIKE :keyword${paramIndex}`);
-      params[`keyword${paramIndex}`] = `%${keyword}%`;
-      paramIndex++;
-    }
-
-    const sortBy = (sortByParam || 'support_date') as typeof VALID_SORT_BY[number];
-    const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
-
-    // Raw SQL 쿼리
-    const sql = `SELECT "ts".*, "c"."name" AS customer_name
-                 FROM "TECH_SUPPORT" "ts"
-                 LEFT JOIN "CUSTOMER" "c" ON "c"."id" = "ts"."customer_id" AND "c"."deleted_at" IS NULL
-                 WHERE ${whereClauses.join(' AND ')}
-                 ORDER BY "ts"."${sortBy}" ${sortOrder}
-                 OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
-
-    // Total count 쿼리
-    const countSql = `SELECT COUNT(*) as total
-                      FROM "TECH_SUPPORT" "ts"
-                      WHERE ${whereClauses.join(' AND ')}`;
-
-    const [supports, countResult] = await Promise.all([
-      ds.getRepository(TechSupport).query(sql, {
-        ...params,
-        offset: (page - 1) * pageSize,
-        pageSize,
-      }),
-      ds.getRepository(TechSupport).query(countSql, params),
-    ]);
-
-    const total = parseInt(countResult[0]?.total || '0', 10);
-
-    return NextResponse.json({ supports, total, page, page_size: pageSize });
   } catch (error) {
     console.error('GET /api/support error:', error);
     return NextResponse.json(
