@@ -1,8 +1,8 @@
 <!-- Generated: 2026-01-25 23:15:00 KST -->
 
-# Discussion Topics: 재고 관리 (Inventory Management) PRD 2051
+# Discussion Topics: 재고 관리 (Inventory Management) PRD 2061
 
-**문서번호:** 2051_재고_관리_prd_discussion_topics
+**문서번호:** 2061_재고_관리_prd_discussion_topics
 **작성일:** 2026-01-25
 **대상:** PRD 재정의 필요 항목 및 의사결정 대상
 

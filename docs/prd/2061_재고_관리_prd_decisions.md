@@ -1,8 +1,8 @@
 <!-- Generated: 2026-01-25 23:45:00 KST -->
 
-# Decision Document: 재고 관리 (Inventory Management) PRD 2051
+# Decision Document: 재고 관리 (Inventory Management) PRD 2061
 
-**문서번호:** 2051_재고_관리_prd_decisions
+**문서번호:** 2061_재고_관리_prd_decisions
 **작성일:** 2026-01-25
 **대상:** Discussion Topics 및 Critical Review 항목 중 의사결정 사항
 **의사결정자:** PRD Mediator (Claude Code)

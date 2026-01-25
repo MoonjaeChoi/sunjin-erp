@@ -1,11 +1,11 @@
 <!-- Generated: 2026-01-25 22:30:00 KST -->
 
-# Critical Review: 재고 관리 (Inventory Management) PRD 2051
+# Critical Review: 재고 관리 (Inventory Management) PRD 2061
 
-**문서번호:** 2051_재고_관리_prd_critical_review
+**문서번호:** 2061_재고_관리_prd_critical_review
 **검토일:** 2026-01-25
 **검토자:** Claude Code Architecture Review
-**대상:** docs/prd/2051_재고_관리_prd.md
+**대상:** docs/prd/2061_재고_관리_prd.md
 
 ---
 

@@ -1,10 +1,10 @@
 <!-- Generated: 2026-01-25 23:00:00 KST -->
 
-# Rebuttal: 재고 관리 (Inventory Management) PRD 2051
+# Rebuttal: 재고 관리 (Inventory Management) PRD 2061
 
-**문서번호:** 2051_재고_관리_prd_rebuttal
+**문서번호:** 2061_재고_관리_prd_rebuttal
 **작성일:** 2026-01-25
-**대상:** 2051_재고_관리_prd_critical_review.md의 지적사항
+**대상:** 2061_재고_관리_prd_critical_review.md의 지적사항
 
 ---
 
