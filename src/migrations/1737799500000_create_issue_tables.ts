@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 21:42:00 KST
 
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
@@ -65,8 +65,8 @@ export class CreateIssueTables1737799500000 implements MigrationInterface {
     `);
 
     // 6. ISSUE_ATTACHMENT 테이블 인덱스
-    await queryRunner.query(`CREATE INDEX IDX_ISSUE_ATTACHMENT_ISSUE ON ISSUE_ATTACHMENT(issue_id)`);
-    await queryRunner.query(`CREATE INDEX IDX_ISSUE_ATTACHMENT_UPLOADED_BY ON ISSUE_ATTACHMENT(uploaded_by_id)`);
+    await queryRunner.query(`CREATE INDEX IDX_ISSUE_ATTACHMENT_ISSUE_ID ON ISSUE_ATTACHMENT(issue_id)`);
+    await queryRunner.query(`CREATE INDEX IDX_ISSUE_ATTACHMENT_DELETED_AT ON ISSUE_ATTACHMENT(deleted_at)`);
 
     // 7. ISSUE_ATTACHMENT 외래키 추가 (ON DELETE RESTRICT)
     await queryRunner.query(

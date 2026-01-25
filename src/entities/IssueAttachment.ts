@@ -1,10 +1,11 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 21:40:00 KST
 
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
   Index,
@@ -13,8 +14,8 @@ import { Issue } from './Issue';
 import { Employee } from './Employee';
 
 @Entity('ISSUE_ATTACHMENT')
-@Index(['issue_id'])
-@Index(['uploaded_by_id'])
+@Index('IDX_ISSUE_ATTACHMENT_ISSUE_ID', ['issue_id'])
+@Index('IDX_ISSUE_ATTACHMENT_DELETED_AT', ['deleted_at'])
 export class IssueAttachment {
   @PrimaryGeneratedColumn('increment', {
     name: 'id',
@@ -61,14 +62,14 @@ export class IssueAttachment {
   })
   created_at!: Date;
 
-  @Column({
+  @DeleteDateColumn({
     name: 'deleted_at',
     type: 'timestamp',
     nullable: true,
   })
   deleted_at!: Date | null;
 
-  // Relations (ON DELETE RESTRICT)
+  // Relations
   @ManyToOne(() => Issue, (issue) => issue.attachments, {
     onDelete: 'RESTRICT',
   })
@@ -77,5 +78,5 @@ export class IssueAttachment {
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'uploaded_by_id' })
-  uploaded_by!: Employee;
+  uploadedBy!: Employee;
 }
