@@ -1,6 +1,6 @@
 <!-- Generated: 2026-01-25 23:45:00 KST -->
 
-# Critical Review: 고객 등록 및 조회 (CRM) PRD (2071)
+# Critical Review: 고객 등록 및 조회 (CRM) PRD (2081)
 
 **작성일:** 2026-01-25
 **검토자:** Claude Code (Critic Agent)
@@ -89,7 +89,7 @@ US-3에서 "관련 업무" 섹션 요구사항:
 
 그러나:
 - 이 기능이 **이 PRD의 범위에 포함되는가?** (Section 4.1에 없음)
-- 프로젝트/기술지원/유지보수 모듈이 **아직 구현되지 않았는가?** (현재 개발 단계 기준 2071은 Phase 1 모듈)
+- 프로젝트/기술지원/유지보수 모듈이 **아직 구현되지 않았는가?** (현재 개발 단계 기준 2081은 Phase 1 모듈)
 - 링크 생성 시 필터링 로직 (`GET /api/projects?customerId=X` 등)이 존재하는가?
 
 **영향:**
@@ -240,7 +240,7 @@ PRD는 "고객 관리" 자체에만 초점을 맞추고, **프로젝트, 기술�
 - 소프트 삭제 고객 필터링 로직 분산
 
 **해결 방안:**
-1. 공유 인터페이스 문서 작성 (별도 파일: `2071_integration_guide.md`):
+1. 공유 인터페이스 문서 작성 (별도 파일: `2081_integration_guide.md`):
    ```
    모든 모듈이 고객 선택 UI로 사용할 수 있는 공용 컴포넌트:
    - <CustomerCombobox customerId={id} onSelect={handleSelect} />
@@ -776,7 +776,7 @@ Section 5.2에서 응답 형식 예시:
 
 ### Pre-Implementation (구현 초기, 2-3일)
 
-4. 타 모듈 통합 인터페이스 문서 작성 (2071_integration_guide.md)
+4. 타 모듈 통합 인터페이스 문서 작성 (2081_integration_guide.md)
 5. API 응답 스키마 정의 (TypeScript types)
 6. 복합 인덱스 설계 및 성능 테스트 계획
 

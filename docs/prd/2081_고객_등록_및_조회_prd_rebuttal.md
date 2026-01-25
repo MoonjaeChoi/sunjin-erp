@@ -2,9 +2,9 @@
 
 # Rebuttal: 고객 등록 및 조회 (CRM) PRD
 
-문서번호: 2071
+문서번호: 2081
 작성일: 2026-01-25
-기준: 2071_고객_등록_및_조회_prd_critical_review.md
+기준: 2081_고객_등록_및_조회_prd_critical_review.md
 
 ---
 

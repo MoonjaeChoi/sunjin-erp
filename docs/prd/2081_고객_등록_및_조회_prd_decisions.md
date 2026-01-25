@@ -2,7 +2,7 @@
 
 # Mediation Decisions: 고객 등록 및 조회 (CRM) PRD
 
-문서번호: 2071
+문서번호: 2081
 작성일: 2026-01-25
 기준: 10개 Discussion Topics
 상태: Final Decisions
@@ -99,7 +99,7 @@
 ```
 Phase 1 (현재):
 - USER: 모든 고객 조회 (read-only)
-- MANAGER: 모든 고객 CRUD (제약 없음, 2071_01_entity 구현 시점에서는 department 미포함)
+- MANAGER: 모든 고객 CRUD (제약 없음, 2081_01_entity 구현 시점에서는 department 미포함)
 - ADMIN: 모든 권한 + DELETE
 
 Phase 2 (향후 - 별도 PRD):
