@@ -80,15 +80,18 @@ export function useProjectListQuery(params: ProjectSearchParams) {
  */
 export function useProjectDetailQuery(id: number | null) {
   return useQuery({
-    queryKey: projectKeys.detail(id!),
+    queryKey: projectKeys.detail(id ?? 0),
     queryFn: async (): Promise<ProjectDetail> => {
+      if (!id) {
+        throw new Error('Project ID is required');
+      }
       const res = await fetch(`/api/projects/${id}`);
       if (!res.ok) {
         throw new Error('Failed to fetch project detail');
       }
       return res.json();
     },
-    enabled: id !== null, // id가 없으면 비활성화
+    enabled: id !== null && id !== undefined, // id가 없으면 비활성화
     staleTime: 30 * 1000,
   });
 }
