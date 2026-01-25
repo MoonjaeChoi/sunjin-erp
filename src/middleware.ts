@@ -23,9 +23,8 @@ export default withAuth(
         // /login 경로는 미인증 허용
         if (pathname === '/login') return true;
 
-        // API 경로 중 auth, public 관련은 미인증 허용
-        if (pathname.startsWith('/api/auth')) return true;
-        if (pathname.startsWith('/api/public')) return true;
+        // 모든 API 경로는 통과 (각 route handler에서 getServerSession() 체크)
+        if (pathname.startsWith('/api/')) return true;
 
         // 그 외 모든 경로는 인증 필요
         return !!token;
