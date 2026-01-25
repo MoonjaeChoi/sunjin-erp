@@ -11,7 +11,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "db:init": "node scripts/init-db.js",
+    "db:init-schema": "node scripts/init-schema.js",
     "db:seed-employees": "node scripts/add-test-employees.js"
   },
   "dependencies": {
