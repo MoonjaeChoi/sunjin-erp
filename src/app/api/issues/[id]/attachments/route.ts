@@ -169,7 +169,19 @@ export async function POST(
 
     await attachmentRepo.save(attachment);
 
-    // 9. Response
+    // 9. Record ATTACHMENT_UPLOADED history
+    const { IssueHistory } = await import('@/entities/IssueHistory');
+    const historyRepo = dataSource.getRepository(IssueHistory);
+    const history = new IssueHistory();
+    history.issue_id = issueId;
+    history.change_type = 'ATTACHMENT_UPLOADED';
+    history.old_value = null;
+    history.new_value = file.name;
+    history.changed_by_id = userId;
+
+    await historyRepo.save(history);
+
+    // 10. Response
     return NextResponse.json(
       {
         message: 'File uploaded successfully',

@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 21:45:00 KST
 
 import {
   Entity,
@@ -22,9 +22,8 @@ export type IssueHistoryChangeType =
   | 'IS_PUBLIC_CHANGE';
 
 @Entity('ISSUE_HISTORY')
-@Index(['issue_id'])
-@Index(['changed_by_id'])
-@Index(['changed_at'])
+@Index('IDX_ISSUE_HISTORY_ISSUE_ID', ['issue_id'])
+@Index('IDX_ISSUE_HISTORY_CHANGED_AT', ['changed_at'])
 export class IssueHistory {
   @PrimaryGeneratedColumn('increment', {
     name: 'id',
@@ -87,5 +86,5 @@ export class IssueHistory {
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'changed_by_id' })
-  changed_by!: Employee;
+  changedBy!: Employee;
 }

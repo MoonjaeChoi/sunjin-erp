@@ -467,14 +467,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // 8. Issue 저장
     const savedIssue = await issueRepo.save(newIssue);
 
-    // 9. IssueHistory 첫 기록
+    // 9. IssueHistory 첫 기록 (STATUS_CHANGE로 초기 상태 기록)
     const history = historyRepo.create({
       issue_id: savedIssue.id,
-      change_type: 'COMMENT_ADDED', // 장애 등록 기록
+      change_type: 'STATUS_CHANGE',
       old_value: null,
-      new_value: 'Issue created',
+      new_value: 'INTAKE',
       changed_by_id: userId,
-      remark: `Registered by ${user.name || 'Unknown'}`,
+      remark: `Issue created`,
     });
 
     await historyRepo.save(history);

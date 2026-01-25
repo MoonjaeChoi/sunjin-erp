@@ -29,6 +29,7 @@ export async function DELETE(
     }
 
     const userId = (session.user as any).id;
+    const userRole = (session.user as any).role;
     const issueId = parseInt(params.id);
     const attachmentId = parseInt(params.attachmentId);
 
@@ -62,11 +63,19 @@ export async function DELETE(
       );
     }
 
-    // 4. Soft delete
+    // 4. Permission check (ADMIN or uploader)
+    if (userRole !== 'ADMIN' && attachment.uploaded_by_id !== userId) {
+      return NextResponse.json(
+        { message: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
+    // 5. Soft delete
     attachment.deleted_at = new Date();
     await attachmentRepo.save(attachment);
 
-    // 5. Create history record
+    // 6. Create history record
     const history = new IssueHistory();
     history.issue_id = issueId;
     history.change_type = 'ATTACHMENT_DELETED';
@@ -76,14 +85,8 @@ export async function DELETE(
 
     await historyRepo.save(history);
 
-    // 6. Response
-    return NextResponse.json({
-      message: 'Attachment deleted successfully',
-      data: {
-        id: attachment.id,
-        deleted_at: attachment.deleted_at,
-      },
-    });
+    // 7. Response (204 No Content per spec)
+    return NextResponse.json(undefined, { status: 204 });
   } catch (error) {
     console.error('DELETE /api/issues/[id]/attachments/[attachmentId] error:', error);
     return NextResponse.json(
