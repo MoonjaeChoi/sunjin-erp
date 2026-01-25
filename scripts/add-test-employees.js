@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const oracledb = require("oracledb");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 (async () => {
   let conn;
