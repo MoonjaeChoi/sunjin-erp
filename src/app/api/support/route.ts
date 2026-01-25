@@ -180,60 +180,75 @@ export async function GET(request: NextRequest) {
 
   try {
     const ds = await getDataSource();
-    const repo = ds.getRepository(TechSupport);
-
-    const queryBuilder = repo
-      .createQueryBuilder('ts')
-      .leftJoin('CUSTOMER', 'c', '"c"."id" = "ts"."customer_id" AND "c"."deleted_at" IS NULL')
-      .addSelect('"c"."name"', 'customer_name')
-      .where('"ts"."deleted_at" IS NULL')
-      .andWhere('"ts"."support_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')', {
-        dateFrom,
-        dateTo,
-      });
-
-    // RBAC 필터링
     const user = session.user as any;
+
+    // 동적 WHERE 절 구성
+    let whereClauses: string[] = ['"ts"."deleted_at" IS NULL', '"ts"."support_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')'];
+    const params: any = { dateFrom, dateTo };
+    let paramIndex = 0;
+
     if (user.role !== 'ADMIN') {
-      queryBuilder.andWhere('"ts"."employee_id" = :userId', { userId: user.id });
+      whereClauses.push(`"ts"."employee_id" = :userId${paramIndex}`);
+      params[`userId${paramIndex}`] = user.id;
+      paramIndex++;
     }
 
-    // 선택 필터
     if (customerId) {
-      queryBuilder.andWhere('"ts"."customer_id" = :customerId', { customerId: Number(customerId) });
-    }
-    if (supportType) {
-      queryBuilder.andWhere('"ts"."support_type" = :supportType', { supportType });
-    }
-    if (supportMethod) {
-      queryBuilder.andWhere('"ts"."support_method" = :supportMethod', { supportMethod });
-    }
-    if (status) {
-      queryBuilder.andWhere('"ts"."status" = :status', { status });
-    }
-    if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
-      queryBuilder.andWhere('"ts"."title" LIKE :keyword', { keyword: `%${keyword}%` });
+      whereClauses.push(`"ts"."customer_id" = :customerId${paramIndex}`);
+      params[`customerId${paramIndex}`] = Number(customerId);
+      paramIndex++;
     }
 
-    // 정렬
+    if (supportType) {
+      whereClauses.push(`"ts"."support_type" = :supportType${paramIndex}`);
+      params[`supportType${paramIndex}`] = supportType;
+      paramIndex++;
+    }
+
+    if (supportMethod) {
+      whereClauses.push(`"ts"."support_method" = :supportMethod${paramIndex}`);
+      params[`supportMethod${paramIndex}`] = supportMethod;
+      paramIndex++;
+    }
+
+    if (status) {
+      whereClauses.push(`"ts"."status" = :status${paramIndex}`);
+      params[`status${paramIndex}`] = status;
+      paramIndex++;
+    }
+
+    if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
+      whereClauses.push(`"ts"."title" LIKE :keyword${paramIndex}`);
+      params[`keyword${paramIndex}`] = `%${keyword}%`;
+      paramIndex++;
+    }
+
     const sortBy = (sortByParam || 'support_date') as typeof VALID_SORT_BY[number];
     const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
-    queryBuilder.orderBy(`"ts"."${sortBy}"`, sortOrder);
 
-    // 페이지네이션
-    queryBuilder.skip((page - 1) * pageSize).take(pageSize);
+    // Raw SQL 쿼리
+    const sql = `SELECT "ts".*, "c"."name" AS customer_name
+                 FROM "TECH_SUPPORT" "ts"
+                 LEFT JOIN "CUSTOMER" "c" ON "c"."id" = "ts"."customer_id" AND "c"."deleted_at" IS NULL
+                 WHERE ${whereClauses.join(' AND ')}
+                 ORDER BY "ts"."${sortBy}" ${sortOrder}
+                 OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
 
-    // getRawAndEntities를 사용하여 JOIN 컬럼 포함
-    const [raw, total] = await Promise.all([
-      queryBuilder.getRawAndEntities(),
-      queryBuilder.getCount(),
+    // Total count 쿼리
+    const countSql = `SELECT COUNT(*) as total
+                      FROM "TECH_SUPPORT" "ts"
+                      WHERE ${whereClauses.join(' AND ')}`;
+
+    const [supports, countResult] = await Promise.all([
+      ds.getRepository(TechSupport).query(sql, {
+        ...params,
+        offset: (page - 1) * pageSize,
+        pageSize,
+      }),
+      ds.getRepository(TechSupport).query(countSql, params),
     ]);
 
-    // entity + customer_name 병합
-    const supports = raw.entities.map((entity, idx) => ({
-      ...entity,
-      customer_name: raw.raw[idx]?.customer_name || null,
-    }));
+    const total = parseInt(countResult[0]?.total || '0', 10);
 
     return NextResponse.json({ supports, total, page, page_size: pageSize });
   } catch (error) {
