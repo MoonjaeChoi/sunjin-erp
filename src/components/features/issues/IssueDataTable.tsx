@@ -1,6 +1,6 @@
 'use client';
 
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 22:15:00 KST
 
 import { useRouter } from 'next/navigation';
 import { Issue } from '@/types/issue';
