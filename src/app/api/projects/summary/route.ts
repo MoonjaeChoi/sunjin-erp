@@ -1,11 +1,9 @@
-// Generated: 2026-01-25 16:10:00 KST
+// Generated: 2026-01-26 10:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { Project } from '@/entities/Project';
-import { Employee } from '@/entities/Employee';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,49 +36,61 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
 
     const ds = await getDataSource();
     const user = session.user as any;
+    const queryRunner = ds.createQueryRunner();
 
-    // QueryBuilder를 사용하여 상태별 카운트 조회
-    let query = ds
-      .getRepository(Project)
-      .createQueryBuilder('p')
-      .leftJoin(Employee, 'e', '"e"."id" = "p"."employee_id"')
-      .where('"p"."deleted_at" IS NULL')
-      .select([
-        `COUNT(CASE WHEN "p"."status" = 'PREPARING' THEN 1 END) AS preparing`,
-        `COUNT(CASE WHEN "p"."status" = 'IN_PROGRESS' THEN 1 END) AS in_progress`,
-        `COUNT(CASE WHEN "p"."status" = 'COMPLETED' THEN 1 END) AS completed`,
-        `COUNT(CASE WHEN "p"."status" = 'ON_HOLD' THEN 1 END) AS on_hold`,
-      ]);
+    try {
+      // Raw SQL to count projects by status
+      let whereClauses: string[] = ['"p"."deleted_at" IS NULL'];
+      const params: any = {};
+      let paramIndex = 0;
 
-    // RBAC 조건 적용
-    if (user.role === 'MANAGER') {
-      query = query.andWhere('"e"."department_id" = :departmentId', {
-        departmentId: user.department_id,
+      // RBAC 조건 적용
+      if (user.role === 'MANAGER') {
+        whereClauses.push(`"e"."department_id" = :departmentId${paramIndex}`);
+        params[`departmentId${paramIndex}`] = user.department;
+        paramIndex++;
+      } else if (user.role === 'USER') {
+        whereClauses.push(`"p"."employee_id" = :userId${paramIndex}`);
+        params[`userId${paramIndex}`] = user.id;
+        paramIndex++;
+      }
+      // ADMIN: no additional filtering
+
+      // 필터 조건 적용
+      if (customerId) {
+        whereClauses.push(`"p"."customer_id" = :customerId${paramIndex}`);
+        params[`customerId${paramIndex}`] = customerId;
+        paramIndex++;
+      }
+
+      if (employeeId) {
+        whereClauses.push(`"p"."employee_id" = :employeeId${paramIndex}`);
+        params[`employeeId${paramIndex}`] = employeeId;
+        paramIndex++;
+      }
+
+      const sql = `
+        SELECT
+          COUNT(CASE WHEN "p"."status" = 'PREPARING' THEN 1 END) AS preparing,
+          COUNT(CASE WHEN "p"."status" = 'IN_PROGRESS' THEN 1 END) AS in_progress,
+          COUNT(CASE WHEN "p"."status" = 'COMPLETED' THEN 1 END) AS completed,
+          COUNT(CASE WHEN "p"."status" = 'ON_HOLD' THEN 1 END) AS on_hold
+        FROM PROJECT "p"
+        LEFT JOIN EMPLOYEE "e" ON "e"."id" = "p"."employee_id"
+        WHERE ${whereClauses.join(' AND ')}
+      `;
+
+      const result = await queryRunner.query(sql, params);
+
+      return NextResponse.json({
+        preparing: parseInt(result[0]?.preparing || '0', 10),
+        in_progress: parseInt(result[0]?.in_progress || '0', 10),
+        completed: parseInt(result[0]?.completed || '0', 10),
+        on_hold: parseInt(result[0]?.on_hold || '0', 10),
       });
-    } else if (user.role === 'USER') {
-      query = query.andWhere('"p"."employee_id" = :userId', {
-        userId: user.id,
-      });
+    } finally {
+      await queryRunner.release();
     }
-    // ADMIN은 모든 프로젝트 조회 가능
-
-    // 필터 조건 적용
-    if (customerId) {
-      query = query.andWhere('"p"."customer_id" = :customerId', { customerId });
-    }
-
-    if (employeeId) {
-      query = query.andWhere('"p"."employee_id" = :employeeId', { employeeId });
-    }
-
-    const result = await (query as any).getRawOne();
-
-    return NextResponse.json({
-      preparing: parseInt(result?.preparing || '0', 10),
-      in_progress: parseInt(result?.in_progress || '0', 10),
-      completed: parseInt(result?.completed || '0', 10),
-      on_hold: parseInt(result?.on_hold || '0', 10),
-    });
   } catch (error) {
     console.error('GET /api/projects/summary error:', error);
     return NextResponse.json(

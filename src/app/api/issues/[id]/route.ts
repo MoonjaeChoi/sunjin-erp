@@ -83,7 +83,7 @@ export async function GET(
     const user = session.user as any;
     const userId = user.id;
     const userRole = user.role;
-    const userDepartmentId = user.department_id;
+    const userDepartmentId = user.department;
 
     // 2. ID 검증
     const issueId = parseInt(params.id, 10);
@@ -243,7 +243,7 @@ export async function PUT(
     const user = session.user as any;
     const userId = user.id;
     const userRole = user.role;
-    const userDepartmentId = user.department_id;
+    const userDepartmentId = user.department;
 
     // 2. ID 검증
     const issueId = parseInt(params.id, 10);

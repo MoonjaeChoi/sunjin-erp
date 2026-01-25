@@ -270,7 +270,7 @@ export async function PUT(
         where: { id: project.employee_id },
         relations: ['department_id'],
       });
-      if (employee?.department_id !== user.department_id) {
+      if (employee?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
@@ -319,7 +319,7 @@ export async function PUT(
           errors.employee_id = 'Employee not found';
         } else if (user.role === 'MANAGER') {
           // MANAGER는 같은 부서 직원만 할당 가능
-          if (employee.department_id !== user.department_id) {
+          if (employee.department_id !== user.department) {
             errors.employee_id = 'Can only assign employees from your department';
           }
         }
@@ -430,7 +430,7 @@ export async function DELETE(
       const employee = await employeeRepo.findOne({
         where: { id: project.employee_id },
       });
-      if (employee?.department_id !== user.department_id) {
+      if (employee?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
@@ -501,7 +501,7 @@ export async function PATCH(
       const employee = await employeeRepo.findOne({
         where: { id: project.employee_id },
       });
-      if (employee?.department_id !== user.department_id) {
+      if (employee?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {

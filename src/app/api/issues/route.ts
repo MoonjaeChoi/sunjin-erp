@@ -85,7 +85,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const user = session.user as any;
     const userId = user.id;
     const userRole = user.role;
-    const userDepartmentId = user.department_id;
+    const userDepartmentId = user.department;
 
     // 2. 쿼리 파라미터 파싱
     const searchParams = req.nextUrl.searchParams;

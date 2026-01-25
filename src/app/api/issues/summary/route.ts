@@ -20,7 +20,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const userId = (session.user as any).id;
     const userRole = (session.user as any).role;
-    const userDepartmentId = (session.user as any).department_id;
+    const userDepartmentId = (session.user as any).department;
 
     // 2. Parse query parameters (filters - same as list API)
     const searchParams = req.nextUrl.searchParams;

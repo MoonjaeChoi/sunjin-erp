@@ -66,7 +66,7 @@ export async function POST(
       const employee = await employeeRepo.findOne({
         where: { id: project.employee_id },
       });
-      if (employee?.department_id !== user.department_id) {
+      if (employee?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
