@@ -1,6 +1,6 @@
 <!-- Generated: 2026-01-25 23:30:00 KST -->
 
-# Mediation Decisions: 유지보수 고객 관리 (2061 PRD)
+# Mediation Decisions: 유지보수 고객 관리 (2071 PRD)
 
 **Mediation Date:** 2026-01-25
 **Mediator:** Claude Code (AI-Assisted Decision Making)

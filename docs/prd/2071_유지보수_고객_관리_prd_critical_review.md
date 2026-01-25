@@ -1,6 +1,6 @@
 <!-- Generated: 2026-01-25 22:15:00 KST -->
 
-# Critical Review: 유지보수 고객 관리 (2061 PRD)
+# Critical Review: 유지보수 고객 관리 (2071 PRD)
 
 **Review Date:** 2026-01-25
 **Reviewed Against:** sunjin-erp Architecture Standards (CLAUDE.md)
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-The 2061 PRD (Maintenance Customer Management) is well-structured and comprehensive, covering core CRUD operations, file management, and lifecycle tracking for maintenance contracts. However, several critical issues require resolution before implementation can proceed.
+The 2071 PRD (Maintenance Customer Management) is well-structured and comprehensive, covering core CRUD operations, file management, and lifecycle tracking for maintenance contracts. However, several critical issues require resolution before implementation can proceed.
 
 **Overall Assessment:**
 - ✓ Good alignment with Next.js App Router patterns
@@ -959,9 +959,9 @@ PRD is comprehensive but lacks implementation guide:
 
 **Recommendation:**
 Add supplementary docs:
-- `2061_00_구현_가이드.md` — Implementation walkthrough
-- `2061_01_데이터베이스_마이그레이션.md` — Migration details
-- `2061_02_API_테스트.md` — API testing guide
+- `2071_00_구현_가이드.md` — Implementation walkthrough
+- `2071_01_데이터베이스_마이그레이션.md` — Migration details
+- `2071_02_API_테스트.md` — API testing guide
 
 **Priority:** LOW - Developer support
 
@@ -1119,7 +1119,7 @@ Clarify in Phase 1:
 
 ## Conclusion
 
-The 2061 PRD for "유지보수 고객 관리" is well-structured and covers most requirements comprehensively. However, **six HIGH-priority issues must be resolved before implementation can begin**, particularly around:
+The 2071 PRD for "유지보수 고객 관리" is well-structured and covers most requirements comprehensively. However, **six HIGH-priority issues must be resolved before implementation can begin**, particularly around:
 
 1. State transition automation rules
 2. API response contracts

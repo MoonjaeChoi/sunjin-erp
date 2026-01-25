@@ -1,9 +1,9 @@
 <!-- Generated: 2026-01-25 23:05:00 KST -->
 
-# Discussion Topics: 유지보수 고객 관리 (2061 PRD)
+# Discussion Topics: 유지보수 고객 관리 (2071 PRD)
 
 **Document Date:** 2026-01-25
-**Related Documents:** 2061_유지보수_고객_관리_prd.md, 2061_유지보수_고객_관리_prd_critical_review.md, 2061_유지보수_고객_관리_prd_rebuttal.md
+**Related Documents:** 2071_유지보수_고객_관리_prd.md, 2071_유지보수_고객_관리_prd_critical_review.md, 2071_유지보수_고객_관리_prd_rebuttal.md
 **Purpose:** Unresolved decisions requiring mediation phase resolution
 
 ---

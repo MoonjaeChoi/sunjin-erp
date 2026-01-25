@@ -1,9 +1,9 @@
 <!-- Generated: 2026-01-25 22:45:00 KST -->
 
-# Rebuttal: 유지보수 고객 관리 (2061 PRD)
+# Rebuttal: 유지보수 고객 관리 (2071 PRD)
 
 **Document Date:** 2026-01-25
-**Response to:** 2061_유지보수_고객_관리_prd_critical_review.md
+**Response to:** 2071_유지보수_고객_관리_prd_critical_review.md
 **Rebuttal Status:** Ready for Mediation Phase
 
 ---
@@ -930,7 +930,7 @@ Response 500: { error: "INTERNAL_SERVER_ERROR" }
 **Proposed Addendum to PRD:**
 
 > **API Response Contracts:**
-> See separate document: `2061_01_API_명세.md` for complete request/response schemas
+> See separate document: `2071_01_API_명세.md` for complete request/response schemas
 > Including:
 > - GET /api/maintenance (list with filters)
 > - POST /api/maintenance (create)
@@ -938,7 +938,7 @@ Response 500: { error: "INTERNAL_SERVER_ERROR" }
 > - DELETE /api/maintenance/[id] (delete)
 > - And all attachment/history/status endpoints
 
-**Action**: Create `2061_01_API_명세.md` during implementation phase.
+**Action**: Create `2071_01_API_명세.md` during implementation phase.
 
 #### Acknowledgment
 
@@ -1006,7 +1006,7 @@ GET /api/maintenance
 > - `page`: Current page (1-based)
 > - `limit`: Items per page (20-100, default 20)
 
-**Also See**: Implementation document `2061_01_API_명세.md` for request/response schemas.
+**Also See**: Implementation document `2071_01_API_명세.md` for request/response schemas.
 
 #### Acknowledgment
 
@@ -1371,7 +1371,7 @@ const updateStatusSchema = z.object({
 **Proposed Addition to Section 8:**
 
 > **Input Validation Rules**:
-> See validation schema in `2061_01_API_명세.md`:
+> See validation schema in `2071_01_API_명세.md`:
 > - Contract name: 1-255 characters
 > - Contract type: 1-50 characters
 > - Dates: ISO8601 format (YYYY-MM-DD), start <= end
@@ -1381,7 +1381,7 @@ const updateStatusSchema = z.object({
 > - File name: 1-255 characters (sanitized)
 > - All validation server-side, React Hook Form for client-side UX
 
-**Action**: Create comprehensive Zod schema in `2061_01_API_명세.md` during implementation.
+**Action**: Create comprehensive Zod schema in `2071_01_API_명세.md` during implementation.
 
 #### Acknowledgment
 
@@ -1845,7 +1845,7 @@ Doesn't clarify interaction with Customer module.
 
 **Module Responsibility Clarification:**
 
-1. **Maintenance Module (2061)**:
+1. **Maintenance Module (2071)**:
    - Contract information
    - Contract lifecycle management
    - File attachments specific to contracts
@@ -1920,7 +1920,7 @@ Section 7 states: "API 테스트 커버리지 ≥ 80%" but no test specs defined
 
 **Proposed Addition for Implementation Guide** (not PRD):
 
-> **Testing Strategy** (see `2061_02_테스트_가이드.md`):
+> **Testing Strategy** (see `2071_02_테스트_가이드.md`):
 > - Unit tests: Entity, service logic (Vitest)
 > - Integration tests: API endpoints with mock DB (Vitest + test containers)
 > - E2E tests: Major workflows (Playwright)
@@ -1947,11 +1947,11 @@ Comprehensive business spec but no developer guide.
 
 **Proposed Supplementary Docs** (to be created):
 
-1. `2061_01_API_명세.md` — Request/response schemas, parameters, errors
-2. `2061_02_구현_가이드.md` — Step-by-step implementation walkthrough
-3. `2061_03_데이터베이스_마이그레이션.md` — Migration creation, index strategy
-4. `2061_04_API_테스트.md` — API testing guide with examples
-5. `2061_05_개발자_QA체크리스트.md` — Checklist before code review
+1. `2071_01_API_명세.md` — Request/response schemas, parameters, errors
+2. `2071_02_구현_가이드.md` — Step-by-step implementation walkthrough
+3. `2071_03_데이터베이스_마이그레이션.md` — Migration creation, index strategy
+4. `2071_04_API_테스트.md` — API testing guide with examples
+5. `2071_05_개발자_QA체크리스트.md` — Checklist before code review
 
 #### Acknowledgment
 
@@ -1998,7 +1998,7 @@ Section 4.2 says auto-renewal is out-of-scope, but renewal history (User Story 9
 | 5.2 File Download Auth | Security | CLARIFICATION NEEDED | Specify download = USER+, through API endpoint |
 | 6.1 Zustand vs useState | State Management | CLARIFICATION NEEDED | Use URL params + TanStack Query (not Zustand) |
 | 6.2 Optimistic Updates | UX | IMPLEMENTATION DETAIL | Document pattern in implementation guide |
-| 7.1 API Response Contracts | API Design | SEPARATE DOCUMENT | Create 2061_01_API_명세.md |
+| 7.1 API Response Contracts | API Design | SEPARATE DOCUMENT | Create 2071_01_API_명세.md |
 | 7.2 Query Parameters | API Design | SEPARATE DOCUMENT | Document parameter naming in API spec |
 | 7.3 Batch Operations | Feature Scope | INTENTIONAL OUT-OF-SCOPE | Phase 2 enhancement |
 | 8.1 Loading States | UX | IMPLEMENTATION DETAIL | Reference shadcn/ui Skeleton usage |
@@ -2021,7 +2021,7 @@ Section 4.2 says auto-renewal is out-of-scope, but renewal history (User Story 9
 
 ## Conclusion
 
-**Overall Assessment**: The 2061 PRD is fundamentally sound. Of 14 critical issues identified in the review:
+**Overall Assessment**: The 2071 PRD is fundamentally sound. Of 14 critical issues identified in the review:
 
 - **5 issues are valid concerns** requiring clarification in Phase 1 (state transitions, API contracts, authorization, soft-delete enforcement, query optimization)
 - **4 issues are design justifications** with intent already in PRD but poorly communicated (pagination limits, file upload strategy, state management, duplicate detection)
@@ -2036,9 +2036,9 @@ Section 4.2 says auto-renewal is out-of-scope, but renewal history (User Story 9
    - Reduce max pagination to 50 items
 
 2. **Create Supplementary Documents** (Phase 1 deliverables):
-   - `2061_01_API_명세.md` — API contracts, validation schemas
-   - `2061_02_구현_가이드.md` — Implementation walkthrough, query patterns
-   - `2061_03_테스트_가이드.md` — Testing strategy and checklist
+   - `2071_01_API_명세.md` — API contracts, validation schemas
+   - `2071_02_구현_가이드.md` — Implementation walkthrough, query patterns
+   - `2071_03_테스트_가이드.md` — Testing strategy and checklist
 
 3. **Phase 2 Enhancements** (noted for future):
    - Automatic contract renewal workflow
