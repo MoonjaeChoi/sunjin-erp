@@ -165,20 +165,36 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
       .getRawMany<any>();
 
     // 응답 형태 변환
-    const projects: ProjectListItem[] = results.map((row) => ({
-      id: row.p_id,
-      project_code: row.p_project_code,
-      project_name: row.p_project_name,
-      customer_id: row.p_customer_id,
-      customer_name: row.c_name,
-      employee_id: row.p_employee_id,
-      employee_name: row.e_name,
-      status: row.p_status,
-      start_date: row.p_start_date ? row.p_start_date.toISOString().split('T')[0] : null,
-      end_date: row.p_end_date ? row.p_end_date.toISOString().split('T')[0] : null,
-      contract_amount: row.p_contract_amount,
-      created_at: row.p_created_at.toISOString(),
-    }));
+    const projects: ProjectListItem[] = results.map((row) => {
+      const formatDate = (date: any) => {
+        if (!date) return null;
+        if (typeof date === 'string') return date.split('T')[0];
+        if (date instanceof Date) return date.toISOString().split('T')[0];
+        return null;
+      };
+
+      const formatDateTime = (date: any) => {
+        if (!date) return new Date().toISOString();
+        if (typeof date === 'string') return date;
+        if (date instanceof Date) return date.toISOString();
+        return new Date().toISOString();
+      };
+
+      return {
+        id: row.p_id,
+        project_code: row.p_project_code,
+        project_name: row.p_project_name,
+        customer_id: row.p_customer_id,
+        customer_name: row.c_name,
+        employee_id: row.p_employee_id,
+        employee_name: row.e_name,
+        status: row.p_status,
+        start_date: formatDate(row.p_start_date),
+        end_date: formatDate(row.p_end_date),
+        contract_amount: row.p_contract_amount,
+        created_at: formatDateTime(row.p_created_at),
+      };
+    });
 
     return NextResponse.json({
       projects,

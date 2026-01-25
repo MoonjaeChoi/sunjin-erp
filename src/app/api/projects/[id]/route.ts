@@ -171,6 +171,21 @@ export async function GET(
       order: { created_at: 'DESC' },
     });
 
+    // Helper to format dates consistently
+    const formatDate = (date: any) => {
+      if (!date) return null;
+      if (typeof date === 'string') return date.split('T')[0];
+      if (date instanceof Date) return date.toISOString().split('T')[0];
+      return null;
+    };
+
+    const formatDateTime = (date: any) => {
+      if (!date) return null;
+      if (typeof date === 'string') return date;
+      if (date instanceof Date) return date.toISOString();
+      return null;
+    };
+
     // 응답 포맷팅
     const response: ProjectDetailResponse = {
       id: project!.id,
@@ -182,18 +197,18 @@ export async function GET(
       employee_name: project!.employee_name,
       department_name: project!.department_name,
       status: project!.status,
-      start_date: project!.start_date ? (project!.start_date as any).toISOString().split('T')[0] : null,
-      end_date: project!.end_date ? (project!.end_date as any).toISOString().split('T')[0] : null,
+      start_date: formatDate(project!.start_date),
+      end_date: formatDate(project!.end_date),
       contract_amount: project!.contract_amount,
       description: project!.description,
-      stage_meeting_at: (project!.stage_meeting_at as any)?.toISOString() || null,
-      stage_proposal_at: (project!.stage_proposal_at as any)?.toISOString() || null,
-      stage_quotation_at: (project!.stage_quotation_at as any)?.toISOString() || null,
-      stage_contract_at: (project!.stage_contract_at as any)?.toISOString() || null,
-      stage_kickoff_at: (project!.stage_kickoff_at as any)?.toISOString() || null,
-      stage_development_at: (project!.stage_development_at as any)?.toISOString() || null,
-      stage_delivery_at: (project!.stage_delivery_at as any)?.toISOString() || null,
-      stage_handover_at: (project!.stage_handover_at as any)?.toISOString() || null,
+      stage_meeting_at: formatDateTime(project!.stage_meeting_at),
+      stage_proposal_at: formatDateTime(project!.stage_proposal_at),
+      stage_quotation_at: formatDateTime(project!.stage_quotation_at),
+      stage_contract_at: formatDateTime(project!.stage_contract_at),
+      stage_kickoff_at: formatDateTime(project!.stage_kickoff_at),
+      stage_development_at: formatDateTime(project!.stage_development_at),
+      stage_delivery_at: formatDateTime(project!.stage_delivery_at),
+      stage_handover_at: formatDateTime(project!.stage_handover_at),
       attachments: attachments.map((att) => ({
         id: att.id,
         file_name: att.file_name,
@@ -201,8 +216,8 @@ export async function GET(
         category: att.category,
         created_at: att.created_at.toISOString(),
       })),
-      created_at: (project!.created_at as any).toISOString(),
-      updated_at: (project!.updated_at as any).toISOString(),
+      created_at: formatDateTime(project!.created_at) || new Date().toISOString(),
+      updated_at: formatDateTime(project!.updated_at) || new Date().toISOString(),
     };
 
     return NextResponse.json(response);
