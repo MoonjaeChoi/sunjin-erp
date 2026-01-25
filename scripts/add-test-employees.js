@@ -13,7 +13,7 @@ const bcrypt = require("bcryptjs");
 
     // First, check what columns exist in the EMPLOYEE table
     const columnsResult = await conn.execute(
-      "SELECT COLUMN_NAME FROM USER_TAB_COLUMNS WHERE TABLE_NAME = 'EMPLOYEE' ORDER BY COLUMN_ID"
+      'SELECT COLUMN_NAME FROM USER_TAB_COLUMNS WHERE TABLE_NAME = \'EMPLOYEE\' ORDER BY COLUMN_ID'
     );
     const columns = columnsResult.rows.map(row => row[0]);
     console.log("Available columns: " + columns.join(", "));
@@ -34,8 +34,8 @@ const bcrypt = require("bcryptjs");
     for (const emp of employees) {
       try {
         await conn.execute(
-          "INSERT INTO SUNJIN_ADMIN.EMPLOYEE (id, name, username, password_hash, role, email, position) " +
-          "VALUES (:id, :name, :username, :hash, :role, :email, :position)",
+          'INSERT INTO SUNJIN_ADMIN."EMPLOYEE" ("id", "name", "username", "password_hash", "role", "email", "position") ' +
+          'VALUES (:id, :name, :username, :hash, :role, :email, :position)',
           {
             id: emp.id,
             name: emp.name,
@@ -66,7 +66,7 @@ const bcrypt = require("bcryptjs");
 
     // Verify
     const result = await conn.execute(
-      "SELECT id, name FROM SUNJIN_ADMIN.EMPLOYEE ORDER BY id"
+      'SELECT "id", "name" FROM SUNJIN_ADMIN."EMPLOYEE" ORDER BY "id"'
     );
     console.log("\n=== 등록된 직원 목록 (총 " + result.rows.length + "명) ===");
     for (const row of result.rows) {
