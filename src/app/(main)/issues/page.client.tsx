@@ -20,19 +20,32 @@ export default function IssueListPageClient() {
   const pagination = useIssueFilterStore((state) => state.pagination);
   const sort = useIssueFilterStore((state) => state.sort);
 
-  // 쿼리 파라미터 조합
+  // 쿼리 파라미터 조합 (배열을 쉼표 구분 문자열로 변환)
   const queryParams = {
-    ...pagination,
-    ...filters,
+    page: pagination.page,
+    page_size: pagination.page_size,
+    customer_id: filters.customer_id,
+    status: filters.status ? filters.status.join(',') : undefined,
+    severity: filters.severity ? filters.severity.join(',') : undefined,
+    assignee_id: filters.assignee_id,
+    created_by_id: filters.created_by_id,
+    date_from: filters.date_from,
+    date_to: filters.date_to,
+    keyword: filters.keyword,
     sort_by: sort.sort_by,
     sort_order: sort.sort_order,
   };
 
   // 목록 + 요약 조회
-  const { list, summary, isLoading, isError } = useIssueListWithSummary(queryParams);
+  const { list, summary, isLoading, isError } = useIssueListWithSummary(
+    queryParams
+  );
 
   if (isLoading) return <IssueListSkeleton />;
   if (isError) return <div>오류가 발생했습니다.</div>;
+
+  const listData = (list.data as any) || { data: [], pagination: {} };
+  const summaryData = (summary.data as any) || { total: 0, intake: 0, in_progress: 0, completed: 0 };
 
   return (
     <div className="space-y-4 p-4">
@@ -46,10 +59,15 @@ export default function IssueListPageClient() {
       <IssueFilters />
 
       {/* 요약 배지 */}
-      {summary.data && <IssueSummaryBadges summary={summary.data} />}
+      {summaryData && <IssueSummaryBadges summary={summaryData} />}
 
       {/* 목록 테이블 */}
-      {list.data && <IssueDataTable issues={list.data.data} pagination={list.data.pagination} />}
+      {listData && (
+        <IssueDataTable
+          issues={listData.data}
+          pagination={listData.pagination}
+        />
+      )}
 
       {/* 신규 등록 다이얼로그 */}
       <IssueCreateDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />

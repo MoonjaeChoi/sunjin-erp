@@ -29,9 +29,9 @@ export default function IssueDetailForm({
     e.preventDefault();
     try {
       await mutation.mutateAsync({
-        treatment_method: formData.treatment_method as any,
+        treatment_method: (formData.treatment_method || null) as any,
         treatment_time_minutes: formData.treatment_time_minutes
-          ? parseInt(formData.treatment_time_minutes)
+          ? parseInt(String(formData.treatment_time_minutes))
           : undefined,
         treatment_result: formData.treatment_result || undefined,
       });

@@ -15,14 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { Button as PaginationButton } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
@@ -125,45 +118,45 @@ export default function IssueDataTable({
       </div>
 
       {/* 페이지네이션 */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div className="text-sm text-gray-600">
           총 {pagination.total}건 ({pagination.page}/{pagination.total_pages}
           페이지)
         </div>
-        <Pagination>
-          <PaginationContent>
-            <PaginationPrevious
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (pagination.page > 1)
-                  handlePageChange(pagination.page - 1);
-              }}
-            />
-            {Array.from({ length: pagination.total_pages }).map((_, i) => (
-              <PaginationItem key={i + 1}>
-                <PaginationLink
-                  href="#"
-                  isActive={pagination.page === i + 1}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(i + 1);
-                  }}
-                >
-                  {i + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationNext
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (pagination.page < pagination.total_pages)
-                  handlePageChange(pagination.page + 1);
-              }}
-            />
-          </PaginationContent>
-        </Pagination>
+        <div className="flex gap-2">
+          <PaginationButton
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (pagination.page > 1)
+                handlePageChange(pagination.page - 1);
+            }}
+            disabled={pagination.page === 1}
+          >
+            이전
+          </PaginationButton>
+          {Array.from({ length: pagination.total_pages }).map((_, i) => (
+            <PaginationButton
+              key={i + 1}
+              variant={pagination.page === i + 1 ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handlePageChange(i + 1)}
+            >
+              {i + 1}
+            </PaginationButton>
+          ))}
+          <PaginationButton
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (pagination.page < pagination.total_pages)
+                handlePageChange(pagination.page + 1);
+            }}
+            disabled={pagination.page === pagination.total_pages}
+          >
+            다음
+          </PaginationButton>
+        </div>
       </div>
     </div>
   );

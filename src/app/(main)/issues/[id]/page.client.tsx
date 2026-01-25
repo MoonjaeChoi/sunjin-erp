@@ -15,9 +15,11 @@ export default function IssueDetailPageClient({ issueId }: IssueDetailPageClient
 
   if (isLoading) return <IssueDetailSkeleton />;
   if (isError) return <div>오류가 발생했습니다.</div>;
-  if (!data?.data) return <div>데이터를 찾을 수 없습니다.</div>;
+  
+  const detailData = (data as any) || {};
+  if (!detailData.data) return <div>데이터를 찾을 수 없습니다.</div>;
 
-  return <IssueDetail issue={data.data} />;
+  return <IssueDetail issue={detailData.data} />;
 }
 
 function IssueDetailSkeleton() {
