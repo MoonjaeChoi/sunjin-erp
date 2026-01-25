@@ -19,20 +19,25 @@ export async function GET(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // Try a simple query
-    console.log('[HEALTH] Testing query...');
-    const { Employee } = await import('@/entities/Employee');
-    const repo = ds.getRepository(Employee);
-    const count = await repo.count();
+    // Try a raw SQL query to test database connection
+    console.log('[HEALTH] Testing database query...');
+    try {
+      const queryRunner = ds.createQueryRunner();
+      const result = await queryRunner.query('SELECT 1 as test FROM dual');
+      await queryRunner.release();
 
-    console.log('[HEALTH] Employee count:', count);
+      console.log('[HEALTH] Database query successful, result:', result);
 
-    return NextResponse.json({
-      status: 'ok',
-      database: 'connected',
-      employees: count,
-      dataSourceInitialized: ds.isInitialized
-    });
+      return NextResponse.json({
+        status: 'ok',
+        database: 'connected',
+        dataSourceInitialized: ds.isInitialized,
+        queryTest: !!result
+      });
+    } catch (queryError) {
+      console.error('[HEALTH] Query error:', queryError);
+      throw queryError;
+    }
   } catch (error) {
     console.error('[HEALTH] Error:', error);
     return NextResponse.json({
