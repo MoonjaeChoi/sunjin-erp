@@ -23,6 +23,7 @@ export async function getDataSource(): Promise<any> {
   try {
     // Lazy load everything to avoid circular dependencies
     ensureReflectMetadata();
+    console.log('[DB] Loading TypeORM modules...');
 
     const { DataSource } = await import('typeorm');
     const { Task } = await import('@/entities/Task');
@@ -35,6 +36,7 @@ export async function getDataSource(): Promise<any> {
     const { IssueAttachment } = await import('@/entities/IssueAttachment');
     const { IssueHistory } = await import('@/entities/IssueHistory');
 
+    console.log('[DB] Creating DataSource...');
     dataSource = new DataSource({
       type: 'oracle',
       host: process.env.ORACLE_HOST || 'localhost',
@@ -58,8 +60,11 @@ export async function getDataSource(): Promise<any> {
       logging: process.env.NODE_ENV === 'development',
     });
 
+    console.log('[DB] Initializing DataSource...');
     await dataSource.initialize();
+    console.log('[DB] DataSource initialized successfully');
   } catch (error) {
+    console.error('[DB] Error during initialization:', error);
     // If initialization fails (e.g., during build), create minimal datasource
     // to prevent module loading errors
     if (!dataSource) {
