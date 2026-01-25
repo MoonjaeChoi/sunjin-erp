@@ -96,116 +96,121 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
     }
 
     const ds = await getDataSource();
-    const user = session.user as any;
+    const queryRunner = ds.createQueryRunner();
 
-    // 동적 WHERE 절 구성
-    let whereClauses: string[] = ['"p"."deleted_at" IS NULL'];
-    const params: any = {};
-    let paramIndex = 0;
+    try {
+      const user = session.user as any;
 
-    // RBAC 조건 적용
-    if (user.role === 'MANAGER') {
-      whereClauses.push(`"e"."department_id" = :departmentId${paramIndex}`);
-      params[`departmentId${paramIndex}`] = user.department_id;
-      paramIndex++;
-    } else if (user.role === 'USER') {
-      whereClauses.push(`"p"."employee_id" = :userId${paramIndex}`);
-      params[`userId${paramIndex}`] = user.id;
-      paramIndex++;
+      // 동적 WHERE 절 구성
+      let whereClauses: string[] = ['"p"."deleted_at" IS NULL'];
+      const params: any = {};
+      let paramIndex = 0;
+
+      // RBAC 조건 적용
+      if (user.role === 'MANAGER') {
+        whereClauses.push(`"e"."department_id" = :departmentId${paramIndex}`);
+        params[`departmentId${paramIndex}`] = user.department;
+        paramIndex++;
+      } else if (user.role === 'USER') {
+        whereClauses.push(`"p"."employee_id" = :userId${paramIndex}`);
+        params[`userId${paramIndex}`] = user.id;
+        paramIndex++;
+      }
+      // ADMIN은 모든 프로젝트 조회 가능
+
+      // 필터 조건 적용
+      if (customerId) {
+        whereClauses.push(`"p"."customer_id" = :customerId${paramIndex}`);
+        params[`customerId${paramIndex}`] = customerId;
+        paramIndex++;
+      }
+
+      if (status) {
+        whereClauses.push(`"p"."status" = :status${paramIndex}`);
+        params[`status${paramIndex}`] = status;
+        paramIndex++;
+      }
+
+      if (employeeId) {
+        whereClauses.push(`"p"."employee_id" = :employeeId${paramIndex}`);
+        params[`employeeId${paramIndex}`] = employeeId;
+        paramIndex++;
+      }
+
+      // 키워드 검색
+      if (keyword && keyword.length >= 2) {
+        whereClauses.push(`("p"."project_name" LIKE :keyword${paramIndex} OR "p"."project_code" LIKE :keyword${paramIndex})`);
+        params[`keyword${paramIndex}`] = `%${keyword}%`;
+        paramIndex++;
+      }
+
+      // Raw SQL 쿼리
+      const sql = `SELECT "p"."id", "p"."project_code", "p"."project_name", "p"."customer_id",
+                          "c"."name" AS customer_name, "p"."employee_id", "e"."name" AS employee_name,
+                          "p"."status", "p"."start_date", "p"."end_date", "p"."contract_amount", "p"."created_at"
+                   FROM PROJECT "p"
+                   LEFT JOIN CUSTOMER "c" ON "c"."id" = "p"."customer_id" AND "c"."deleted_at" IS NULL
+                   LEFT JOIN EMPLOYEE "e" ON "e"."id" = "p"."employee_id" AND "e"."deleted_at" IS NULL
+                   WHERE ${whereClauses.join(' AND ')}
+                   ORDER BY "p"."${sortBy}" ${sortOrder}
+                   OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
+
+      const countSql = `SELECT COUNT(*) as total
+                        FROM PROJECT "p"
+                        LEFT JOIN EMPLOYEE "e" ON "e"."id" = "p"."employee_id"
+                        WHERE ${whereClauses.join(' AND ')}`;
+
+      params.offset = (page - 1) * pageSize;
+      params.pageSize = pageSize;
+
+      const [results, countResult] = await Promise.all([
+        queryRunner.query(sql, params),
+        queryRunner.query(countSql, params),
+      ]);
+
+      const total = parseInt(countResult[0]?.total || '0', 10);
+
+      // 응답 형태 변환
+      const projects: ProjectListItem[] = results.map((row: any) => {
+        const formatDate = (date: any) => {
+          if (!date) return null;
+          if (typeof date === 'string') return date.split('T')[0];
+          if (date instanceof Date) return date.toISOString().split('T')[0];
+          return null;
+        };
+
+        const formatDateTime = (date: any) => {
+          if (!date) return new Date().toISOString();
+          if (typeof date === 'string') return date;
+          if (date instanceof Date) return date.toISOString();
+          return new Date().toISOString();
+        };
+
+        return {
+          id: row.id,
+          project_code: row.project_code,
+          project_name: row.project_name,
+          customer_id: row.customer_id,
+          customer_name: row.customer_name,
+          employee_id: row.employee_id,
+          employee_name: row.employee_name,
+          status: row.status,
+          start_date: formatDate(row.start_date),
+          end_date: formatDate(row.end_date),
+          contract_amount: row.contract_amount,
+          created_at: formatDateTime(row.created_at),
+        };
+      });
+
+      return NextResponse.json({
+        projects,
+        total,
+        page,
+        page_size: pageSize,
+      });
+    } finally {
+      await queryRunner.release();
     }
-    // ADMIN은 모든 프로젝트 조회 가능
-
-    // 필터 조건 적용
-    if (customerId) {
-      whereClauses.push(`"p"."customer_id" = :customerId${paramIndex}`);
-      params[`customerId${paramIndex}`] = customerId;
-      paramIndex++;
-    }
-
-    if (status) {
-      whereClauses.push(`"p"."status" = :status${paramIndex}`);
-      params[`status${paramIndex}`] = status;
-      paramIndex++;
-    }
-
-    if (employeeId) {
-      whereClauses.push(`"p"."employee_id" = :employeeId${paramIndex}`);
-      params[`employeeId${paramIndex}`] = employeeId;
-      paramIndex++;
-    }
-
-    // 키워드 검색
-    if (keyword && keyword.length >= 2) {
-      whereClauses.push(`("p"."project_name" LIKE :keyword${paramIndex} OR "p"."project_code" LIKE :keyword${paramIndex})`);
-      params[`keyword${paramIndex}`] = `%${keyword}%`;
-      paramIndex++;
-    }
-
-    // Raw SQL 쿼리
-    const sql = `SELECT "p"."id", "p"."project_code", "p"."project_name", "p"."customer_id",
-                        "c"."name" AS customer_name, "p"."employee_id", "e"."name" AS employee_name,
-                        "p"."status", "p"."start_date", "p"."end_date", "p"."contract_amount", "p"."created_at"
-                 FROM "PROJECT" "p"
-                 LEFT JOIN "CUSTOMER" "c" ON "c"."id" = "p"."customer_id" AND "c"."deleted_at" IS NULL
-                 LEFT JOIN "EMPLOYEE" "e" ON "e"."id" = "p"."employee_id" AND "e"."deleted_at" IS NULL
-                 WHERE ${whereClauses.join(' AND ')}
-                 ORDER BY "p"."${sortBy}" ${sortOrder}
-                 OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
-
-    const countSql = `SELECT COUNT(*) as total
-                      FROM "PROJECT" "p"
-                      LEFT JOIN "EMPLOYEE" "e" ON "e"."id" = "p"."employee_id"
-                      WHERE ${whereClauses.join(' AND ')}`;
-
-    const [results, countResult] = await Promise.all([
-      ds.getRepository(Project).query(sql, {
-        ...params,
-        offset: (page - 1) * pageSize,
-        pageSize,
-      }),
-      ds.getRepository(Project).query(countSql, params),
-    ]);
-
-    const total = parseInt(countResult[0]?.total || '0', 10);
-
-    // 응답 형태 변환
-    const projects: ProjectListItem[] = results.map((row: any) => {
-      const formatDate = (date: any) => {
-        if (!date) return null;
-        if (typeof date === 'string') return date.split('T')[0];
-        if (date instanceof Date) return date.toISOString().split('T')[0];
-        return null;
-      };
-
-      const formatDateTime = (date: any) => {
-        if (!date) return new Date().toISOString();
-        if (typeof date === 'string') return date;
-        if (date instanceof Date) return date.toISOString();
-        return new Date().toISOString();
-      };
-
-      return {
-        id: row.id,
-        project_code: row.project_code,
-        project_name: row.project_name,
-        customer_id: row.customer_id,
-        customer_name: row.customer_name,
-        employee_id: row.employee_id,
-        employee_name: row.employee_name,
-        status: row.status,
-        start_date: formatDate(row.start_date),
-        end_date: formatDate(row.end_date),
-        contract_amount: row.contract_amount,
-        created_at: formatDateTime(row.created_at),
-      };
-    });
-
-    return NextResponse.json({
-      projects,
-      total,
-      page,
-      page_size: pageSize,
-    });
   } catch (error) {
     console.error('GET /api/projects error:', error);
     return NextResponse.json(
