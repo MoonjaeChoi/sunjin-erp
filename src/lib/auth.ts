@@ -17,10 +17,12 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
+          console.log('[Auth] Missing credentials');
           return null;
         }
 
         try {
+          console.log(`[Auth] Attempting login for: ${credentials.username}`);
           const ds = await getDataSource();
           const repo = ds.getRepository(Employee);
           const employee = await repo.findOne({
@@ -30,21 +32,30 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
-          if (!employee) return null;
+          if (!employee) {
+            console.log(`[Auth] Employee not found: ${credentials.username}`);
+            return null;
+          }
 
           const isValid = await bcrypt.compare(
             credentials.password,
             employee.password_hash
           );
-          if (!isValid) return null;
 
+          if (!isValid) {
+            console.log(`[Auth] Invalid password for: ${credentials.username}`);
+            return null;
+          }
+
+          console.log(`[Auth] Login successful: ${credentials.username}`);
           return {
             id: String(employee.id),
             name: employee.name,
             role: employee.role,
             department: employee.department_id,
           };
-        } catch {
+        } catch (error) {
+          console.error('[Auth] Error during authorization:', error);
           return null;
         }
       },
