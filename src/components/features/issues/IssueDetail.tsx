@@ -33,6 +33,7 @@ import { ko } from 'date-fns/locale';
 import IssueDetailForm from './IssueDetailForm';
 import FileUploadArea from './FileUploadArea';
 import IssueHistoryList from './IssueHistoryList';
+import IssuePublicToggle from './IssuePublicToggle';
 
 interface IssueDetailProps {
   issue: Issue & {
@@ -123,22 +124,13 @@ export default function IssueDetail({ issue }: IssueDetailProps) {
         </div>
 
         {/* is_public 토글 (MANAGER/ADMIN만) */}
-        {canEdit && (
-          <div className="mt-4 pt-4 border-t">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={issue.is_public === 1}
-                onChange={(e) =>
-                  updateMutation.mutate({
-                    is_public: e.target.checked ? 1 : 0,
-                  })
-                }
-              />
-              <span>같은 부서원 조회 가능</span>
-            </label>
-          </div>
-        )}
+        <div className="mt-4 pt-4 border-t">
+          <IssuePublicToggle
+            issueId={issue.id}
+            isPublic={issue.is_public}
+            canEdit={canEdit}
+          />
+        </div>
       </Card>
 
       {/* 설명 */}
