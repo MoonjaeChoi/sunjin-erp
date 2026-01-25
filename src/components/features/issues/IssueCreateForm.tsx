@@ -1,6 +1,6 @@
 'use client';
 
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 22:25:00 KST
 
 import { useState } from 'react';
 import { useCreateIssueMutation } from '@/hooks/issues';
