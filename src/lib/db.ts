@@ -65,6 +65,11 @@ export async function getDataSource(): Promise<any> {
     console.log('[DB] DataSource initialized successfully');
   } catch (error) {
     console.error('[DB] Error during initialization:', error);
+    if (error instanceof Error) {
+      console.error('[DB] Error stack:', error.stack);
+      console.error('[DB] Error name:', error.name);
+      console.error('[DB] Error message:', error.message);
+    }
     // If initialization fails (e.g., during build), create minimal datasource
     // to prevent module loading errors
     if (!dataSource) {
