@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 21:35:00 KST
 
 import {
   Entity,
@@ -6,10 +6,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
   OneToMany,
   Index,
+  Check,
 } from 'typeorm';
 import { Customer } from './Customer';
 import { Employee } from './Employee';
@@ -21,11 +23,12 @@ export type IssueSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 export type TreatmentMethod = 'REMOTE' | 'PHONE' | 'ONSITE' | null;
 
 @Entity('ISSUE')
-@Index(['customer_id'])
-@Index(['created_by_id'])
-@Index(['assigned_to_id'])
-@Index(['status'])
-@Index(['is_public'])
+@Check('CHK_ISSUE_TREATMENT_TIME', '"treatment_time_minutes" IS NULL OR ("treatment_time_minutes" >= 1 AND "treatment_time_minutes" <= 1440)')
+@Index('IDX_ISSUE_CUSTOMER_ID', ['customer_id'])
+@Index('IDX_ISSUE_CREATED_BY_ID', ['created_by_id'])
+@Index('IDX_ISSUE_ASSIGNED_TO_ID', ['assigned_to_id'])
+@Index('IDX_ISSUE_STATUS', ['status'])
+@Index('IDX_ISSUE_DELETED_AT', ['deleted_at'])
 export class Issue {
   @PrimaryGeneratedColumn('increment', {
     name: 'id',
@@ -56,7 +59,7 @@ export class Issue {
     name: 'severity',
     type: 'varchar2',
     length: 20,
-    default: 'MEDIUM',
+    default: 'CRITICAL',
   })
   severity!: IssueSeverity;
 
@@ -132,7 +135,7 @@ export class Issue {
   })
   updated_at!: Date;
 
-  @Column({
+  @DeleteDateColumn({
     name: 'deleted_at',
     type: 'timestamp',
     nullable: true,
@@ -146,11 +149,11 @@ export class Issue {
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'created_by_id' })
-  created_by!: Employee;
+  createdBy!: Employee;
 
   @ManyToOne(() => Employee, { nullable: true })
   @JoinColumn({ name: 'assigned_to_id' })
-  assigned_to!: Employee | null;
+  assignedTo!: Employee | null;
 
   @OneToMany(() => IssueAttachment, (attachment) => attachment.issue)
   attachments!: IssueAttachment[];

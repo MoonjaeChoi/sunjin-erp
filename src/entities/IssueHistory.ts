@@ -19,7 +19,7 @@ export type IssueHistoryChangeType =
   | 'STATUS_ROLLBACK'
   | 'ATTACHMENT_UPLOADED'
   | 'ATTACHMENT_DELETED'
-  | 'COMMENT_ADDED';
+  | 'IS_PUBLIC_CHANGE';
 
 @Entity('ISSUE_HISTORY')
 @Index(['issue_id'])

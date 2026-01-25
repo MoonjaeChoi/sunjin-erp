@@ -15,8 +15,8 @@ export class CreateIssueTables1737799500000 implements MigrationInterface {
         id NUMBER DEFAULT ISSUE_SEQ.NEXTVAL PRIMARY KEY,
         customer_id NUMBER NOT NULL,
         title VARCHAR2(255) NOT NULL,
-        description CLOB NOT NULL,
-        severity VARCHAR2(20) DEFAULT 'MEDIUM' NOT NULL,
+        description CLOB,
+        severity VARCHAR2(20) DEFAULT 'CRITICAL' NOT NULL,
         status VARCHAR2(20) DEFAULT 'INTAKE' NOT NULL,
         is_public NUMBER(1) DEFAULT 0 NOT NULL,
         created_by_id NUMBER NOT NULL,
@@ -27,16 +27,17 @@ export class CreateIssueTables1737799500000 implements MigrationInterface {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         completed_at TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        deleted_at TIMESTAMP
+        deleted_at TIMESTAMP,
+        CONSTRAINT CHK_ISSUE_TREATMENT_TIME CHECK (treatment_time_minutes IS NULL OR (treatment_time_minutes >= 1 AND treatment_time_minutes <= 1440))
       )
     `);
 
     // 3. ISSUE 테이블 인덱스
-    await queryRunner.query(`CREATE INDEX IDX_ISSUE_CUSTOMER ON ISSUE(customer_id)`);
-    await queryRunner.query(`CREATE INDEX IDX_ISSUE_CREATED_BY ON ISSUE(created_by_id)`);
-    await queryRunner.query(`CREATE INDEX IDX_ISSUE_ASSIGNED_TO ON ISSUE(assigned_to_id)`);
+    await queryRunner.query(`CREATE INDEX IDX_ISSUE_CUSTOMER_ID ON ISSUE(customer_id)`);
+    await queryRunner.query(`CREATE INDEX IDX_ISSUE_CREATED_BY_ID ON ISSUE(created_by_id)`);
+    await queryRunner.query(`CREATE INDEX IDX_ISSUE_ASSIGNED_TO_ID ON ISSUE(assigned_to_id)`);
     await queryRunner.query(`CREATE INDEX IDX_ISSUE_STATUS ON ISSUE(status)`);
-    await queryRunner.query(`CREATE INDEX IDX_ISSUE_IS_PUBLIC ON ISSUE(is_public)`);
+    await queryRunner.query(`CREATE INDEX IDX_ISSUE_DELETED_AT ON ISSUE(deleted_at)`);
 
     // 4. ISSUE 외래키 추가
     await queryRunner.query(
