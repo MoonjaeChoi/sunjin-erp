@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:55:00 KST
+// Generated: 2026-01-26 23:40:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -225,45 +225,59 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       const query = `
         SELECT
-          "i"."id",
-          "i"."customer_id",
-          "i"."title",
-          "i"."description",
-          "i"."severity",
-          "i"."status",
-          "i"."is_public",
-          "i"."created_by_id",
-          "i"."assigned_to_id",
-          "i"."treatment_method",
-          "i"."treatment_time_minutes",
-          "i"."treatment_result",
-          "i"."created_at",
-          "i"."completed_at",
-          "i"."updated_at",
-          "i"."deleted_at",
-          "c"."name" AS customer_name,
-          "e_created"."name" AS created_by_name,
-          "e_assigned"."name" AS assigned_to_name
-        FROM "ISSUE" "i"
-        LEFT JOIN "CUSTOMER" "c" ON "i"."customer_id" = "c"."id"
-        LEFT JOIN "EMPLOYEE" "e_created" ON "i"."created_by_id" = "e_created"."id"
-        LEFT JOIN "EMPLOYEE" "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
-        WHERE ${whereClauses.join(' AND ')}
-        ORDER BY "i"."${finalSortBy}" ${finalSortOrder}
+          i.id,
+          i.customer_id,
+          i.title,
+          i.description,
+          i.severity,
+          i.status,
+          i.is_public,
+          i.created_by_id,
+          i.assigned_to_id,
+          i.treatment_method,
+          i.treatment_time_minutes,
+          i.treatment_result,
+          i.created_at,
+          i.completed_at,
+          i.updated_at,
+          i.deleted_at,
+          c.name AS customer_name,
+          e_created.name AS created_by_name,
+          e_assigned.name AS assigned_to_name
+        FROM ISSUE i
+        LEFT JOIN CUSTOMER c ON i.customer_id = c.id
+        LEFT JOIN EMPLOYEE e_created ON i.created_by_id = e_created.id
+        LEFT JOIN EMPLOYEE e_assigned ON i.assigned_to_id = e_assigned.id
+        WHERE ${whereClausesUnquoted.join(' AND ')}
+        ORDER BY i.${finalSortBy} ${finalSortOrder}
         OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
       `;
 
       const countQuery = `
         SELECT COUNT(*) as total
-        FROM "ISSUE" "i"
-        LEFT JOIN "EMPLOYEE" "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
-        WHERE ${whereClauses.join(' AND ')}
+        FROM ISSUE i
+        LEFT JOIN EMPLOYEE e_assigned ON i.assigned_to_id = e_assigned.id
+        WHERE ${whereClausesUnquoted.join(' AND ')}
       `;
 
       // Separate params for count query (no offset/pageSize) and data query
       const countParams = { ...params };
       delete countParams.offset;
       delete countParams.pageSize;
+
+      // Convert quoted identifiers to unquoted for Oracle compatibility
+      const whereClausesUnquoted = whereClauses.map(clause =>
+        clause
+          .replace(/"i"\."/g, 'i.')
+          .replace(/"i"\./g, 'i.')
+          .replace(/"e_created"\."/g, 'e_created.')
+          .replace(/"e_created"\./g, 'e_created.')
+          .replace(/"e_assigned"\."/g, 'e_assigned.')
+          .replace(/"e_assigned"\./g, 'e_assigned.')
+          .replace(/"c"\."/g, 'c.')
+          .replace(/"c"\./g, 'c.')
+          .replace(/"/g, '')
+      );
 
       console.log('Main query:', query);
       console.log('Count query:', countQuery);
