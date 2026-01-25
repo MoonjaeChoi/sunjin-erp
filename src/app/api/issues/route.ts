@@ -324,7 +324,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const user = session.user as any;
     const userId = user.id;
     const userRole = user.role;
-    const userDepartmentId = user.department_id;
+    const userDepartmentId = user.department;
 
     // 권한 검사: USER, MANAGER, ADMIN만 등록 가능
     if (!['USER', 'MANAGER', 'ADMIN'].includes(userRole)) {
@@ -405,100 +405,128 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // 4. 데이터베이스 연결
-    const { Customer } = await import('@/entities/Customer');
-    const { Employee } = await import('@/entities/Employee');
-    const { Issue } = await import('@/entities/Issue');
-    const { IssueHistory } = await import('@/entities/IssueHistory');
     const ds = await getDataSource();
-    const customerRepo = ds.getRepository(Customer);
-    const employeeRepo = ds.getRepository(Employee);
-    const issueRepo = ds.getRepository(Issue);
-    const historyRepo = ds.getRepository(IssueHistory);
+    const queryRunner = ds.createQueryRunner();
 
-    // 5. 외래키 존재 확인 (customer_id)
-    const customer = await customerRepo.findOne({
-      where: { id: customer_id, deleted_at: IsNull() },
-    });
-    if (!customer) {
-      return NextResponse.json(
-        { message: 'Customer not found' },
-        { status: 404 }
+    try {
+      // 5. 외래키 존재 확인 (customer_id)
+      const customerResult = await queryRunner.query(
+        `SELECT "id" FROM CUSTOMER WHERE "id" = :customerId AND "deleted_at" IS NULL`,
+        { customerId: customer_id }
       );
-    }
-
-    // 6. 담당자 존재 확인 및 MANAGER 부서 제약 검증
-    if (assigned_to_id) {
-      const assignee = await employeeRepo.findOne({
-        where: { id: assigned_to_id, deleted_at: IsNull() },
-      });
-      if (!assignee) {
+      if (customerResult.length === 0) {
         return NextResponse.json(
-          { message: 'Assignee employee not found' },
+          { message: 'Customer not found' },
           { status: 404 }
         );
       }
 
-      // MANAGER는 다른 부서 직원에게 할당 불가
-      if (userRole === 'MANAGER' && assignee.department_id !== userDepartmentId) {
-        return NextResponse.json(
-          {
-            message:
-              'MANAGER can only assign to employees in the same department',
-          },
-          { status: 400 }
+      // 6. 담당자 존재 확인 및 MANAGER 부서 제약 검증
+      let assignee = null;
+      if (assigned_to_id) {
+        const assigneeResult = await queryRunner.query(
+          `SELECT "id", "department_id" FROM EMPLOYEE WHERE "id" = :assigneeId AND "deleted_at" IS NULL`,
+          { assigneeId: assigned_to_id }
         );
+        if (assigneeResult.length === 0) {
+          return NextResponse.json(
+            { message: 'Assignee employee not found' },
+            { status: 404 }
+          );
+        }
+        assignee = assigneeResult[0];
+
+        // MANAGER는 다른 부서 직원에게 할당 불가
+        if (userRole === 'MANAGER' && assignee.department_id !== userDepartmentId) {
+          return NextResponse.json(
+            {
+              message:
+                'MANAGER can only assign to employees in the same department',
+            },
+            { status: 400 }
+          );
+        }
       }
-    }
 
-    // 7. Issue 엔티티 생성
-    const newIssue = issueRepo.create({
-      customer_id,
-      title,
-      severity,
-      description,
-      status: 'INTAKE', // 자동 설정
-      is_public: 0, // 자동 설정: 기본값 비공개
-      created_by_id: userId,
-      assigned_to_id: assigned_to_id || null,
-      treatment_method: treatment_method || null,
-      treatment_time_minutes: treatment_time_minutes || null,
-      treatment_result: treatment_result || null,
-      deleted_at: null,
-    });
+      // 7. Issue INSERT
+      const now = new Date();
+      const insertSql = `
+        INSERT INTO ISSUE (
+          "customer_id", "title", "severity", "description", "status",
+          "is_public", "created_by_id", "assigned_to_id",
+          "treatment_method", "treatment_time_minutes", "treatment_result",
+          "created_at", "updated_at", "deleted_at"
+        ) VALUES (
+          :customerId, :title, :severity, :description, :status,
+          :isPublic, :createdById, :assignedToId,
+          :treatmentMethod, :treatmentTimeMinutes, :treatmentResult,
+          :createdAt, :updatedAt, :deletedAt
+        )
+        RETURNING "id", "created_at"
+      `;
 
-    // 8. Issue 저장
-    const savedIssue = await issueRepo.save(newIssue);
+      const issueResult = await queryRunner.query(insertSql, {
+        customerId: customer_id,
+        title,
+        severity,
+        description,
+        status: 'INTAKE',
+        isPublic: 0,
+        createdById: userId,
+        assignedToId: assigned_to_id || null,
+        treatmentMethod: treatment_method || null,
+        treatmentTimeMinutes: treatment_time_minutes || null,
+        treatmentResult: treatment_result || null,
+        createdAt: now,
+        updatedAt: now,
+        deletedAt: null,
+      });
 
-    // 9. IssueHistory 첫 기록 (STATUS_CHANGE로 초기 상태 기록)
-    const history = historyRepo.create({
-      issue_id: savedIssue.id,
-      change_type: 'STATUS_CHANGE',
-      old_value: null,
-      new_value: 'INTAKE',
-      changed_by_id: userId,
-      remark: `Issue created`,
-    });
+      const issueId = issueResult[0]?.id;
+      const createdAt = issueResult[0]?.created_at;
 
-    await historyRepo.save(history);
+      // 8. IssueHistory 첫 기록
+      await queryRunner.query(
+        `INSERT INTO ISSUE_HISTORY (
+          "issue_id", "change_type", "old_value", "new_value", "changed_by_id", "remark",
+          "created_at", "updated_at"
+        ) VALUES (
+          :issueId, :changeType, :oldValue, :newValue, :changedById, :remark,
+          :createdAt, :updatedAt
+        )`,
+        {
+          issueId,
+          changeType: 'STATUS_CHANGE',
+          oldValue: null,
+          newValue: 'INTAKE',
+          changedById: userId,
+          remark: 'Issue created',
+          createdAt: now,
+          updatedAt: now,
+        }
+      );
 
-    // 10. 응답 반환
-    return NextResponse.json<CreateIssueResponse>(
-      {
-        message: 'Issue created successfully',
-        data: {
-          id: savedIssue.id,
-          customer_id: savedIssue.customer_id,
-          title: savedIssue.title,
-          severity: savedIssue.severity,
-          status: savedIssue.status,
-          is_public: savedIssue.is_public,
-          created_by_id: savedIssue.created_by_id,
-          assigned_to_id: savedIssue.assigned_to_id,
-          created_at: savedIssue.created_at,
+      // 9. 응답 반환
+      return NextResponse.json<CreateIssueResponse>(
+        {
+          message: 'Issue created successfully',
+          data: {
+            id: issueId,
+            customer_id,
+            title,
+            severity,
+            status: 'INTAKE',
+            is_public: 0,
+            created_by_id: userId,
+            assigned_to_id: assigned_to_id || null,
+            created_at: createdAt,
+          },
         },
-      },
-      { status: 201 }
-    );
+        { status: 201 }
+      );
+    } finally {
+      await queryRunner.release();
+    }
   } catch (error) {
     console.error('POST /api/issues error:', error);
     return NextResponse.json(
