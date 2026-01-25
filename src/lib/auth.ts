@@ -4,7 +4,11 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 
+// Enable NextAuth debug logging
+console.log('[Auth] Initializing NextAuth with debug enabled');
+
 export const authOptions: NextAuthOptions = {
+  debug: true,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
