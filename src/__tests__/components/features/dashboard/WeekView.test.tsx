@@ -48,9 +48,9 @@ describe('WeekView', () => {
 
   it('should display day labels in Korean format', () => {
     render(<WeekView date={new Date('2026-01-15')} tasks={[]} />);
-    // Week of Jan 15 2026 starts on Monday Jan 12
-    expect(screen.getByText(/1월 12일/)).toBeInTheDocument();
-    expect(screen.getByText(/1월 18일/)).toBeInTheDocument();
+    // Week of Jan 15 2026 starts on Sunday Jan 11 (weekStartsOn: 0)
+    expect(screen.getByText(/1월 11일/)).toBeInTheDocument();
+    expect(screen.getByText(/1월 17일/)).toBeInTheDocument();
   });
 
   it('should show empty message when no tasks', () => {
