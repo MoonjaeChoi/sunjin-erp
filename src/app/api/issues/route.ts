@@ -5,6 +5,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
 import { Issue } from '@/entities/Issue';
+import { IssueHistory } from '@/entities/IssueHistory';
+import { Customer } from '@/entities/Customer';
+import { Employee } from '@/entities/Employee';
+import { IsNull } from 'typeorm';
 
 interface IssueListItem {
   id: number;
@@ -34,6 +38,32 @@ interface IssueListResponse {
     page_size: number;
     total: number;
     total_pages: number;
+  };
+}
+
+interface CreateIssueRequest {
+  customer_id: number;
+  title: string;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  description: string;
+  assigned_to_id?: number;
+  treatment_method?: 'REMOTE' | 'PHONE' | 'ONSITE';
+  treatment_time_minutes?: number;
+  treatment_result?: string;
+}
+
+interface CreateIssueResponse {
+  message: string;
+  data: {
+    id: number;
+    customer_id: number;
+    title: string;
+    severity: string;
+    status: string;
+    is_public: number;
+    created_by_id: number;
+    assigned_to_id: number | null;
+    created_at: Date;
   };
 }
 
@@ -272,6 +302,200 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     });
   } catch (error) {
     console.error('GET /api/issues error:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  try {
+    // 1. 세션 확인
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const user = session.user as any;
+    const userId = user.id;
+    const userRole = user.role;
+    const userDepartmentId = user.department_id;
+
+    // 권한 검사: USER, MANAGER, ADMIN만 등록 가능
+    if (!['USER', 'MANAGER', 'ADMIN'].includes(userRole)) {
+      return NextResponse.json(
+        { message: 'Insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
+    // 2. 요청 본문 파싱
+    const body = (await req.json()) as CreateIssueRequest;
+    const {
+      customer_id,
+      title,
+      severity,
+      description,
+      assigned_to_id,
+      treatment_method,
+      treatment_time_minutes,
+      treatment_result,
+    } = body;
+
+    // 3. 필드 검증
+    const errors: Record<string, string> = {};
+
+    if (!customer_id || typeof customer_id !== 'number') {
+      errors.customer_id = 'customer_id is required and must be a number';
+    }
+
+    if (
+      !title ||
+      typeof title !== 'string' ||
+      title.length < 1 ||
+      title.length > 255
+    ) {
+      errors.title = 'title is required and must be 1-255 characters';
+    }
+
+    if (
+      !severity ||
+      !['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].includes(severity)
+    ) {
+      errors.severity = 'severity must be CRITICAL, HIGH, MEDIUM, or LOW';
+    }
+
+    if (
+      !description ||
+      typeof description !== 'string' ||
+      description.length < 10
+    ) {
+      errors.description =
+        'description is required and must be at least 10 characters';
+    }
+
+    if (
+      treatment_time_minutes !== undefined &&
+      (typeof treatment_time_minutes !== 'number' ||
+        treatment_time_minutes < 1 ||
+        treatment_time_minutes > 1440)
+    ) {
+      errors.treatment_time_minutes =
+        'treatment_time_minutes must be 1-1440 (minutes)';
+    }
+
+    if (
+      treatment_method &&
+      !['REMOTE', 'PHONE', 'ONSITE'].includes(treatment_method)
+    ) {
+      errors.treatment_method =
+        'treatment_method must be REMOTE, PHONE, or ONSITE';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return NextResponse.json(
+        { message: 'Validation failed', errors },
+        { status: 400 }
+      );
+    }
+
+    // 4. 데이터베이스 연결
+    const ds = await getDataSource();
+    const customerRepo = ds.getRepository(Customer);
+    const employeeRepo = ds.getRepository(Employee);
+    const issueRepo = ds.getRepository(Issue);
+    const historyRepo = ds.getRepository(IssueHistory);
+
+    // 5. 외래키 존재 확인 (customer_id)
+    const customer = await customerRepo.findOne({
+      where: { id: customer_id, deleted_at: IsNull() },
+    });
+    if (!customer) {
+      return NextResponse.json(
+        { message: 'Customer not found' },
+        { status: 404 }
+      );
+    }
+
+    // 6. 담당자 존재 확인 및 MANAGER 부서 제약 검증
+    if (assigned_to_id) {
+      const assignee = await employeeRepo.findOne({
+        where: { id: assigned_to_id, deleted_at: IsNull() },
+      });
+      if (!assignee) {
+        return NextResponse.json(
+          { message: 'Assignee employee not found' },
+          { status: 404 }
+        );
+      }
+
+      // MANAGER는 다른 부서 직원에게 할당 불가
+      if (userRole === 'MANAGER' && assignee.department_id !== userDepartmentId) {
+        return NextResponse.json(
+          {
+            message:
+              'MANAGER can only assign to employees in the same department',
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 7. Issue 엔티티 생성
+    const newIssue = issueRepo.create({
+      customer_id,
+      title,
+      severity,
+      description,
+      status: 'INTAKE', // 자동 설정
+      is_public: 0, // 자동 설정: 기본값 비공개
+      created_by_id: userId,
+      assigned_to_id: assigned_to_id || null,
+      treatment_method: treatment_method || null,
+      treatment_time_minutes: treatment_time_minutes || null,
+      treatment_result: treatment_result || null,
+      deleted_at: null,
+    });
+
+    // 8. Issue 저장
+    const savedIssue = await issueRepo.save(newIssue);
+
+    // 9. IssueHistory 첫 기록
+    const history = historyRepo.create({
+      issue_id: savedIssue.id,
+      change_type: 'COMMENT_ADDED', // 장애 등록 기록
+      old_value: null,
+      new_value: 'Issue created',
+      changed_by_id: userId,
+      remark: `Registered by ${user.name || 'Unknown'}`,
+    });
+
+    await historyRepo.save(history);
+
+    // 10. 응답 반환
+    return NextResponse.json<CreateIssueResponse>(
+      {
+        message: 'Issue created successfully',
+        data: {
+          id: savedIssue.id,
+          customer_id: savedIssue.customer_id,
+          title: savedIssue.title,
+          severity: savedIssue.severity,
+          status: savedIssue.status,
+          is_public: savedIssue.is_public,
+          created_by_id: savedIssue.created_by_id,
+          assigned_to_id: savedIssue.assigned_to_id,
+          created_at: savedIssue.created_at,
+        },
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('POST /api/issues error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
