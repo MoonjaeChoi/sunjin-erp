@@ -44,15 +44,15 @@ export async function GET(): Promise<NextResponse<EmployeeListResponse | { error
       .leftJoin(
         'DEPARTMENT',
         'd',
-        'd.id = e.department_id'
+        '"d"."id" = "e"."department_id"'
       )
-      .where('e.deleted_at IS NULL')
+      .where('"e"."deleted_at" IS NULL')
       .select([
-        'e.id AS id',
-        'e.name AS name',
-        'COALESCE(d.name, NULL) AS department_name',
+        '"e"."id" AS id',
+        '"e"."name" AS name',
+        'COALESCE("d"."name", NULL) AS department_name',
       ])
-      .orderBy('e.name', 'ASC');
+      .orderBy('"e"."name"', 'ASC');
 
     // RBAC: MANAGER는 본인 부서만
     if (user.role === 'MANAGER' && user.department_id) {

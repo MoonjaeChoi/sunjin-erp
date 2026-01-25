@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
 
     const queryBuilder = taskRepository
       .createQueryBuilder('task')
-      .where('task.deleted_at IS NULL')
-      .andWhere("task.task_date BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')", {
+      .where('"task"."deleted_at" IS NULL')
+      .andWhere('"task"."task_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')', {
         dateFrom,
         dateTo,
       });
@@ -56,15 +56,15 @@ export async function GET(request: NextRequest) {
     // ADMIN: 전체 조회
 
     if (employeeId) {
-      queryBuilder.andWhere('task.employee_id = :employeeId', {
+      queryBuilder.andWhere('"task"."employee_id" = :employeeId', {
         employeeId: Number(employeeId),
       });
     }
 
     queryBuilder
-      .orderBy('task.employee_id', 'ASC')
-      .addOrderBy('task.task_date', 'ASC')
-      .addOrderBy('task.start_time', 'ASC');
+      .orderBy('"task"."employee_id"', 'ASC')
+      .addOrderBy('"task"."task_date"', 'ASC')
+      .addOrderBy('"task"."start_time"', 'ASC');
 
     const tasks = await queryBuilder.getMany();
 

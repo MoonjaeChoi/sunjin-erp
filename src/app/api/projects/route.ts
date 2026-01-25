@@ -100,32 +100,32 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
     let query = ds
       .getRepository(Project)
       .createQueryBuilder('p')
-      .leftJoin('CUSTOMER', 'c', 'c.id = p.customer_id')
-      .leftJoin('EMPLOYEE', 'e', 'e.id = p.employee_id')
-      .leftJoin('DEPARTMENT', 'd', 'd.id = e.department_id')
-      .where('p.deleted_at IS NULL')
+      .leftJoin('CUSTOMER', 'c', '"c"."id" = "p"."customer_id"')
+      .leftJoin('EMPLOYEE', 'e', '"e"."id" = "p"."employee_id"')
+      .leftJoin('DEPARTMENT', 'd', '"d"."id" = "e"."department_id"')
+      .where('"p"."deleted_at" IS NULL')
       .select([
-        'p.id',
-        'p.project_code',
-        'p.project_name',
-        'p.customer_id',
-        'c.name AS customer_name',
-        'p.employee_id',
-        'e.name AS employee_name',
-        'p.status',
-        'p.start_date',
-        'p.end_date',
-        'p.contract_amount',
-        'p.created_at',
+        '"p"."id"',
+        '"p"."project_code"',
+        '"p"."project_name"',
+        '"p"."customer_id"',
+        '"c"."name" AS customer_name',
+        '"p"."employee_id"',
+        '"e"."name" AS employee_name',
+        '"p"."status"',
+        '"p"."start_date"',
+        '"p"."end_date"',
+        '"p"."contract_amount"',
+        '"p"."created_at"',
       ]);
 
     // RBAC 조건 적용
     if (user.role === 'MANAGER') {
-      query = query.andWhere('e.department_id = :departmentId', {
+      query = query.andWhere('"e"."department_id" = :departmentId', {
         departmentId: user.department_id,
       });
     } else if (user.role === 'USER') {
-      query = query.andWhere('p.employee_id = :userId', {
+      query = query.andWhere('"p"."employee_id" = :userId', {
         userId: user.id,
       });
     }
@@ -133,27 +133,27 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
 
     // 필터 조건 적용
     if (customerId) {
-      query = query.andWhere('p.customer_id = :customerId', { customerId });
+      query = query.andWhere('"p"."customer_id" = :customerId', { customerId });
     }
 
     if (status) {
-      query = query.andWhere('p.status = :status', { status });
+      query = query.andWhere('"p"."status" = :status', { status });
     }
 
     if (employeeId) {
-      query = query.andWhere('p.employee_id = :employeeId', { employeeId });
+      query = query.andWhere('"p"."employee_id" = :employeeId', { employeeId });
     }
 
     // 키워드 검색
     if (keyword && keyword.length >= 2) {
       query = query.andWhere(
-        '(p.project_name LIKE :keyword OR p.project_code LIKE :keyword)',
+        '("p"."project_name" LIKE :keyword OR "p"."project_code" LIKE :keyword)',
         { keyword: `%${keyword}%` }
       );
     }
 
     // 정렬 적용
-    query = query.orderBy(`p.${sortBy}`, sortOrder);
+    query = query.orderBy(`"p"."${sortBy}"`, sortOrder);
 
     // 총 개수 조회
     const total = await query.getCount();

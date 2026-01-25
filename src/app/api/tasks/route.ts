@@ -194,8 +194,8 @@ export async function GET(request: NextRequest) {
 
     const queryBuilder = taskRepository
       .createQueryBuilder('task')
-      .where('task.deleted_at IS NULL')
-      .andWhere("task.task_date BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')", {
+      .where('"task"."deleted_at" IS NULL')
+      .andWhere('"task"."task_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')', {
         dateFrom,
         dateTo,
       });
@@ -203,13 +203,13 @@ export async function GET(request: NextRequest) {
     // 5. RBAC 필터링
     const user = session.user as any;
     if (user.role === 'USER') {
-      queryBuilder.andWhere('task.employee_id = :userId', {
+      queryBuilder.andWhere('"task"."employee_id" = :userId', {
         userId: user.id,
       });
     } else if (user.role === 'MANAGER') {
       // Phase 2-A: 본인 업무만 반환
       // Phase 2-B: 부서 내 직원 ID 목록으로 필터링
-      queryBuilder.andWhere('task.employee_id = :userId', {
+      queryBuilder.andWhere('"task"."employee_id" = :userId', {
         userId: user.id,
       });
     }
@@ -217,21 +217,21 @@ export async function GET(request: NextRequest) {
 
     // 6. 선택 필터
     if (employeeId) {
-      queryBuilder.andWhere('task.employee_id = :employeeId', {
+      queryBuilder.andWhere('"task"."employee_id" = :employeeId', {
         employeeId: Number(employeeId),
       });
     }
     if (type) {
-      queryBuilder.andWhere('task.task_type = :type', { type });
+      queryBuilder.andWhere('"task"."task_type" = :type', { type });
     }
     if (status) {
-      queryBuilder.andWhere('task.status = :status', { status });
+      queryBuilder.andWhere('"task"."status" = :status', { status });
     }
     if (workType) {
-      queryBuilder.andWhere('task.work_type = :workType', { workType });
+      queryBuilder.andWhere('"task"."work_type" = :workType', { workType });
     }
     if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
-      queryBuilder.andWhere('task.title LIKE :keyword', {
+      queryBuilder.andWhere('"task"."title" LIKE :keyword', {
         keyword: `%${keyword}%`,
       });
     }
@@ -240,12 +240,12 @@ export async function GET(request: NextRequest) {
     if (isPaginationMode) {
       const sortBy = (sortByParam || 'task_date') as typeof VALID_SORT_BY[number];
       const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
-      queryBuilder.orderBy(`task.${sortBy}`, sortOrder);
+      queryBuilder.orderBy(`"task"."${sortBy}"`, sortOrder);
     } else {
       // 하위 호환: 기존 대시보드 정렬
       queryBuilder
-        .orderBy('task.task_date', 'ASC')
-        .addOrderBy('task.start_time', 'ASC');
+        .orderBy('"task"."task_date"', 'ASC')
+        .addOrderBy('"task"."start_time"', 'ASC');
     }
 
     // 8. 페이지네이션 (page 모드에서만)

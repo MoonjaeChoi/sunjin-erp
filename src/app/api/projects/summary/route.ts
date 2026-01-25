@@ -40,22 +40,22 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
     let query = ds
       .getRepository(Project)
       .createQueryBuilder('p')
-      .leftJoin('EMPLOYEE', 'e', 'e.id = p.employee_id')
-      .where('p.deleted_at IS NULL')
+      .leftJoin('EMPLOYEE', 'e', '"e"."id" = "p"."employee_id"')
+      .where('"p"."deleted_at" IS NULL')
       .select([
-        `COUNT(CASE WHEN p.status = 'PREPARING' THEN 1 END) AS preparing`,
-        `COUNT(CASE WHEN p.status = 'IN_PROGRESS' THEN 1 END) AS in_progress`,
-        `COUNT(CASE WHEN p.status = 'COMPLETED' THEN 1 END) AS completed`,
-        `COUNT(CASE WHEN p.status = 'ON_HOLD' THEN 1 END) AS on_hold`,
+        `COUNT(CASE WHEN "p"."status" = 'PREPARING' THEN 1 END) AS preparing`,
+        `COUNT(CASE WHEN "p"."status" = 'IN_PROGRESS' THEN 1 END) AS in_progress`,
+        `COUNT(CASE WHEN "p"."status" = 'COMPLETED' THEN 1 END) AS completed`,
+        `COUNT(CASE WHEN "p"."status" = 'ON_HOLD' THEN 1 END) AS on_hold`,
       ]);
 
     // RBAC 조건 적용
     if (user.role === 'MANAGER') {
-      query = query.andWhere('e.department_id = :departmentId', {
+      query = query.andWhere('"e"."department_id" = :departmentId', {
         departmentId: user.department_id,
       });
     } else if (user.role === 'USER') {
-      query = query.andWhere('p.employee_id = :userId', {
+      query = query.andWhere('"p"."employee_id" = :userId', {
         userId: user.id,
       });
     }
@@ -63,11 +63,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
 
     // 필터 조건 적용
     if (customerId) {
-      query = query.andWhere('p.customer_id = :customerId', { customerId });
+      query = query.andWhere('"p"."customer_id" = :customerId', { customerId });
     }
 
     if (employeeId) {
-      query = query.andWhere('p.employee_id = :employeeId', { employeeId });
+      query = query.andWhere('"p"."employee_id" = :employeeId', { employeeId });
     }
 
     const result = await query.getRawOne<any>();

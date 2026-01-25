@@ -112,17 +112,17 @@ export async function GET(
     // 프로젝트 조회 (deleted_at IS NULL)
     const project = await projectRepo
       .createQueryBuilder('p')
-      .leftJoin('CUSTOMER', 'c', 'c.id = p.customer_id')
-      .leftJoin('EMPLOYEE', 'e', 'e.id = p.employee_id')
-      .leftJoin('DEPARTMENT', 'd', 'd.id = e.department_id')
-      .where('p.id = :id', { id: projectId })
-      .andWhere('p.deleted_at IS NULL')
+      .leftJoin('CUSTOMER', 'c', '"c"."id" = "p"."customer_id"')
+      .leftJoin('EMPLOYEE', 'e', '"e"."id" = "p"."employee_id"')
+      .leftJoin('DEPARTMENT', 'd', '"d"."id" = "e"."department_id"')
+      .where('"p"."id" = :id', { id: projectId })
+      .andWhere('"p"."deleted_at" IS NULL')
       .select([
-        'p.*',
-        'c.name AS customer_name',
-        'e.name AS employee_name',
-        'e.department_id',
-        'd.name AS department_name',
+        '"p".*',
+        '"c"."name" AS customer_name',
+        '"e"."name" AS employee_name',
+        '"e"."department_id"',
+        '"d"."name" AS department_name',
       ])
       .getRawOne<any>();
 

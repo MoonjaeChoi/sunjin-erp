@@ -184,10 +184,10 @@ export async function GET(request: NextRequest) {
 
     const queryBuilder = repo
       .createQueryBuilder('ts')
-      .leftJoin('CUSTOMER', 'c', 'c.id = ts.customer_id AND c.deleted_at IS NULL')
-      .addSelect('c.name', 'customer_name')
-      .where('ts.deleted_at IS NULL')
-      .andWhere("ts.support_date BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')", {
+      .leftJoin('CUSTOMER', 'c', '"c"."id" = "ts"."customer_id" AND "c"."deleted_at" IS NULL')
+      .addSelect('"c"."name"', 'customer_name')
+      .where('"ts"."deleted_at" IS NULL')
+      .andWhere('"ts"."support_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')', {
         dateFrom,
         dateTo,
       });
@@ -195,30 +195,30 @@ export async function GET(request: NextRequest) {
     // RBAC 필터링
     const user = session.user as any;
     if (user.role !== 'ADMIN') {
-      queryBuilder.andWhere('ts.employee_id = :userId', { userId: user.id });
+      queryBuilder.andWhere('"ts"."employee_id" = :userId', { userId: user.id });
     }
 
     // 선택 필터
     if (customerId) {
-      queryBuilder.andWhere('ts.customer_id = :customerId', { customerId: Number(customerId) });
+      queryBuilder.andWhere('"ts"."customer_id" = :customerId', { customerId: Number(customerId) });
     }
     if (supportType) {
-      queryBuilder.andWhere('ts.support_type = :supportType', { supportType });
+      queryBuilder.andWhere('"ts"."support_type" = :supportType', { supportType });
     }
     if (supportMethod) {
-      queryBuilder.andWhere('ts.support_method = :supportMethod', { supportMethod });
+      queryBuilder.andWhere('"ts"."support_method" = :supportMethod', { supportMethod });
     }
     if (status) {
-      queryBuilder.andWhere('ts.status = :status', { status });
+      queryBuilder.andWhere('"ts"."status" = :status', { status });
     }
     if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
-      queryBuilder.andWhere('ts.title LIKE :keyword', { keyword: `%${keyword}%` });
+      queryBuilder.andWhere('"ts"."title" LIKE :keyword', { keyword: `%${keyword}%` });
     }
 
     // 정렬
     const sortBy = (sortByParam || 'support_date') as typeof VALID_SORT_BY[number];
     const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
-    queryBuilder.orderBy(`ts.${sortBy}`, sortOrder);
+    queryBuilder.orderBy(`"ts"."${sortBy}"`, sortOrder);
 
     // 페이지네이션
     queryBuilder.skip((page - 1) * pageSize).take(pageSize);
