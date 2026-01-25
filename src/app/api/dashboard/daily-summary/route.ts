@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
 
     // RBAC filtering
     if (user.role === 'USER' || user.role === 'MANAGER') {
-      sql += ` AND "employee_id" = :employee_id`;
-      params.employee_id = user.id;
+      sql += ` AND "employee_id" = :userId`;
+      params.userId = user.id;
     }
     // ADMIN: no additional filtering
 
