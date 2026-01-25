@@ -4,11 +4,8 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 
-// Enable NextAuth debug logging
-console.log('[Auth] Initializing NextAuth with debug enabled');
-
 export const authOptions: NextAuthOptions = {
-  debug: true,
+  debug: false,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -17,25 +14,16 @@ export const authOptions: NextAuthOptions = {
         password: { label: '비밀번호', type: 'password' },
       },
       async authorize(credentials) {
-        console.log('[Auth] authorize called with credentials:', {
-          hasUsername: !!credentials?.username,
-          hasPassword: !!credentials?.password,
-          credentialsKeys: credentials ? Object.keys(credentials) : []
-        });
-
         if (!credentials?.username || !credentials?.password) {
-          console.log('[Auth] Missing credentials');
           return null;
         }
 
         try {
-          console.log(`[Auth] Attempting login for: ${credentials.username}`);
           // Use database directly via DataSource
           const { getDataSource } = await import('@/lib/db');
 
           const ds = await getDataSource();
           if (!ds.isInitialized) {
-            console.error('[Auth] Database not initialized');
             return null;
           }
 
@@ -50,12 +38,10 @@ export const authOptions: NextAuthOptions = {
             );
 
             if (!result || result.length === 0) {
-              console.log(`[Auth] Employee not found: ${credentials.username}`);
               return null;
             }
 
             const employee = result[0];
-            console.log(`[Auth] Employee found: ${employee.username}`);
 
             const isValid = await bcrypt.compare(
               credentials.password,
@@ -63,11 +49,9 @@ export const authOptions: NextAuthOptions = {
             );
 
             if (!isValid) {
-              console.log(`[Auth] Invalid password for: ${credentials.username}`);
               return null;
             }
 
-            console.log(`[Auth] Login successful: ${credentials.username}`);
             return {
               id: String(employee.id),
               name: employee.name,
@@ -79,9 +63,6 @@ export const authOptions: NextAuthOptions = {
           }
         } catch (error) {
           console.error('[Auth] Error during authorization:', error);
-          if (error instanceof Error) {
-            console.error('[Auth] Error message:', error.message);
-          }
           return null;
         }
       },

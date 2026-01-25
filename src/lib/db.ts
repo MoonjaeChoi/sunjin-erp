@@ -15,12 +15,7 @@ export async function getDataSource(): Promise<any> {
   }
 
   try {
-    console.log('[DB] Loading TypeORM modules...');
-
     const { DataSource } = require('typeorm');
-    console.log('[DB] DataSource imported via require');
-
-    console.log('[DB] Importing entities...');
     const { Task } = require('@/entities/Task');
     const { Employee } = require('@/entities/Employee');
     const { Customer } = require('@/entities/Customer');
@@ -30,9 +25,7 @@ export async function getDataSource(): Promise<any> {
     const { Issue } = require('@/entities/Issue');
     const { IssueAttachment } = require('@/entities/IssueAttachment');
     const { IssueHistory } = require('@/entities/IssueHistory');
-    console.log('[DB] Entities loaded');
 
-    console.log('[DB] Creating DataSource...');
     dataSource = new DataSource({
       type: 'oracle',
       host: process.env.ORACLE_HOST || 'localhost',
@@ -56,16 +49,9 @@ export async function getDataSource(): Promise<any> {
       logging: process.env.NODE_ENV === 'development',
     });
 
-    console.log('[DB] Initializing DataSource...');
     await dataSource.initialize();
-    console.log('[DB] DataSource initialized successfully');
   } catch (error) {
-    console.error('[DB] Error during initialization:', error);
-    if (error instanceof Error) {
-      console.error('[DB] Error stack:', error.stack);
-      console.error('[DB] Error name:', error.name);
-      console.error('[DB] Error message:', error.message);
-    }
+    console.error('[DB] Error during initialization:', error instanceof Error ? error.message : String(error));
     // If initialization fails (e.g., during build), create minimal datasource
     // to prevent module loading errors
     if (!dataSource) {
