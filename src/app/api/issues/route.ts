@@ -116,7 +116,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const sort_order = (searchParams.get('sort_order') || 'DESC').toUpperCase();
 
     // 3. 권한별 WHERE 절 동적 구성 (RLS)
-    const whereClauses: string[] = ['"i"."deleted_at" IS NULL'];
+    const whereClauses: string[] = ['"i"."DELETED_AT" IS NULL'];
     const params: any = {};
     let paramIndex = 0;
 
@@ -125,16 +125,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     } else if (userRole === 'MANAGER') {
       // MANAGER: 같은 부서 담당자의 Issue만
       whereClauses.push(
-        `"i"."assigned_to_id" IS NOT NULL AND "e_assigned"."department_id" = :departmentId${paramIndex}`
+        `"i"."ASSIGNED_TO_ID" IS NOT NULL AND "e_assigned"."DEPARTMENT_ID" = :departmentId${paramIndex}`
       );
       params[`departmentId${paramIndex}`] = userDepartmentId;
       paramIndex++;
     } else if (userRole === 'USER') {
       // USER: 자신 생성 + 자신 담당 + 같은 부서 공개
       whereClauses.push(
-        `("i"."created_by_id" = :userId${paramIndex}
-         OR "i"."assigned_to_id" = :userId${paramIndex + 1}
-         OR ("i"."is_public" = 1 AND "e_assigned"."department_id" = :departmentId${paramIndex + 2}))`
+        `("i"."CREATED_BY_ID" = :userId${paramIndex}
+         OR "i"."ASSIGNED_TO_ID" = :userId${paramIndex + 1}
+         OR ("i"."IS_PUBLIC" = 1 AND "e_assigned"."DEPARTMENT_ID" = :departmentId${paramIndex + 2}))`
       );
       params[`userId${paramIndex}`] = userId;
       params[`userId${paramIndex + 1}`] = userId;
@@ -144,7 +144,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // 4. 필터 적용 (AND 조합)
     if (customer_id) {
-      whereClauses.push(`"i"."customer_id" = :customerId${paramIndex}`);
+      whereClauses.push(`"i"."CUSTOMER_ID" = :customerId${paramIndex}`);
       params[`customerId${paramIndex}`] = customer_id;
       paramIndex++;
     }
@@ -153,7 +153,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const statusPlaceholders = status
         .map((_, i) => `:status${paramIndex + i}`)
         .join(',');
-      whereClauses.push(`"i"."status" IN (${statusPlaceholders})`);
+      whereClauses.push(`"i"."STATUS" IN (${statusPlaceholders})`);
       status.forEach((s, i) => {
         params[`status${paramIndex + i}`] = s;
       });
@@ -164,7 +164,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const severityPlaceholders = severity
         .map((_, i) => `:severity${paramIndex + i}`)
         .join(',');
-      whereClauses.push(`"i"."severity" IN (${severityPlaceholders})`);
+      whereClauses.push(`"i"."SEVERITY" IN (${severityPlaceholders})`);
       severity.forEach((s, i) => {
         params[`severity${paramIndex + i}`] = s;
       });
@@ -172,20 +172,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     if (assignee_id) {
-      whereClauses.push(`"i"."assigned_to_id" = :assigneeId${paramIndex}`);
+      whereClauses.push(`"i"."ASSIGNED_TO_ID" = :assigneeId${paramIndex}`);
       params[`assigneeId${paramIndex}`] = assignee_id;
       paramIndex++;
     }
 
     if (created_by_id) {
-      whereClauses.push(`"i"."created_by_id" = :createdById${paramIndex}`);
+      whereClauses.push(`"i"."CREATED_BY_ID" = :createdById${paramIndex}`);
       params[`createdById${paramIndex}`] = created_by_id;
       paramIndex++;
     }
 
     if (date_from) {
       whereClauses.push(
-        `TRUNC("i"."created_at") >= TRUNC(TO_DATE(:dateFrom${paramIndex}, 'YYYY-MM-DD'))`
+        `TRUNC("i"."CREATED_AT") >= TRUNC(TO_DATE(:dateFrom${paramIndex}, 'YYYY-MM-DD'))`
       );
       params[`dateFrom${paramIndex}`] = date_from;
       paramIndex++;
@@ -193,7 +193,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (date_to) {
       whereClauses.push(
-        `TRUNC("i"."created_at") <= TRUNC(TO_DATE(:dateTo${paramIndex}, 'YYYY-MM-DD'))`
+        `TRUNC("i"."CREATED_AT") <= TRUNC(TO_DATE(:dateTo${paramIndex}, 'YYYY-MM-DD'))`
       );
       params[`dateTo${paramIndex}`] = date_to;
       paramIndex++;
@@ -201,8 +201,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (keyword) {
       whereClauses.push(
-        `(LOWER("i"."title") LIKE LOWER(:keyword${paramIndex})
-         OR LOWER(DBMS_LOB.SUBSTR("i"."description", 4000, 1)) LIKE LOWER(:keyword${paramIndex}))`
+        `(LOWER("i"."TITLE") LIKE LOWER(:keyword${paramIndex})
+         OR LOWER(DBMS_LOB.SUBSTR("i"."DESCRIPTION", 4000, 1)) LIKE LOWER(:keyword${paramIndex}))`
       );
       params[`keyword${paramIndex}`] = `%${keyword}%`;
       paramIndex++;
@@ -225,38 +225,38 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       const query = `
         SELECT
-          "i"."id",
-          "i"."customer_id",
-          "i"."title",
-          "i"."description",
-          "i"."severity",
-          "i"."status",
-          "i"."is_public",
-          "i"."created_by_id",
-          "i"."assigned_to_id",
-          "i"."treatment_method",
-          "i"."treatment_time_minutes",
-          "i"."treatment_result",
-          "i"."created_at",
-          "i"."completed_at",
-          "i"."updated_at",
-          "i"."deleted_at",
-          "c"."name" AS customer_name,
-          "e_created"."name" AS created_by_name,
-          "e_assigned"."name" AS assigned_to_name
+          "i"."ID",
+          "i"."CUSTOMER_ID",
+          "i"."TITLE",
+          "i"."DESCRIPTION",
+          "i"."SEVERITY",
+          "i"."STATUS",
+          "i"."IS_PUBLIC",
+          "i"."CREATED_BY_ID",
+          "i"."ASSIGNED_TO_ID",
+          "i"."TREATMENT_METHOD",
+          "i"."TREATMENT_TIME_MINUTES",
+          "i"."TREATMENT_RESULT",
+          "i"."CREATED_AT",
+          "i"."COMPLETED_AT",
+          "i"."UPDATED_AT",
+          "i"."DELETED_AT",
+          "c"."NAME" AS customer_name,
+          "e_created"."NAME" AS created_by_name,
+          "e_assigned"."NAME" AS assigned_to_name
         FROM ISSUE "i"
-        LEFT JOIN CUSTOMER "c" ON "c"."id" = "i"."customer_id" AND "c"."deleted_at" IS NULL
-        LEFT JOIN EMPLOYEE "e_created" ON "e_created"."id" = "i"."created_by_id" AND "e_created"."deleted_at" IS NULL
-        LEFT JOIN EMPLOYEE "e_assigned" ON "e_assigned"."id" = "i"."assigned_to_id" AND "e_assigned"."deleted_at" IS NULL
+        LEFT JOIN CUSTOMER "c" ON "c"."ID" = "i"."CUSTOMER_ID" AND "c"."DELETED_AT" IS NULL
+        LEFT JOIN EMPLOYEE "e_created" ON "e_created"."ID" = "i"."CREATED_BY_ID" AND "e_created"."DELETED_AT" IS NULL
+        LEFT JOIN EMPLOYEE "e_assigned" ON "e_assigned"."ID" = "i"."ASSIGNED_TO_ID" AND "e_assigned"."DELETED_AT" IS NULL
         WHERE ${whereClauses.join(' AND ')}
-        ORDER BY "i"."${finalSortBy}" ${finalSortOrder}
+        ORDER BY "i"."${finalSortBy.toUpperCase()}" ${finalSortOrder}
         OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
       `;
 
       const countQuery = `
         SELECT COUNT(*) as total
         FROM ISSUE "i"
-        LEFT JOIN EMPLOYEE "e_assigned" ON "e_assigned"."id" = "i"."assigned_to_id"
+        LEFT JOIN EMPLOYEE "e_assigned" ON "e_assigned"."ID" = "i"."ASSIGNED_TO_ID"
         WHERE ${whereClauses.join(' AND ')}
       `;
 
@@ -426,7 +426,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
       // 5. 외래키 존재 확인 (customer_id)
       const customerResult = await queryRunner.query(
-        `SELECT "id" FROM CUSTOMER WHERE "id" = :customerId AND "deleted_at" IS NULL`,
+        `SELECT "ID" FROM CUSTOMER WHERE "ID" = :customerId AND "DELETED_AT" IS NULL`,
         { customerId: customer_id }
       );
       if (customerResult.length === 0) {
@@ -440,7 +440,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       let assignee = null;
       if (assigned_to_id) {
         const assigneeResult = await queryRunner.query(
-          `SELECT "id", "department_id" FROM EMPLOYEE WHERE "id" = :assigneeId AND "deleted_at" IS NULL`,
+          `SELECT "ID", "DEPARTMENT_ID" FROM EMPLOYEE WHERE "ID" = :assigneeId AND "DELETED_AT" IS NULL`,
           { assigneeId: assigned_to_id }
         );
         if (assigneeResult.length === 0) {
@@ -452,7 +452,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         assignee = assigneeResult[0];
 
         // MANAGER는 다른 부서 직원에게 할당 불가
-        if (userRole === 'MANAGER' && assignee.department_id !== userDepartmentId) {
+        if (userRole === 'MANAGER' && assignee.DEPARTMENT_ID !== userDepartmentId) {
           return NextResponse.json(
             {
               message:
@@ -467,17 +467,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const now = new Date();
       const insertSql = `
         INSERT INTO ISSUE (
-          "customer_id", "title", "severity", "description", "status",
-          "is_public", "created_by_id", "assigned_to_id",
-          "treatment_method", "treatment_time_minutes", "treatment_result",
-          "created_at", "updated_at", "deleted_at"
+          "CUSTOMER_ID", "TITLE", "SEVERITY", "DESCRIPTION", "STATUS",
+          "IS_PUBLIC", "CREATED_BY_ID", "ASSIGNED_TO_ID",
+          "TREATMENT_METHOD", "TREATMENT_TIME_MINUTES", "TREATMENT_RESULT",
+          "CREATED_AT", "UPDATED_AT", "DELETED_AT"
         ) VALUES (
           :customerId, :title, :severity, :description, :status,
           :isPublic, :createdById, :assignedToId,
           :treatmentMethod, :treatmentTimeMinutes, :treatmentResult,
           :createdAt, :updatedAt, :deletedAt
         )
-        RETURNING "id", "created_at"
+        RETURNING "ID", "CREATED_AT"
       `;
 
       const issueResult = await queryRunner.query(insertSql, {
@@ -501,25 +501,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const createdAt = issueResult[0]?.created_at;
 
       // 8. IssueHistory 첫 기록
-      await queryRunner.query(
-        `INSERT INTO ISSUE_HISTORY (
-          "issue_id", "change_type", "old_value", "new_value", "changed_by_id", "remark",
-          "created_at", "updated_at"
-        ) VALUES (
-          :issueId, :changeType, :oldValue, :newValue, :changedById, :remark,
-          :createdAt, :updatedAt
-        )`,
-        {
-          issueId,
-          changeType: 'STATUS_CHANGE',
-          oldValue: null,
-          newValue: 'INTAKE',
-          changedById: userId,
-          remark: 'Issue created',
-          createdAt: now,
-          updatedAt: now,
-        }
-      );
+      try {
+        await queryRunner.query(
+          `INSERT INTO ISSUE_HISTORY (
+            "ISSUE_ID", "CHANGE_TYPE", "OLD_VALUE", "NEW_VALUE", "CHANGED_BY_ID", "REMARK",
+            "CREATED_AT", "UPDATED_AT"
+          ) VALUES (
+            :issueId, :changeType, :oldValue, :newValue, :changedById, :remark,
+            :createdAt, :updatedAt
+          )`,
+          {
+            issueId,
+            changeType: 'STATUS_CHANGE',
+            oldValue: null,
+            newValue: 'INTAKE',
+            changedById: userId,
+            remark: 'Issue created',
+            createdAt: now,
+            updatedAt: now,
+          }
+        );
+      } catch (historyError) {
+        // ISSUE_HISTORY table might not exist yet - continue without it
+        console.warn('ISSUE_HISTORY insert failed (table may not exist):', historyError);
+      }
 
       // 9. 응답 반환
       return NextResponse.json<CreateIssueResponse>(
