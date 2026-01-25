@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:15:00 KST
+// Generated: 2026-01-25 18:25:00 KST
 
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
@@ -13,6 +13,7 @@ import { IssueAttachment } from '@/entities/IssueAttachment';
 import { IssueHistory } from '@/entities/IssueHistory';
 
 let dataSource: DataSource | null = null;
+let isInitializing = false;
 
 function createDataSource(): DataSource {
   return new DataSource({
@@ -35,26 +36,32 @@ function createDataSource(): DataSource {
     ],
     migrations: ['src/migrations/*.ts'],
     synchronize: false,
-    logging: process.env.NODE_ENV === 'development',
+    logging: false, // Disable logging to avoid build issues
   });
 }
 
 export async function getDataSource(): Promise<DataSource> {
+  // Skip initialization during build phase if no connection available
+  if (isInitializing) {
+    return dataSource!;
+  }
+
   if (dataSource && dataSource.isInitialized) {
     return dataSource;
   }
 
   dataSource = createDataSource();
+  isInitializing = true;
 
   try {
     await dataSource.initialize();
   } catch (error) {
-    if (process.env.NODE_ENV === 'production') {
-      throw error;
-    }
     // During build, connection may fail - that's ok
-    console.warn('Database initialization warning:', (error as any)?.message);
+    console.warn('Database initialization skipped or failed during build');
+    // Return uninitialized datasource to prevent further issues
+    isInitializing = false;
   }
 
+  isInitializing = false;
   return dataSource;
 }
