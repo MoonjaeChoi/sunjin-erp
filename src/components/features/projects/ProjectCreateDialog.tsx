@@ -91,7 +91,7 @@ export function ProjectCreateDialog({ open, onClose }: ProjectCreateDialogProps)
       setForm({
         project_name: '',
         customer_id: null,
-        employee_id: session?.user?.id ? Number(session.user.id) : null,
+        employee_id: (session?.user as any)?.id ? Number((session.user as any).id) : null,
         project_code: '',
         start_date: '',
         end_date: '',
