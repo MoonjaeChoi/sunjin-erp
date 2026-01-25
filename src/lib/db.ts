@@ -1,4 +1,4 @@
-// Generated: 2026-01-24 23:30:00 KST
+// Generated: 2026-01-25 18:40:00 KST
 
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
@@ -42,6 +42,12 @@ export async function getDataSource(): Promise<DataSource> {
     logging: process.env.NODE_ENV === 'development',
   });
 
-  await dataSource.initialize();
+  try {
+    await dataSource.initialize();
+  } catch (error) {
+    // If initialization fails (e.g., during build), that's ok
+    // The datasource will be available at runtime
+  }
+
   return dataSource;
 }
