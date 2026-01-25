@@ -35,13 +35,15 @@ const bcrypt = require("bcryptjs");
       try {
         await conn.execute(
           "INSERT INTO SUNJIN_ADMIN.EMPLOYEE (id, name, username, password_hash, role, email, position) " +
-          "VALUES (:id, :name, :username, :hash, 'USER', :email, '과장')",
+          "VALUES (:id, :name, :username, :hash, :role, :email, :position)",
           {
             id: emp.id,
             name: emp.name,
             username: emp.username,
             hash: hash,
-            email: emp.email
+            role: 'USER',
+            email: emp.email,
+            position: '과장'
           }
         );
         console.log("✓ " + emp.name);
@@ -64,7 +66,7 @@ const bcrypt = require("bcryptjs");
 
     // Verify
     const result = await conn.execute(
-      "SELECT id, name FROM SUNJIN_ADMIN.EMPLOYEE WHERE deleted_at IS NULL ORDER BY id"
+      "SELECT id, name FROM SUNJIN_ADMIN.EMPLOYEE ORDER BY id"
     );
     console.log("\n=== 등록된 직원 목록 (총 " + result.rows.length + "명) ===");
     for (const row of result.rows) {
