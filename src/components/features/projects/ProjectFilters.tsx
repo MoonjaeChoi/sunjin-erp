@@ -192,7 +192,7 @@ export function ProjectFilters({ params, onUpdate }: ProjectFiltersProps) {
         <PopoverContent className="w-[180px] p-3">
           <div className="space-y-2">
             {ALL_STATUSES.map((status) => {
-              const colors = ProjectStatusColor[status];
+              const colors = ProjectStatusColor[status] || { text: 'text-gray-800' };
               return (
                 <label
                   key={status}
@@ -207,7 +207,7 @@ export function ProjectFilters({ params, onUpdate }: ProjectFiltersProps) {
                   <span
                     className={cn('text-sm font-medium', colors.text)}
                   >
-                    {ProjectStatusLabel[status]}
+                    {ProjectStatusLabel[status] || status}
                   </span>
                 </label>
               );

@@ -79,7 +79,7 @@ export function ProjectSummaryBadges({
       {/* 상태별 배지 */}
       {STATUS_ORDER.map((status) => {
         const count = summary[status.toLowerCase() as keyof typeof summary] ?? 0;
-        const colors = ProjectStatusColor[status];
+        const colors = ProjectStatusColor[status] || { bg: 'bg-gray-100', text: 'text-gray-800' };
         const isSelected = selectedStatuses.includes(status);
 
         return (
@@ -93,7 +93,7 @@ export function ProjectSummaryBadges({
                 : `${colors.bg} ${colors.text} hover:opacity-80`
             )}
           >
-            {ProjectStatusLabel[status]}
+            {ProjectStatusLabel[status] || status}
             <span className="rounded-full bg-white/50 px-1.5 py-0.5 text-xs font-bold">
               {count}
             </span>

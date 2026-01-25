@@ -62,7 +62,7 @@ export function ProjectDataTable({
   };
 
   const getStatusColor = (status: ProjectStatus) => {
-    return ProjectStatusColor[status];
+    return ProjectStatusColor[status] || { bg: 'bg-gray-100', text: 'text-gray-800' };
   };
 
   // ============================================================================
@@ -155,7 +155,7 @@ export function ProjectDataTable({
                     <TableCell>{project.customer_name}</TableCell>
                     <TableCell>
                       <Badge className={cn(statusColor.bg, statusColor.text)}>
-                        {ProjectStatusLabel[project.status]}
+                        {ProjectStatusLabel[project.status] || project.status}
                       </Badge>
                     </TableCell>
                     <TableCell>{project.employee_name}</TableCell>

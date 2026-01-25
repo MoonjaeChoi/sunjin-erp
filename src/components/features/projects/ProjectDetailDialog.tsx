@@ -156,6 +156,10 @@ export function ProjectDetailDialog({
   // ============================================================================
   // 6. 포맷팅 헬퍼
   // ============================================================================
+  const getStatusColor = (status: ProjectStatus) => {
+    return ProjectStatusColor[status] || { bg: 'bg-gray-100', text: 'text-gray-800' };
+  };
+
   const formatDateRange = (
     startDate: string | null,
     endDate: string | null
@@ -262,11 +266,11 @@ export function ProjectDetailDialog({
               <div className="flex items-center gap-3">
                 <Badge
                   className={cn(
-                    ProjectStatusColor[project.status].bg,
-                    ProjectStatusColor[project.status].text
+                    getStatusColor(project.status).bg,
+                    getStatusColor(project.status).text
                   )}
                 >
-                  {ProjectStatusLabel[project.status]}
+                  {ProjectStatusLabel[project.status] || project.status}
                 </Badge>
 
                 {canEdit && (
