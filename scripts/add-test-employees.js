@@ -21,11 +21,11 @@ const bcrypt = require("bcryptjs");
     const hash = await bcrypt.hash("password123", 10);
 
     const employees = [
-      { id: 2, name: "김철수", username: "kim", email: "kim@sunjin.co.kr" },
-      { id: 3, name: "이영희", username: "lee", email: "lee@sunjin.co.kr" },
-      { id: 4, name: "박민준", username: "park", email: "park@sunjin.co.kr" },
-      { id: 5, name: "정수현", username: "jeong", email: "jeong@sunjin.co.kr" },
-      { id: 6, name: "최준호", username: "choi", email: "choi@sunjin.co.kr" }
+      { name: "김철수", username: "kim", email: "kim@sunjin.co.kr" },
+      { name: "이영희", username: "lee", email: "lee@sunjin.co.kr" },
+      { name: "박민준", username: "park", email: "park@sunjin.co.kr" },
+      { name: "정수현", username: "jeong", email: "jeong@sunjin.co.kr" },
+      { name: "최준호", username: "choi", email: "choi@sunjin.co.kr" }
     ];
 
     console.log("테스트 직원을 등록 중입니다...\n");
@@ -34,10 +34,9 @@ const bcrypt = require("bcryptjs");
     for (const emp of employees) {
       try {
         await conn.execute(
-          'INSERT INTO SUNJIN_ADMIN."EMPLOYEE" ("id", "name", "username", "password_hash", "role", "email", "position") ' +
-          'VALUES (:id, :name, :username, :hash, :role, :email, :position)',
+          'INSERT INTO SUNJIN_ADMIN."EMPLOYEE" ("name", "username", "password_hash", "role", "email", "position") ' +
+          'VALUES (:name, :username, :hash, :role, :email, :position)',
           {
-            id: emp.id,
             name: emp.name,
             username: emp.username,
             hash: hash,
