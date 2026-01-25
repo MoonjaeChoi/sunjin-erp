@@ -11,6 +11,13 @@ const bcrypt = require("bcryptjs");
       connectionString: "192.168.75.194:1521/XEPDB1"
     });
 
+    // First, check what columns exist in the EMPLOYEE table
+    const columnsResult = await conn.execute(
+      "SELECT COLUMN_NAME FROM USER_TAB_COLUMNS WHERE TABLE_NAME = 'EMPLOYEE' ORDER BY COLUMN_ID"
+    );
+    const columns = columnsResult.rows.map(row => row[0]);
+    console.log("Available columns: " + columns.join(", "));
+
     const hash = await bcrypt.hash("password123", 10);
 
     const employees = [
