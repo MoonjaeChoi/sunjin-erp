@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -74,22 +75,23 @@ export function ProjectCreateDialog({ open, onClose }: ProjectCreateDialogProps)
   const [customerOpen, setCustomerOpen] = useState(false);
 
   // ============================================================================
-  // 2. 뮤테이션 및 쿼리
+  // 2. 뮤테이션, 쿼리, 세션
   // ============================================================================
   const { mutateAsync: createProject, isPending } = useCreateProjectMutation();
   const { mutateAsync: generateCode, isPending: isGenerating } = useGenerateProjectCodeMutation();
   const { data: customerData } = useCustomerListQuery();
   const { data: employeeData } = useEmployeeListQuery();
+  const { data: session } = useSession();
 
   // ============================================================================
-  // 3. Effect - Dialog 열릴 때 폼 초기화
+  // 3. Effect - Dialog 열릴 때 폼 초기화 (담당자는 현재 사용자로 설정)
   // ============================================================================
   useEffect(() => {
     if (open) {
       setForm({
         project_name: '',
         customer_id: null,
-        employee_id: null,
+        employee_id: session?.user?.id ? Number(session.user.id) : null,
         project_code: '',
         start_date: '',
         end_date: '',
@@ -98,7 +100,7 @@ export function ProjectCreateDialog({ open, onClose }: ProjectCreateDialogProps)
       });
       setErrors({});
     }
-  }, [open]);
+  }, [open, session]);
 
   // ============================================================================
   // 4. 유효성 검증
