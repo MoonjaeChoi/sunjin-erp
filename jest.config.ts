@@ -3,16 +3,65 @@
 import type { Config } from 'jest';
 
 const config: Config = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-  setupFilesAfterEnv: ['@testing-library/jest-dom'],
-  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/', '<rootDir>/e2e/', 'test-utils\\.tsx$'],
-  transform: {
-    '^.+\\.tsx?$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }],
-  },
+  projects: [
+    {
+      displayName: 'api',
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      testMatch: ['**/src/__tests__/api/**/*.test.ts'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+      testPathIgnorePatterns: [
+        '<rootDir>/node_modules/',
+        '<rootDir>/.next/',
+        '<rootDir>/e2e/',
+      ],
+      transform: {
+        '^.+\\.tsx?$': [
+          'ts-jest',
+          {
+            tsconfig: {
+              jsx: 'react-jsx',
+              esModuleInterop: true,
+              allowSyntheticDefaultImports: true,
+            },
+          },
+        ],
+      },
+    },
+    {
+      displayName: 'components',
+      preset: 'ts-jest',
+      testEnvironment: 'jsdom',
+      testMatch: ['**/src/__tests__/components/**/*.test.tsx'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+      setupFilesAfterEnv: [
+        '<rootDir>/jest.setup.ts',
+        '@testing-library/jest-dom',
+      ],
+      testPathIgnorePatterns: [
+        '<rootDir>/node_modules/',
+        '<rootDir>/.next/',
+        '<rootDir>/e2e/',
+      ],
+      transform: {
+        '^.+\\.tsx?$': [
+          'ts-jest',
+          {
+            tsconfig: {
+              jsx: 'react-jsx',
+              esModuleInterop: true,
+              allowSyntheticDefaultImports: true,
+            },
+          },
+        ],
+      },
+    },
+  ],
 };
 
 export default config;

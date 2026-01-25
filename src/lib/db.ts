@@ -6,6 +6,8 @@ import { Task } from '@/entities/Task';
 import { Employee } from '@/entities/Employee';
 import { Customer } from '@/entities/Customer';
 import { TechSupport } from '@/entities/TechSupport';
+import { Project } from '@/entities/Project';
+import { ProjectAttachment } from '@/entities/ProjectAttachment';
 
 let dataSource: DataSource | null = null;
 
@@ -21,7 +23,8 @@ export async function getDataSource(): Promise<DataSource> {
     serviceName: process.env.ORACLE_SERVICE_NAME || 'XEPDB1',
     username: process.env.ORACLE_USERNAME || 'sunjin_admin',
     password: process.env.ORACLE_PASSWORD || '',
-    entities: [Task, Employee, Customer, TechSupport],
+    entities: [Task, Employee, Customer, TechSupport, Project, ProjectAttachment],
+    migrations: ['src/migrations/*.ts'],
     synchronize: false,
     logging: process.env.NODE_ENV === 'development',
   });
