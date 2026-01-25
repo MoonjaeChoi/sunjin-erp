@@ -10,7 +10,8 @@
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "db:seed-employees": "node scripts/add-test-employees.js"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
