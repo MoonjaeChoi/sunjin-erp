@@ -47,16 +47,14 @@ export async function GET(): Promise<NextResponse<EmployeeListResponse | { error
         '"d"."id" = "e"."department_id"'
       )
       .where('"e"."deleted_at" IS NULL')
-      .select([
-        '"e"."id" AS id',
-        '"e"."name" AS name',
-        'COALESCE("d"."name", NULL) AS department_name',
-      ])
+      .select('e.id', 'id')
+      .addSelect('e.name', 'name')
+      .addSelect('d.name', 'department_name')
       .orderBy('"e"."name"', 'ASC');
 
     // RBAC: MANAGER는 본인 부서만
     if (user.role === 'MANAGER' && user.department_id) {
-      query = query.andWhere('e.department_id = :departmentId', {
+      query = query.andWhere('"e"."department_id" = :departmentId', {
         departmentId: user.department_id,
       });
     }
@@ -68,7 +66,7 @@ export async function GET(): Promise<NextResponse<EmployeeListResponse | { error
     const employees: EmployeeListItem[] = results.map((row) => ({
       id: row.id,
       name: row.name,
-      department_name: row.department_name,
+      department_name: row.department_name || null,
     }));
 
     return NextResponse.json({ employees });
