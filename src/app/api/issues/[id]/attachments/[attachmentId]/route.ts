@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 18:55:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
@@ -6,6 +6,8 @@ import { getDataSource } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 import { IssueAttachment } from '@/entities/IssueAttachment';
 import { IssueHistory } from '@/entities/IssueHistory';
+
+export const dynamic = 'force-dynamic';
 
 interface AttachmentRouteParams {
   params: {

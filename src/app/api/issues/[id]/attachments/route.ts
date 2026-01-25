@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 18:55:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
@@ -10,6 +10,8 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 // @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
+
+export const dynamic = 'force-dynamic';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads/issues';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB

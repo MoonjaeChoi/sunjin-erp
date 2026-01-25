@@ -1,4 +1,4 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 18:55:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -9,6 +9,8 @@ import { IssueHistory } from '@/entities/IssueHistory';
 import { Customer } from '@/entities/Customer';
 import { Employee } from '@/entities/Employee';
 import { IsNull } from 'typeorm';
+
+export const dynamic = 'force-dynamic';
 
 interface IssueListItem {
   id: number;
