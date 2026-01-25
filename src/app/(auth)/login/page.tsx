@@ -14,11 +14,13 @@ export default function LoginPage() {
       <p className="text-sm text-center text-gray-400 mb-8">업무 관리 시스템</p>
       <LoginForm />
       <div className="mt-6 pt-4 border-t border-gray-200">
-        <p className="text-xs text-gray-400 text-center mb-2">테스트 계정</p>
+        <p className="text-xs text-gray-400 text-center mb-2">테스트 계정 (공통 비밀번호: password123)</p>
         <div className="space-y-1 text-xs text-gray-500">
-          <div className="flex justify-between"><span>관리자</span><span>admin / password</span></div>
-          <div className="flex justify-between"><span>매니저</span><span>manager / password</span></div>
-          <div className="flex justify-between"><span>사용자</span><span>user / password</span></div>
+          <div className="flex justify-between"><span>김철수</span><span>kim</span></div>
+          <div className="flex justify-between"><span>이영희</span><span>lee</span></div>
+          <div className="flex justify-between"><span>박민준</span><span>park</span></div>
+          <div className="flex justify-between"><span>정수현</span><span>jeong</span></div>
+          <div className="flex justify-between"><span>최준호</span><span>choi</span></div>
         </div>
       </div>
     </div>
