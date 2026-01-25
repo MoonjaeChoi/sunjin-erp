@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { Task } from '@/entities/Task';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,65 +41,68 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 4. 쿼리 구성 (IDX_TASK_EMPLOYEE_DATE 인덱스 활용)
+    // 4. 쿼리 구성 - raw SQL (IDX_TASK_EMPLOYEE_DATE 인덱스 활용)
     const ds = await getDataSource();
-    const taskRepository = ds.getRepository(Task);
+    const user = session.user as any;
 
-    const queryBuilder = taskRepository
-      .createQueryBuilder('task')
-      .where('"task"."deleted_at" IS NULL')
-      .andWhere('"task"."task_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')', {
-        dateFrom,
-        dateTo,
-      });
+    // Build SQL query
+    let sql = `
+      SELECT "id", "title", "task_date", "start_time", "end_time", "task_type", "work_type", "status", "employee_id"
+      FROM TASK
+      WHERE "deleted_at" IS NULL
+        AND "task_date" BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')
+    `;
+    const params: any = { dateFrom, dateTo };
 
-    // MANAGER: Phase 1 완료 후 부서 내 직원만 필터링
-    // ADMIN: 전체 조회
-
+    // Optional employee filter
     if (employeeId) {
-      queryBuilder.andWhere('"task"."employee_id" = :employeeId', {
-        employeeId: Number(employeeId),
-      });
+      sql += ` AND "employee_id" = :employeeId`;
+      params.employeeId = Number(employeeId);
     }
 
-    queryBuilder
-      .orderBy('"task"."employee_id"', 'ASC')
-      .addOrderBy('"task"."task_date"', 'ASC')
-      .addOrderBy('"task"."start_time"', 'ASC');
+    sql += ` ORDER BY "employee_id" ASC, "task_date" ASC, "start_time" ASC`;
 
-    const tasks = await queryBuilder.getMany();
+    const queryRunner = ds.createQueryRunner();
+    try {
+      const tasks = await queryRunner.query(sql, params);
 
-    // 5. 직원별 그룹화
-    const employeeMap = new Map<
-      number,
-      { employee_id: number; employee_name: string; tasks: any[] }
-    >();
+      // 5. 직원별 그룹화
+      const employeeMap = new Map<
+        number,
+        { employee_id: number; employee_name: string; tasks: any[] }
+      >();
 
-    for (const task of tasks) {
-      if (!employeeMap.has(task.employee_id)) {
-        employeeMap.set(task.employee_id, {
-          employee_id: task.employee_id,
-          employee_name: '', // Phase 1 완료 후 Employee JOIN
-          tasks: [],
+      for (const task of tasks) {
+        if (!employeeMap.has(task.employee_id)) {
+          employeeMap.set(task.employee_id, {
+            employee_id: task.employee_id,
+            employee_name: '', // Phase 1 완료 후 Employee JOIN
+            tasks: [],
+          });
+        }
+        employeeMap.get(task.employee_id)!.tasks.push({
+          id: task.id,
+          title: task.title,
+          task_date: task.task_date,
+          start_time: task.start_time,
+          end_time: task.end_time,
+          task_type: task.task_type,
+          work_type: task.work_type,
+          status: task.status,
         });
       }
-      employeeMap.get(task.employee_id)!.tasks.push({
-        id: task.id,
-        title: task.title,
-        task_date: task.task_date,
-        start_time: task.start_time,
-        end_time: task.end_time,
-        task_type: task.task_type,
-        work_type: task.work_type,
-        status: task.status,
-      });
-    }
 
-    return NextResponse.json({
-      employees: Array.from(employeeMap.values()),
-    });
+      return NextResponse.json({
+        employees: Array.from(employeeMap.values()),
+      });
+    } finally {
+      await queryRunner.release();
+    }
   } catch (error) {
     console.error('GET /api/dashboard/team error:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -2,10 +2,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { IsNull } from 'typeorm';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { Task } from '@/entities/Task';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,47 +26,55 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 3. Task 조회
+    // 3. Task 조회 (raw SQL to avoid ORM metadata issues)
     const ds = await getDataSource();
-    const taskRepository = ds.getRepository(Task);
-
     const user = session.user as any;
-    const whereCondition: any = {
-      task_date: new Date(date),
-      deleted_at: IsNull(),
-    };
 
-    // RBAC 필터링
-    if (user.role === 'USER') {
-      whereCondition.employee_id = user.id;
-    } else if (user.role === 'MANAGER') {
-      // Phase 1 완료 후: 부서 내 직원 필터링
-      whereCondition.employee_id = user.id;
+    // Build SQL query with RBAC filtering
+    let sql = `
+      SELECT "id", "title", "task_type", "work_type", "status", "start_time", "end_time", "employee_id"
+      FROM TASK
+      WHERE TRUNC("task_date") = TO_DATE(:date, 'YYYY-MM-DD')
+        AND "deleted_at" IS NULL
+    `;
+    const params: any = { date };
+
+    // RBAC filtering
+    if (user.role === 'USER' || user.role === 'MANAGER') {
+      sql += ` AND "employee_id" = :employee_id`;
+      params.employee_id = user.id;
     }
-    // ADMIN: 전체 조회
+    // ADMIN: no additional filtering
 
-    const tasks = await taskRepository.find({
-      where: whereCondition,
-      order: { start_time: 'ASC' },
-    });
+    sql += ` ORDER BY "start_time" ASC`;
 
-    // 4. 응답 구성
-    return NextResponse.json({
-      date,
-      tasks: tasks.map((task: any) => ({
-        id: task.id,
-        title: task.title,
-        task_type: task.task_type,
-        work_type: task.work_type,
-        status: task.status,
-        start_time: task.start_time,
-        end_time: task.end_time,
-        customer_name: null, // Phase 1 완료 후 JOIN
-      })),
-      techSupports: [], // Phase 3 전까지 빈 배열
-    });
+    const queryRunner = ds.createQueryRunner();
+    try {
+      const tasks = await queryRunner.query(sql, params);
+
+      // 4. 응답 구성
+      return NextResponse.json({
+        date,
+        tasks: tasks.map((task: any) => ({
+          id: task.id,
+          title: task.title,
+          task_type: task.task_type,
+          work_type: task.work_type,
+          status: task.status,
+          start_time: task.start_time,
+          end_time: task.end_time,
+          customer_name: null, // Phase 1 완료 후 JOIN
+        })),
+        techSupports: [], // Phase 3 전까지 빈 배열
+      });
+    } finally {
+      await queryRunner.release();
+    }
   } catch (error) {
     console.error('GET /api/dashboard/daily-summary error:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
