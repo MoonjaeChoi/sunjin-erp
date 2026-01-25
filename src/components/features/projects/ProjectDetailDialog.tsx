@@ -184,22 +184,7 @@ export function ProjectDetailDialog({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-start justify-between gap-4">
-            <DialogTitle>프로젝트 상세</DialogTitle>
-            {canEdit && (
-              <div className="flex gap-2">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setDeleteOpen(true)}
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  삭제
-                </Button>
-              </div>
-            )}
-          </div>
+          <DialogTitle>프로젝트 상세</DialogTitle>
           <DialogDescription>프로젝트 정보를 조회하고 관리합니다.</DialogDescription>
         </DialogHeader>
 
@@ -337,9 +322,21 @@ export function ProjectDetailDialog({
         ) : null}
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isUpdating}>
-            닫기
-          </Button>
+          <div className="flex w-full justify-between items-center">
+            {canEdit && (
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteOpen(true)}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                삭제
+              </Button>
+            )}
+            <Button variant="outline" onClick={onClose} disabled={isUpdating}>
+              닫기
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
 
