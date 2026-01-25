@@ -1,122 +1,138 @@
-// Generated: 2026-01-25 18:05:00 KST
+// Generated: 2026-01-25 21:55:00 KST
 
-/**
- * Domain Types
- */
+// === Enum Types ===
 
-export type IssueStatus = 'INTAKE' | 'IN_PROGRESS' | 'COMPLETED';
 export type IssueSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-export type TreatmentMethod = 'REMOTE' | 'PHONE' | 'ONSITE' | null;
-export type IssueHistoryChangeType =
+export type IssueStatus = 'INTAKE' | 'IN_PROGRESS' | 'COMPLETED';
+export type TreatmentMethod = 'REMOTE' | 'PHONE' | 'ONSITE';
+export type HistoryChangeType =
   | 'STATUS_CHANGE'
   | 'ASSIGNEE_CHANGE'
   | 'SEVERITY_CHANGE'
   | 'STATUS_ROLLBACK'
   | 'ATTACHMENT_UPLOADED'
   | 'ATTACHMENT_DELETED'
-  | 'COMMENT_ADDED';
+  | 'IS_PUBLIC_CHANGE';
 
-/**
- * Entity Types
- */
+// === Enum Labels ===
 
-export interface Employee {
-  id: number;
-  name: string;
-  email?: string;
-  department_id: number;
+export const SeverityLabel: Record<IssueSeverity, string> = {
+  CRITICAL: '심각',
+  HIGH: '높음',
+  MEDIUM: '보통',
+  LOW: '낮음',
+};
+
+export const StatusLabel: Record<IssueStatus, string> = {
+  INTAKE: '접수',
+  IN_PROGRESS: '진행중',
+  COMPLETED: '완료',
+};
+
+export const TreatmentMethodLabel: Record<TreatmentMethod, string> = {
+  REMOTE: '원격 지원',
+  PHONE: '전화 지원',
+  ONSITE: '현장 방문',
+};
+
+// === Enum Options (Select용) ===
+
+export const SEVERITY_OPTIONS = [
+  { value: 'CRITICAL', label: '심각' },
+  { value: 'HIGH', label: '높음' },
+  { value: 'MEDIUM', label: '보통' },
+  { value: 'LOW', label: '낮음' },
+];
+
+export const STATUS_OPTIONS = [
+  { value: 'INTAKE', label: '접수' },
+  { value: 'IN_PROGRESS', label: '진행중' },
+  { value: 'COMPLETED', label: '완료' },
+];
+
+export const TREATMENT_METHOD_OPTIONS = [
+  { value: 'REMOTE', label: '원격 지원' },
+  { value: 'PHONE', label: '전화 지원' },
+  { value: 'ONSITE', label: '현장 방문' },
+];
+
+// === Status Transition Matrix ===
+
+export const STATUS_TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
+  INTAKE: ['IN_PROGRESS'],
+  IN_PROGRESS: ['COMPLETED'],
+  COMPLETED: ['IN_PROGRESS'], // ADMIN만 가능
+};
+
+export function isValidStatusTransition(
+  from: IssueStatus,
+  to: IssueStatus,
+  role: string
+): boolean {
+  if (role === 'ADMIN') return true;
+  if (from === to) return true;
+  return STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-export interface Customer {
-  id: number;
-  name: string;
-}
+// === API Request/Response Types ===
 
-export interface Issue {
-  id: number;
-  customer_id: number;
-  customer?: Customer;
-  title: string;
-  description: string;
-  severity: IssueSeverity;
-  status: IssueStatus;
-  is_public: number; // 0 or 1
-  created_by_id: number;
-  created_by?: Employee;
-  assigned_to_id: number | null;
-  assigned_to?: Employee | null;
-  treatment_method: TreatmentMethod;
-  treatment_time_minutes: number | null;
-  treatment_result: string | null;
-  created_at: string | Date;
-  completed_at: string | Date | null;
-  updated_at: string | Date;
-  deleted_at: string | Date | null;
-}
-
-export interface IssueAttachment {
-  id: number;
-  issue_id: number;
-  file_name: string;
-  file_path: string;
-  file_size: number;
-  uploaded_by_id: number;
-  uploaded_by?: Employee;
-  created_at: string | Date;
-  deleted_at: string | Date | null;
-}
-
-export interface IssueHistory {
-  id: number;
-  issue_id: number;
-  change_type: IssueHistoryChangeType;
-  old_value: string | null;
-  new_value: string | null;
-  changed_by_id: number;
-  changed_by?: Employee;
-  changed_at: string | Date;
-  remark: string | null;
-}
-
-/**
- * API Request/Response Types
- */
-
-// Create Issue
-export interface CreateIssueRequest {
-  customer_id: number;
-  title: string;
-  severity: IssueSeverity;
-  description: string;
-  assigned_to_id?: number;
-  treatment_method?: TreatmentMethod;
-  treatment_time_minutes?: number;
-  treatment_result?: string;
-}
-
-export interface CreateIssueResponse {
-  message: string;
-  data: Partial<Issue>;
-}
-
-// Get Issue List
-export interface IssueListQueryParams {
+export interface IssueListParams {
   page?: number;
   page_size?: number;
   customer_id?: number;
-  status?: string; // 'INTAKE,IN_PROGRESS,COMPLETED'
-  severity?: string; // 'CRITICAL,HIGH,MEDIUM,LOW'
+  status?: string;
+  severity?: string;
   assignee_id?: number;
   created_by_id?: number;
-  date_from?: string; // YYYY-MM-DD
-  date_to?: string; // YYYY-MM-DD
+  date_from?: string;
+  date_to?: string;
   keyword?: string;
-  sort_by?: 'created_at' | 'status' | 'severity' | 'assigned_to_id';
+  sort_by?: string;
   sort_order?: 'ASC' | 'DESC';
 }
 
+export interface IssueRecord {
+  id: number;
+  title: string;
+  description: string | null;
+  severity: IssueSeverity;
+  status: IssueStatus;
+  is_public: number;
+  customer_id: number;
+  customer_name?: string;
+  created_by_id: number;
+  created_by_name?: string;
+  assigned_to_id: number | null;
+  assigned_to_name?: string;
+  treatment_method: TreatmentMethod | null;
+  treatment_time_minutes: number | null;
+  treatment_result: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface Issue extends IssueRecord {
+  customer?: {
+    id: number;
+    name: string;
+  } | null;
+  created_by?: {
+    id: number;
+    name: string;
+  } | null;
+  assigned_to?: {
+    id: number;
+    name: string;
+    department_id: number | null;
+  } | null;
+  attachments?: IssueAttachmentRecord[];
+  histories?: IssueHistoryRecord[];
+}
+
 export interface IssueListResponse {
-  data: Issue[];
+  data: IssueRecord[];
   pagination: {
     page: number;
     page_size: number;
@@ -125,95 +141,62 @@ export interface IssueListResponse {
   };
 }
 
-// Get Issue Detail
-export interface IssueDetailResponse {
-  data: Issue & {
-    attachments: IssueAttachment[];
-    histories: IssueHistory[];
-  };
-}
-
-// Update Issue
-export interface UpdateIssueRequest {
-  status?: IssueStatus;
-  assigned_to_id?: number | null;
-  severity?: IssueSeverity;
-  is_public?: number;
+export interface CreateIssueRequest {
+  customer_id: number;
+  title: string;
+  description: string;
+  severity: IssueSeverity;
+  assigned_to_id?: number;
   treatment_method?: TreatmentMethod;
   treatment_time_minutes?: number;
   treatment_result?: string;
 }
 
-export interface UpdateIssueResponse {
-  message: string;
-  data: Partial<Issue>;
+export interface UpdateIssueRequest {
+  title?: string;
+  description?: string;
+  severity?: IssueSeverity;
+  status?: IssueStatus;
+  assigned_to_id?: number | null;
+  is_public?: number;
+  treatment_method?: TreatmentMethod | null;
+  treatment_time_minutes?: number | null;
+  treatment_result?: string | null;
 }
 
-// Delete Issue
-export interface DeleteIssueResponse {
-  message: string;
+export interface IssueDetailResponse {
   data: {
     id: number;
-    deleted_at: string | Date;
-  };
-}
-
-export interface DeleteConflictResponse {
-  message: string;
-  error_code: 'ATTACHMENTS_EXIST';
-  attachments_count: number;
-}
-
-// Rollback Status
-export interface RollbackStatusRequest {
-  // No request body
-}
-
-export interface RollbackStatusResponse {
-  message: string;
-  data: {
-    id: number;
+    title: string;
+    description: string;
+    severity: IssueSeverity;
     status: IssueStatus;
-    completed_at: null;
+    is_public: number;
+    customer_id: number;
+    customer: {
+      id: number;
+      name: string;
+    } | null;
+    created_by_id: number;
+    created_by: {
+      id: number;
+      name: string;
+    } | null;
+    assigned_to_id: number | null;
+    assigned_to: {
+      id: number;
+      name: string;
+      department_id: number | null;
+    } | null;
+    treatment_method: TreatmentMethod | null;
+    treatment_time_minutes: number | null;
+    treatment_result: string | null;
+    created_at: Date;
+    completed_at: Date | null;
+    updated_at: Date;
+    attachments: IssueAttachmentRecord[];
+    histories: IssueHistoryRecord[];
   };
-}
-
-// Upload Attachment
-export interface UploadAttachmentResponse {
-  message: string;
-  data: {
-    id: number;
-    file_name: string;
-    file_size: number;
-    created_at: string | Date;
-  };
-}
-
-export interface UploadAttachmentError {
-  message: string;
-  error_code:
-    | 'FILE_TOO_LARGE'
-    | 'UNSUPPORTED_FILE_TYPE'
-    | 'UNSUPPORTED_EXTENSION'
-    | 'MAX_FILES_EXCEEDED';
-  file_size?: number;
-  mime_type?: string;
-  extension?: string;
-}
-
-// Delete Attachment
-export interface DeleteAttachmentResponse {
-  message: string;
-  data: {
-    id: number;
-    deleted_at: string | Date;
-  };
-}
-
-// Issue Summary
-export interface IssueSummaryQueryParams {
-  customer_id?: number;
-  severity?: string;
 }
 
 export interface IssueSummaryResponse {
@@ -225,24 +208,55 @@ export interface IssueSummaryResponse {
   };
 }
 
-/**
- * Common API Response
- */
-
-export interface ApiError {
-  message: string;
-  error_code?: string;
-  errors?: Record<string, string>;
+export interface IssueHistoryRecord {
+  id: number;
+  issue_id: number;
+  change_type: HistoryChangeType;
+  old_value: string | null;
+  new_value: string | null;
+  changed_by_id: number;
+  changed_by_name?: string;
+  changed_by?: {
+    id: number;
+    name: string;
+  } | null;
+  changed_at: Date;
+  remark: string | null;
 }
 
-/**
- * Filter & Pagination Types
- */
+export interface IssueAttachmentRecord {
+  id: number;
+  issue_id: number;
+  file_name: string;
+  file_path: string;
+  file_size: number;
+  uploaded_by_id: number;
+  uploaded_by_name?: string;
+  created_at: Date;
+}
+
+// === Type Aliases ===
+
+export type IssueHistory = IssueHistoryRecord;
+export type IssueListQueryParams = IssueListParams;
+
+export interface IssueSummaryQueryParams {
+  customer_id?: number;
+  status?: string;
+  severity?: string;
+  assignee_id?: number;
+  created_by_id?: number;
+  date_from?: string;
+  date_to?: string;
+  keyword?: string;
+}
+
+// === Filter/Pagination/Sort Types ===
 
 export interface IssueFilters {
   customer_id?: number;
-  status?: IssueStatus[];
-  severity?: IssueSeverity[];
+  status?: string[];
+  severity?: string[];
   assignee_id?: number;
   created_by_id?: number;
   date_from?: string;
@@ -251,7 +265,7 @@ export interface IssueFilters {
 }
 
 export interface SortOptions {
-  sort_by: 'created_at' | 'status' | 'severity' | 'assigned_to_id';
+  sort_by: string;
   sort_order: 'ASC' | 'DESC';
 }
 
@@ -260,69 +274,25 @@ export interface PaginationParams {
   page_size: number;
 }
 
-/**
- * Utility Functions for Formatting
- */
+// === Helper Functions ===
 
-/**
- * 처리 시간 포맷팅 (분 → "X시간 Y분" 형식)
- * @example
- * formatTreatmentTime(150) // "약 2시간 30분"
- * formatTreatmentTime(60)  // "약 1시간"
- * formatTreatmentTime(45)  // "약 45분"
- */
-export function formatTreatmentTime(
-  minutes: number | null | undefined
-): string {
-  if (minutes === null || minutes === undefined || minutes === 0) {
-    return '-';
-  }
-
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-
-  if (hours === 0) {
-    return `약 ${mins}분`;
-  } else if (mins === 0) {
-    return `약 ${hours}시간`;
-  } else {
-    return `약 ${hours}시간 ${mins}분`;
-  }
-}
-
-/**
- * 상태 한글 이름
- */
 export function getStatusLabel(status: IssueStatus): string {
-  const labels: Record<IssueStatus, string> = {
-    INTAKE: '접수',
-    IN_PROGRESS: '진행중',
-    COMPLETED: '완료',
-  };
-  return labels[status] || status;
+  return StatusLabel[status] || status;
 }
 
-/**
- * 심각도 한글 이름
- */
 export function getSeverityLabel(severity: IssueSeverity): string {
-  const labels: Record<IssueSeverity, string> = {
-    CRITICAL: '심각',
-    HIGH: '높음',
-    MEDIUM: '보통',
-    LOW: '낮음',
-  };
-  return labels[severity] || severity;
+  return SeverityLabel[severity] || severity;
 }
 
-/**
- * 처리 방법 한글 이름
- */
 export function getTreatmentMethodLabel(method: TreatmentMethod): string {
-  const labels: Record<string, string> = {
-    REMOTE: '원격 지원',
-    PHONE: '전화 지원',
-    ONSITE: '현장 방문',
-  };
-  return labels[method || ''] || '-';
+  return TreatmentMethodLabel[method] || method;
+}
+
+export function formatTreatmentTime(minutes: number | null): string {
+  if (minutes === null) return '-';
+  if (minutes < 60) return `${minutes}분`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (remainingMinutes === 0) return `${hours}시간`;
+  return `${hours}시간 ${remainingMinutes}분`;
 }
