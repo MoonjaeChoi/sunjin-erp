@@ -89,13 +89,22 @@ export async function getDataSource(): Promise<any> {
       },
     });
 
-    await dataSource.initialize();
-    console.log('[DB] TypeORM DataSource initialized successfully');
-    return dataSource;
+    try {
+      console.log('[DB] About to initialize DataSource...');
+      await dataSource.initialize();
+      console.log('[DB] TypeORM DataSource initialized successfully');
+      return dataSource;
+    } catch (initError) {
+      console.error('[DB] DataSource.initialize() failed:', initError instanceof Error ? initError.message : String(initError));
+      if (initError instanceof Error) {
+        console.error('[DB] Error stack:', initError.stack);
+      }
+      throw initError;
+    }
   } catch (error) {
-    console.error('[DB] Error during initialization:', error instanceof Error ? error.message : String(error));
-    if (error instanceof Error) {
-      console.error('[DB] Error stack:', error.stack);
+    console.error('[DB] Outer catch - Error during initialization:', error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.stack) {
+      console.error('[DB] Full stack:', error.stack);
     }
 
     // Return a graceful fallback to prevent application crashes
