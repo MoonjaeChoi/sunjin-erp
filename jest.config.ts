@@ -8,7 +8,7 @@ const config: Config = {
       displayName: 'api',
       preset: 'ts-jest',
       testEnvironment: 'node',
-      testMatch: ['**/src/__tests__/api/**/*.test.ts'],
+      testMatch: ['**/src/__tests__/api/**/*.test.ts', '**/src/app/api/**/__tests__/**/*.test.ts', '**/src/lib/__tests__/**/*.test.ts'],
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
       },
@@ -35,7 +35,7 @@ const config: Config = {
       displayName: 'components',
       preset: 'ts-jest',
       testEnvironment: 'jsdom',
-      testMatch: ['**/src/__tests__/components/**/*.test.tsx'],
+      testMatch: ['**/src/__tests__/components/**/*.test.tsx', '**/src/components/**/__tests__/**/*.test.tsx', '**/src/hooks/__tests__/**/*.test.ts'],
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
       },
