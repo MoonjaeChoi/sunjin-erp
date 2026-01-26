@@ -293,24 +293,64 @@ export async function POST(request: NextRequest) {
 
   try {
     const ds = await getDataSource();
-    const repo = ds.getRepository(TechSupport);
+    const queryRunner = ds.createQueryRunner();
 
-    const user = session.user as any;
-    const support = repo.create({
-      title: sanitizedTitle,
-      description: body.description || null,
-      support_date: new Date(body.support_date),
-      start_time: body.start_time ?? null,
-      end_time: body.end_time ?? null,
-      support_type: body.support_type,
-      support_method: body.support_method ?? null,
-      status: 'RECEIVED',
-      employee_id: user.id,
-      customer_id: body.customer_id,
-    });
+    try {
+      const user = session.user as any;
+      const now = new Date();
 
-    const saved = await repo.save(support);
-    return NextResponse.json({ id: saved.id }, { status: 201 });
+      // 1. Customer 존재 확인
+      const customerResult = await queryRunner.query(
+        `SELECT "id" FROM CUSTOMER WHERE "id" = :customerId AND "deleted_at" IS NULL`,
+        { customerId: body.customer_id }
+      );
+
+      if (customerResult.length === 0) {
+        return NextResponse.json(
+          { error: 'Customer not found' },
+          { status: 404 }
+        );
+      }
+
+      // 2. INSERT with RETURNING
+      const insertSql = `
+        INSERT INTO TECH_SUPPORT (
+          "title", "description", "support_date", "start_time", "end_time",
+          "support_type", "support_method", "status", "employee_id", "customer_id",
+          "created_at", "updated_at", "deleted_at"
+        ) VALUES (
+          :title, :description, :supportDate, :startTime, :endTime,
+          :supportType, :supportMethod, :status, :employeeId, :customerId,
+          :createdAt, :updatedAt, :deletedAt
+        )
+        RETURNING "id", "created_at"
+      `;
+
+      const result = await queryRunner.query(insertSql, {
+        title: sanitizedTitle,
+        description: body.description || null,
+        supportDate: new Date(body.support_date),
+        startTime: body.start_time ?? null,
+        endTime: body.end_time ?? null,
+        supportType: body.support_type,
+        supportMethod: body.support_method ?? null,
+        status: 'RECEIVED',
+        employeeId: user.id,
+        customerId: body.customer_id,
+        createdAt: now,
+        updatedAt: now,
+        deletedAt: null,
+      });
+
+      const supportId = result[0]?.id;
+
+      return NextResponse.json(
+        { message: 'Created successfully', id: supportId },
+        { status: 201 }
+      );
+    } finally {
+      await queryRunner.release();
+    }
   } catch (error) {
     console.error('POST /api/support error:', error);
     return NextResponse.json(
