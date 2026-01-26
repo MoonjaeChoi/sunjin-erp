@@ -94,13 +94,13 @@ export default function MaintenanceListPageClient() {
       )}
 
       {/* Statistics Section */}
-      {/* <div>
+      <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">통계</h2>
         <MaintenanceContractStats stats={stats} isLoading={statsLoading} />
-      </div> */}
+      </div>
 
       {/* Filters Section */}
-      {/* <div>
+      <div>
         <MaintenanceContractFilters
           onFilterChange={handleFilterChange}
           onReset={() => {
@@ -108,10 +108,10 @@ export default function MaintenanceListPageClient() {
             setPage(1);
           }}
         />
-      </div> */}
+      </div>
 
       {/* Table Section */}
-      {/* <div>
+      <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">계약 목록</h2>
         <MaintenanceContractTable
           contracts={contracts}
@@ -123,9 +123,6 @@ export default function MaintenanceListPageClient() {
           onSort={handleSort}
           onDelete={handleDelete}
         />
-      </div> */}
-      <div className="rounded-lg border bg-white p-8 text-center">
-        <p className="text-sm text-gray-700">계약 목록 표시 중... ({contracts.length}개)</p>
       </div>
     </div>
   );
