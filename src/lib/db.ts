@@ -7,51 +7,50 @@ import { DataSource } from 'typeorm';
 
 let dataSource: any = null;
 
-// Entity list as plain objects - avoid circular imports at module load time
-// by using lazy imports only when getDataSource is called
-const ENTITY_PATHS = [
-  '@/entities/Task',
-  '@/entities/Employee',
-  '@/entities/Customer',
-  '@/entities/TechSupport',
-  '@/entities/Project',
-  '@/entities/ProjectAttachment',
-  '@/entities/Issue',
-  '@/entities/IssueAttachment',
-  '@/entities/IssueHistory',
-  '@/entities/Inventory',
-  '@/entities/InventoryHistory',
-  '@/entities/MaintenanceContract',
-  '@/entities/MaintenanceContractAttachment',
-  '@/entities/MaintenanceContractHistory',
-];
+// Entity list - these will be loaded at runtime
+// Using relative paths that work in compiled output
+const ENTITY_IMPORTS = {
+  Task: () => import('../entities/Task').then(m => m.Task),
+  Employee: () => import('../entities/Employee').then(m => m.Employee),
+  Customer: () => import('../entities/Customer').then(m => m.Customer),
+  TechSupport: () => import('../entities/TechSupport').then(m => m.TechSupport),
+  Project: () => import('../entities/Project').then(m => m.Project),
+  ProjectAttachment: () => import('../entities/ProjectAttachment').then(m => m.ProjectAttachment),
+  Issue: () => import('../entities/Issue').then(m => m.Issue),
+  IssueAttachment: () => import('../entities/IssueAttachment').then(m => m.IssueAttachment),
+  IssueHistory: () => import('../entities/IssueHistory').then(m => m.IssueHistory),
+  Inventory: () => import('../entities/Inventory').then(m => m.Inventory),
+  InventoryHistory: () => import('../entities/InventoryHistory').then(m => m.InventoryHistory),
+  MaintenanceContract: () => import('../entities/MaintenanceContract').then(m => m.MaintenanceContract),
+  MaintenanceContractAttachment: () => import('../entities/MaintenanceContractAttachment').then(m => m.MaintenanceContractAttachment),
+  MaintenanceContractHistory: () => import('../entities/MaintenanceContractHistory').then(m => m.MaintenanceContractHistory),
+};
 
 async function loadEntitiesWithRetry(maxRetries = 3): Promise<any[]> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const entities: any[] = [];
+      const entityNames = Object.keys(ENTITY_IMPORTS);
 
       // Load entities sequentially to avoid parallel decorator evaluation issues
-      for (const path of ENTITY_PATHS) {
+      for (const entityName of entityNames) {
         try {
-          const mod = await import(path);
-          const entityName = path.split('/').pop();
-          // Find the export - it's usually the capitalized entity name
-          const entityConstructor = mod[entityName!] || Object.values(mod)[0];
-          if (entityConstructor) {
-            entities.push(entityConstructor as any);
+          const importFn = ENTITY_IMPORTS[entityName as keyof typeof ENTITY_IMPORTS];
+          const entity = await importFn();
+          if (entity) {
+            entities.push(entity);
           }
         } catch (moduleError) {
-          console.warn(`[DB] Failed to load module ${path}:`, moduleError instanceof Error ? moduleError.message : String(moduleError));
-          // Continue with other modules rather than failing completely
+          console.warn(`[DB] Failed to load entity ${entityName}:`, moduleError instanceof Error ? moduleError.message : String(moduleError));
+          // Continue with other entities rather than failing completely
         }
       }
 
       if (entities.length > 0) {
-        console.log(`[DB] Loaded ${entities.length} entities successfully`);
+        console.log(`[DB] Loaded ${entities.length}/${entityNames.length} entities successfully`);
         return entities;
       } else if (attempt < maxRetries) {
-        console.log(`[DB] No entities loaded on attempt ${attempt}/${maxRetries}, retrying...`);
+        console.log(`[DB] No entities loaded on attempt ${attempt}/${maxRetries}, retrying in 100ms...`);
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
