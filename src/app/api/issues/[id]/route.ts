@@ -95,9 +95,9 @@ export async function GET(
     }
 
     // 3. 데이터베이스 연결
-    const { Issue } = await import('@/entities/Issue');
-    const { IssueAttachment } = await import('@/entities/IssueAttachment');
-    const { IssueHistory } = await import('@/entities/IssueHistory');
+    const { Issue } = await import('../../../../entities/Issue');
+    const { IssueAttachment } = await import('../../../../entities/IssueAttachment');
+    const { IssueHistory } = await import('../../../../entities/IssueHistory');
     const ds = await getDataSource();
     const issueRepo = ds.getRepository(Issue);
     const attachmentRepo = ds.getRepository(IssueAttachment);
@@ -255,9 +255,9 @@ export async function PUT(
     }
 
     // 3. 데이터베이스 연결
-    const { Issue } = await import('@/entities/Issue');
-    const { Employee } = await import('@/entities/Employee');
-    const { IssueHistory } = await import('@/entities/IssueHistory');
+    const { Issue } = await import('../../../../entities/Issue');
+    const { Employee } = await import('../../../../entities/Employee');
+    const { IssueHistory } = await import('../../../../entities/IssueHistory');
     const ds = await getDataSource();
     const issueRepo = ds.getRepository(Issue);
     const employeeRepo = ds.getRepository(Employee);
@@ -575,9 +575,9 @@ export async function DELETE(
     }
 
     // 4. 데이터베이스 연결
-    const { Issue } = await import('@/entities/Issue');
-    const { IssueAttachment } = await import('@/entities/IssueAttachment');
-    const { IssueHistory } = await import('@/entities/IssueHistory');
+    const { Issue } = await import('../../../../entities/Issue');
+    const { IssueAttachment } = await import('../../../../entities/IssueAttachment');
+    const { IssueHistory } = await import('../../../../entities/IssueHistory');
     const ds = await getDataSource();
     const issueRepo = ds.getRepository(Issue);
     const attachmentRepo = ds.getRepository(IssueAttachment);

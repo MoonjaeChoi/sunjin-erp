@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
     // 5. 서비스를 통해 계약 조회
-    const { MaintenanceContractRepository } = await import('@/lib/maintenance-repository');
+    const { MaintenanceContractRepository } = await import('../../../lib/maintenance-repository');
     const repository = new MaintenanceContractRepository(dataSource);
     const [contracts, total] = await repository.findActiveContracts(filters, {
       page,
@@ -208,8 +208,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 8. 의존성 확인 (Customer, Employee 존재 여부) - 동적 import 사용
-    const { Customer } = await import('@/entities/Customer');
-    const { Employee } = await import('@/entities/Employee');
+    const { Customer } = await import('../../../entities/Customer');
+    const { Employee } = await import('../../../entities/Employee');
 
     const customerRepo = dataSource.getRepository(Customer);
     const employeeRepo = dataSource.getRepository(Employee);
@@ -243,7 +243,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 9. 서비스를 통해 계약 생성 (트랜잭션 포함)
-    const { MaintenanceContractService } = await import('@/lib/maintenance-service');
+    const { MaintenanceContractService } = await import('../../../lib/maintenance-service');
     const service = new MaintenanceContractService(dataSource);
     const userId = (session.user as any)?.id as number;
     const contract = await service.createContract(

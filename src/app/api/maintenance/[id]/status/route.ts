@@ -78,7 +78,7 @@ export async function POST(
 
     // 7. 저장소 동적 import 및 기존 계약 조회
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const existingContract = await repository.findById(contractId);
@@ -92,7 +92,7 @@ export async function POST(
 
     // 8. 상태 전이 검증
     const { VALID_STATUS_TRANSITIONS } = await import(
-      '@/lib/maintenance-constants'
+      '../../../../../lib/maintenance-constants'
     );
     const currentStatus = existingContract.contract_status as string;
     const validNextStatuses = (VALID_STATUS_TRANSITIONS as any)[currentStatus];
@@ -111,7 +111,7 @@ export async function POST(
 
     // 9. 서비스를 통해 상태 변경 (트랜잭션 포함)
     const { MaintenanceContractService } = await import(
-      '@/lib/maintenance-service'
+      '../../../../../lib/maintenance-service'
     );
     const service = new MaintenanceContractService(dataSource);
     const userId = (session.user as any)?.id as number;

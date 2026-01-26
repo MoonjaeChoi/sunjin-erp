@@ -55,7 +55,7 @@ export async function GET(
 
     // 5. 계약 존재 여부 확인
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const contract = await repository.findById(contractId);
@@ -155,7 +155,7 @@ export async function POST(
 
     // 5. 계약 존재 여부 확인
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const contract = await repository.findById(contractId);
@@ -250,7 +250,7 @@ export async function POST(
 
     // 11. 데이터베이스에 기록
     const { MaintenanceContractService } = await import(
-      '@/lib/maintenance-service'
+      '../../../../../lib/maintenance-service'
     );
     const service = new MaintenanceContractService(dataSource);
     const userId = (session.user as any)?.id as number;

@@ -61,7 +61,7 @@ export async function DELETE(
 
     // 5. 계약 존재 여부 확인
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const contract = await repository.findById(contractId);
@@ -75,7 +75,7 @@ export async function DELETE(
 
     // 6. 첨부파일 존재 여부 확인 및 Soft Delete
     const { MaintenanceContractAttachment } = await import(
-      '@/entities/MaintenanceContractAttachment'
+      '../../../../../../entities/MaintenanceContractAttachment'
     );
     const attachmentRepo = dataSource.getRepository(MaintenanceContractAttachment);
 

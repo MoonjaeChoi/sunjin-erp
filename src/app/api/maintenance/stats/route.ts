@@ -40,14 +40,14 @@ export async function GET(request: NextRequest) {
 
     // 4. 서비스를 통해 통계 조회
     const { MaintenanceContractService } = await import(
-      '@/lib/maintenance-service'
+      '../../../../lib/maintenance-service'
     );
     const service = new MaintenanceContractService(dataSource);
     const stats = await service.getStats();
 
     // 5. 만료 임박 계약 수 계산 (30일, 60일)
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const expiringContracts = await repository.findExpiringContracts(60);

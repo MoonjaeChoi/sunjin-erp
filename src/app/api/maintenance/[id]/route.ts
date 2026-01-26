@@ -52,7 +52,7 @@ export async function GET(
 
     // 5. 저장소 동적 import 및 계약 조회
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const contract = await repository.findById(contractId);
@@ -149,7 +149,7 @@ export async function PUT(
 
     // 7. 저장소 동적 import 및 기존 계약 조회
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const existingContract = await repository.findById(contractId);
@@ -212,7 +212,7 @@ export async function PUT(
 
     // 9. 담당자 존재 여부 확인 (변경시)
     if (assigned_employee_id !== undefined && assigned_employee_id !== null) {
-      const { Employee } = await import('@/entities/Employee');
+      const { Employee } = await import('../../../../entities/Employee');
       const employeeRepo = dataSource.getRepository(Employee);
       const employeeExists = await employeeRepo.findOne({
         where: { id: assigned_employee_id, deleted_at: null },
@@ -231,7 +231,7 @@ export async function PUT(
 
     // 10. 서비스를 통해 계약 수정 (트랜잭션 포함)
     const { MaintenanceContractService } = await import(
-      '@/lib/maintenance-service'
+      '../../../../lib/maintenance-service'
     );
     const service = new MaintenanceContractService(dataSource);
     const userId = (session.user as any)?.id as number;
@@ -316,7 +316,7 @@ export async function DELETE(
 
     // 5. 저장소 동적 import 및 계약 존재 여부 확인
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const existingContract = await repository.findById(contractId);
@@ -330,7 +330,7 @@ export async function DELETE(
 
     // 6. 서비스를 통해 계약 삭제 (트랜잭션 + Cascade soft delete)
     const { MaintenanceContractService } = await import(
-      '@/lib/maintenance-service'
+      '../../../../lib/maintenance-service'
     );
     const service = new MaintenanceContractService(dataSource);
     await service.deleteContract(contractId);

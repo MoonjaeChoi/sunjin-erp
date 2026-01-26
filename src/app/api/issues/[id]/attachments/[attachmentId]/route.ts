@@ -41,8 +41,8 @@ export async function DELETE(
     }
 
     // 2. Get datasource and repositories
-    const { IssueAttachment } = await import('@/entities/IssueAttachment');
-    const { IssueHistory } = await import('@/entities/IssueHistory');
+    const { IssueAttachment } = await import('../../../../../../entities/IssueAttachment');
+    const { IssueHistory } = await import('../../../../../../entities/IssueHistory');
     const dataSource = await getDataSource();
     const attachmentRepo = dataSource.getRepository(IssueAttachment);
     const historyRepo = dataSource.getRepository(IssueHistory);

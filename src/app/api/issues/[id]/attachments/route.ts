@@ -66,8 +66,8 @@ export async function POST(
 
     // 2. Get datasource and repositories
     const dataSource = await getDataSource();
-    const { Issue } = await import('@/entities/Issue');
-    const { IssueAttachment } = await import('@/entities/IssueAttachment');
+    const { Issue } = await import('../../../../../entities/Issue');
+    const { IssueAttachment } = await import('../../../../../entities/IssueAttachment');
     const issueRepo = dataSource.getRepository(Issue);
     const attachmentRepo = dataSource.getRepository(IssueAttachment);
 
@@ -170,7 +170,7 @@ export async function POST(
     await attachmentRepo.save(attachment);
 
     // 9. Record ATTACHMENT_UPLOADED history
-    const { IssueHistory } = await import('@/entities/IssueHistory');
+    const { IssueHistory } = await import('../../../../../entities/IssueHistory');
     const historyRepo = dataSource.getRepository(IssueHistory);
     const history = new IssueHistory();
     history.issue_id = issueId;

@@ -57,7 +57,7 @@ describe('GET /api/maintenance', () => {
     (getDataSource as jest.Mock).mockResolvedValue(mockDataSource);
 
     // Mock repository
-    jest.doMock('@/lib/maintenance-repository', () => ({
+    jest.doMock('../../lib/maintenance-repository', () => ({
       MaintenanceContractRepository: jest.fn(() => ({
         findActiveContracts: jest.fn().mockResolvedValue([
           [mockContract.active],
@@ -185,7 +185,7 @@ describe('POST /api/maintenance', () => {
     (getDataSource as jest.Mock).mockResolvedValue(mockDataSource);
 
     // Mock repositories
-    jest.doMock('@/lib/maintenance-repository', () => ({
+    jest.doMock('../../lib/maintenance-repository', () => ({
       MaintenanceContractRepository: jest.fn(() => ({
         create: jest.fn(),
       })),

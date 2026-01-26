@@ -53,7 +53,7 @@ export async function GET(
 
     // 5. 계약 존재 여부 확인
     const { MaintenanceContractRepository } = await import(
-      '@/lib/maintenance-repository'
+      '../../../../../lib/maintenance-repository'
     );
     const repository = new MaintenanceContractRepository(dataSource);
     const contract = await repository.findById(contractId);
@@ -72,7 +72,7 @@ export async function GET(
 
     // 7. 이력 조회
     const { MaintenanceContractService } = await import(
-      '@/lib/maintenance-service'
+      '../../../../../lib/maintenance-service'
     );
     const service = new MaintenanceContractService(dataSource);
     const histories = await service.getHistories(contractId, { page, limit });

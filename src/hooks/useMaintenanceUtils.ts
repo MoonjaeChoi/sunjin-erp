@@ -4,7 +4,7 @@
 
 import { useMemo, useCallback, useState, ReactNode } from 'react';
 import { ContractStatus, ChangeType, ContractStatsResponse, StatusBadgeProps, ExpiryWarningProps } from '@/types/maintenance';
-import { VALID_STATUS_TRANSITIONS } from '@/lib/maintenance-constants';
+import { VALID_STATUS_TRANSITIONS } from '../lib/maintenance-constants';
 import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
 
 // ============================================================================

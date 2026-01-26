@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     console.log('[HEALTH] Checking database connection...');
 
-    const { getDataSource } = await import('@/lib/db');
+    const { getDataSource } = await import('../../../../lib/db');
     const ds = await getDataSource();
 
     console.log('[HEALTH] DataSource initialized:', ds.isInitialized);

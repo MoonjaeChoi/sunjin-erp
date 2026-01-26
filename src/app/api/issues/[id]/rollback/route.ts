@@ -46,8 +46,8 @@ export async function PUT(
     }
 
     // 2. Get datasource and repositories
-    const { Issue } = await import('@/entities/Issue');
-    const { IssueHistory } = await import('@/entities/IssueHistory');
+    const { Issue } = await import('../../../../../entities/Issue');
+    const { IssueHistory } = await import('../../../../../entities/IssueHistory');
     const dataSource = await getDataSource();
     const issueRepo = dataSource.getRepository(Issue);
     const historyRepo = dataSource.getRepository(IssueHistory);
