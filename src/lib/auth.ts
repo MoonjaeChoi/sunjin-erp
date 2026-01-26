@@ -20,8 +20,8 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Use oracledb directly to bypass TypeORM DataSource initialization issues
-          const oracledbModule = await import('oracledb');
-          const oracledb = oracledbModule as any;
+          // @ts-ignore - oracledb doesn't have type definitions
+          const oracledb = await import('oracledb');
 
           let connection: any;
           try {
