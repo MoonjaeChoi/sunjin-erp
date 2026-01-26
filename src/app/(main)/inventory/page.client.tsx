@@ -9,10 +9,14 @@ import InventoryFilters from '@/components/features/inventory/InventoryFilters';
 import InventoryDataTable from '@/components/features/inventory/InventoryDataTable';
 import InventoryStats from '@/components/features/inventory/InventoryStats';
 import InventoryDetailDialog from '@/components/features/inventory/InventoryDetailDialog';
+import CreateInventoryForm from '@/components/features/inventory/CreateInventoryForm';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 export default function InventoryListPageClient() {
+  // 입고 다이얼로그 상태
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   // Store에서 필터, 페이지네이션, 정렬 가져오기
   const filters = useInventoryFilterStore((state) => state.filters);
   const pagination = useInventoryFilterStore((state) => state.pagination);
@@ -50,7 +54,7 @@ export default function InventoryListPageClient() {
       {/* 헤더 */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">재고 관리</h1>
-        <Button>신규 등록</Button>
+        <Button onClick={() => setIsCreateOpen(true)}>신규 등록</Button>
       </div>
 
       {/* 필터 */}
@@ -69,6 +73,9 @@ export default function InventoryListPageClient() {
 
       {/* 상세보기 다이얼로그 */}
       <InventoryDetailDialog />
+
+      {/* 입고 다이얼로그 */}
+      <CreateInventoryForm open={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
     </div>
   );
 }
