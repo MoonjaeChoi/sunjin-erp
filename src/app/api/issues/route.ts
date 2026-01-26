@@ -276,7 +276,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         queryRunner.query(countQuery, countParams),
       ]);
 
-      const total = parseInt(countResult[0]?.total || '0', 10);
+      console.log('Count result:', countResult);
+      console.log('Count result[0]:', countResult[0]);
+      const total = parseInt(countResult[0]?.total || countResult[0]?.TOTAL || '0', 10);
 
       // 7. 응답 반환
       const formattedIssues: IssueListItem[] = issues.map((row: any) => ({
