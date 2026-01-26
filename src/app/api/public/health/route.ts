@@ -1,8 +1,5 @@
 // Generated: 2026-01-25 14:30:00 KST
 
-// CRITICAL: Initialize reflect-metadata before any other imports
-require('reflect-metadata');
-
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {

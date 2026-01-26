@@ -1,8 +1,5 @@
 // Generated: 2026-01-27 16:00:00 KST
 
-// CRITICAL: Load reflect-metadata immediately when this module is imported
-require('reflect-metadata');
-
 import { DataSource } from 'typeorm';
 
 let dataSource: any = null;

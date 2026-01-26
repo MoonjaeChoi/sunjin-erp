@@ -1,8 +1,5 @@
 // Generated: 2026-01-26 22:45:00 KST
 
-// CRITICAL: Load reflect-metadata BEFORE importing TypeORM entities
-require('reflect-metadata');
-
 import { DataSource } from 'typeorm';
 import { MaintenanceContractRepository } from './maintenance-repository';
 import { MaintenanceContract } from '../entities/MaintenanceContract';
