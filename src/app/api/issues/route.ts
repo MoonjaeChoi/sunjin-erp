@@ -466,11 +466,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       // 7. Issue INSERT
       const now = new Date();
 
-      // Get next ID from sequence using quoted lowercase alias (like support endpoint)
+      // Get next ID from sequence - use uppercase for the result alias since table uses uppercase columns
       const seqResult = await queryRunner.query(
-        `SELECT ISSUE_SEQ.NEXTVAL as "id" FROM DUAL`
+        `SELECT ISSUE_SEQ.NEXTVAL as ID FROM DUAL`
       );
-      const issueId = seqResult[0]?.id;
+      const issueId = seqResult[0]?.ID;
 
       if (!issueId) {
         return NextResponse.json(
@@ -481,10 +481,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
       const insertSql = `
         INSERT INTO ISSUE (
-          "id", "customer_id", "title", "severity", "description", "status",
-          "is_public", "created_by_id", "assigned_to_id",
-          "treatment_method", "treatment_time_minutes", "treatment_result",
-          "created_at", "updated_at", "deleted_at"
+          id, customer_id, title, severity, description, status,
+          is_public, created_by_id, assigned_to_id,
+          treatment_method, treatment_time_minutes, treatment_result,
+          created_at, updated_at, deleted_at
         ) VALUES (
           :id, :customerId, :title, :severity, :description, :status,
           :isPublic, :createdById, :assignedToId,
@@ -517,14 +517,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       try {
         // Get next history ID from sequence
         const historySeqResult = await queryRunner.query(
-          `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as "id" FROM DUAL`
+          `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as ID FROM DUAL`
         );
-        const historyId = historySeqResult[0]?.id;
+        const historyId = historySeqResult[0]?.ID;
 
         if (historyId) {
           await queryRunner.query(
             `INSERT INTO ISSUE_HISTORY (
-              "id", "issue_id", "change_type", "old_value", "new_value", "changed_by_id", "changed_at", "remark"
+              id, issue_id, change_type, old_value, new_value, changed_by_id, changed_at, remark
             ) VALUES (
               :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
             )`,
