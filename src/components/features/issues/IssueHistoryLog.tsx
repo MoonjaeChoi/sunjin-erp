@@ -99,15 +99,19 @@ export default function IssueHistoryLog({
               <TableCell className="whitespace-nowrap">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm">
-                    {format(new Date(history.changed_at), 'yyyy-MM-dd HH:mm:ss', {
-                      locale: ko,
-                    })}
+                    {history.changed_at
+                      ? format(new Date(history.changed_at), 'yyyy-MM-dd HH:mm:ss', {
+                          locale: ko,
+                        })
+                      : '-'}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {formatDistanceToNow(new Date(history.changed_at), {
-                      addSuffix: true,
-                      locale: ko,
-                    })}
+                    {history.changed_at
+                      ? formatDistanceToNow(new Date(history.changed_at), {
+                          addSuffix: true,
+                          locale: ko,
+                        })
+                      : '-'}
                   </span>
                 </div>
               </TableCell>

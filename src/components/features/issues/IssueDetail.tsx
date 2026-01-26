@@ -116,9 +116,11 @@ export default function IssueDetail({ issue }: IssueDetailProps) {
           <div>
             <label className="text-gray-600">생성일</label>
             <p>
-              {format(new Date(issue.created_at), 'yyyy-MM-dd HH:mm', {
-                locale: ko,
-              })}
+              {issue.created_at
+                ? format(new Date(issue.created_at), 'yyyy-MM-dd HH:mm', {
+                    locale: ko,
+                  })
+                : '-'}
             </p>
           </div>
         </div>

@@ -43,9 +43,11 @@ export default function IssueHistoryList({
               )}
             </div>
             <span className="text-sm text-gray-500">
-              {format(new Date(history.changed_at), 'yyyy-MM-dd HH:mm', {
-                locale: ko,
-              })}
+              {history.changed_at
+                ? format(new Date(history.changed_at), 'yyyy-MM-dd HH:mm', {
+                    locale: ko,
+                  })
+                : '-'}
             </span>
           </div>
           <p className="text-sm text-gray-600">

@@ -106,9 +106,11 @@ export default function IssueDataTable({
                   </TableCell>
                   <TableCell>{issue.assigned_to?.name || '-'}</TableCell>
                   <TableCell>
-                    {format(new Date(issue.created_at), 'yyyy-MM-dd', {
-                      locale: ko,
-                    })}
+                    {issue.created_at
+                      ? format(new Date(issue.created_at), 'yyyy-MM-dd', {
+                          locale: ko,
+                        })
+                      : '-'}
                   </TableCell>
                 </TableRow>
               ))
