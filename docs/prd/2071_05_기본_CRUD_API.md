@@ -5,6 +5,7 @@
 **문서 번호**: 2071_05
 **원본 PRD**: `docs/prd/2071_유지보수_고객_관리_prd_v2.md`
 **PRD 참조**: [Section 5.2 - API Route Handlers](./2071_유지보수_고객_관리_prd_v2.md#52-api-route-handlers)
+**운영 표준**: `docs/operation/012_엔드포인트작성규칙.md` (REST patterns, Query parameters, Response formats, RBAC validation, Error handling)
 **구현 범위**: GET /api/maintenance (목록 조회), POST /api/maintenance (신규 생성)
 **복잡도**: L (2-3일)
 **의존성**: 2071_01~04 (Database 완료 필요)

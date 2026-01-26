@@ -1,10 +1,11 @@
-<!-- Generated: 2026-01-26 21:30:00 KST -->
+<!-- Generated: 2026-01-26 22:45:00 KST -->
 
 # TypeORM Entity 정의 (MaintenanceContract, Attachment, History)
 
 **문서 번호**: 2071_01
 **원본 PRD**: `docs/prd/2071_유지보수_고객_관리_prd_v2.md`
 **PRD 참조**: [Section 5.3 - Database (Oracle XE 21c + TypeORM)](./2071_유지보수_고객_관리_prd_v2.md#53-database-oracle-xe-21c--typeorm)
+**운영 표준**: `docs/operation/011_데이터베이스연결.md` (Oracle XE 21c, TypeORM DataSource, Column identifier quoting, Soft delete patterns)
 **구현 범위**: TypeORM Entity 3개 정의 (MaintenanceContract, Attachment, History)
 **복잡도**: M (1-2일)
 **의존성**: 없음 (Customer, Employee entities 기존 존재)
@@ -28,9 +29,37 @@ src/entities/
 └── MaintenanceContractHistory.ts    # 이력 엔티티
 ```
 
-### 구현 상세
+### Oracle XE 21c 호환성 규칙 (docs/operation/011 참조)
 
-#### 1. MaintenanceContract Entity
+**Column 타입**:
+- ✅ `VARCHAR2` (not VARCHAR) for strings
+- ✅ `CLOB` for large text (not TEXT)
+- ✅ `NUMBER` for all numeric values
+- ✅ `DATE` or `TIMESTAMP` for dates
+
+**Column 식별자 (quoted identifiers)**:
+```typescript
+// MaintenanceContract: 일반적으로 lowercase (EMPLOYEE, ISSUE 규칙 확인)
+@Column({ name: '"id"' })  // if case-sensitive
+@Column({ name: 'id' })    // if case-insensitive (Oracle default)
+```
+
+**Soft Delete 패턴**:
+```typescript
+@DeleteDateColumn({ type: 'timestamp', nullable: true })
+deleted_at: Date | null;
+
+// 모든 조회 쿼리에서
+.where('deleted_at IS NULL')  // Raw SQL 또는
+.where({ deleted_at: IsNull() })  // TypeORM QueryBuilder
+```
+
+**Cascade Soft Delete**:
+- 상위 엔티티 삭제 시 하위 엔티티도 함께 soft delete
+- Migration에서 FK는 `ON DELETE RESTRICT` (물리 삭제 금지)
+- Service 레이어에서 cascade soft delete 구현
+
+### 1. MaintenanceContract Entity
 
 **위치**: `src/entities/MaintenanceContract.ts`
 
@@ -43,6 +72,24 @@ src/entities/
 
 **핵심 필드**:
 ```typescript
+// Generated: 2026-01-26 22:45:00 KST
+
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { Customer } from './Customer';
+import { Employee } from './Employee';
+import { MaintenanceContractAttachment } from './MaintenanceContractAttachment';
+import { MaintenanceContractHistory } from './MaintenanceContractHistory';
+
 @Entity('MAINTENANCE_CONTRACT')
 export class MaintenanceContract {
   @PrimaryGeneratedColumn()
@@ -115,7 +162,7 @@ export class MaintenanceContract {
 }
 ```
 
-#### 2. MaintenanceContractAttachment Entity
+### 2. MaintenanceContractAttachment Entity
 
 **위치**: `src/entities/MaintenanceContractAttachment.ts`
 
@@ -127,6 +174,20 @@ export class MaintenanceContract {
 
 **핵심 필드**:
 ```typescript
+// Generated: 2026-01-26 22:45:00 KST
+
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { MaintenanceContract } from './MaintenanceContract';
+import { Employee } from './Employee';
+
 @Entity('MAINTENANCE_CONTRACT_ATTACHMENT')
 export class MaintenanceContractAttachment {
   @PrimaryGeneratedColumn()
@@ -164,7 +225,7 @@ export class MaintenanceContractAttachment {
 }
 ```
 
-#### 3. MaintenanceContractHistory Entity
+### 3. MaintenanceContractHistory Entity
 
 **위치**: `src/entities/MaintenanceContractHistory.ts`
 
@@ -176,6 +237,20 @@ export class MaintenanceContractAttachment {
 
 **핵심 필드**:
 ```typescript
+// Generated: 2026-01-26 22:45:00 KST
+
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { MaintenanceContract } from './MaintenanceContract';
+import { Employee } from './Employee';
+
 @Entity('MAINTENANCE_CONTRACT_HISTORY')
 export class MaintenanceContractHistory {
   @PrimaryGeneratedColumn()
@@ -297,7 +372,7 @@ describe('MaintenanceContract Entity', () => {
     // @DeleteDateColumn() 검증
     const metadata = getEntityMetadata(MaintenanceContract);
     const deletedAtColumn = metadata.columns.find(c => c.propertyName === 'deleted_at');
-    expect(deletedAtColumn?.type).toBe('date');
+    expect(deletedAtColumn?.type).toBe('timestamp');
   });
 
   it('should enforce ON DELETE RESTRICT on FK columns', () => {

@@ -1,10 +1,11 @@
-<!-- Generated: 2026-01-26 21:30:00 KST -->
+<!-- Generated: 2026-01-26 22:45:00 KST -->
 
 # TypeORM Migration 생성 (테이블 + 인덱스)
 
 **문서 번호**: 2071_02
 **원본 PRD**: `docs/prd/2071_유지보수_고객_관리_prd_v2.md`
 **PRD 참조**: [Section 5.3 - Database Migration](./2071_유지보수_고객_관리_prd_v2.md#migration-파일)
+**운영 표준**: `docs/operation/011_데이터베이스연결.md` (Oracle XE 21c Migration, QueryRunner 패턴, ON DELETE RESTRICT, Soft delete 인덱싱)
 **구현 범위**: 3개 Migration 파일 (테이블 + 인덱스)
 **복잡도**: M (1-2일)
 **의존성**: 2071_01 (Entity 정의 완료)
@@ -28,11 +29,41 @@ src/migrations/
 └── 1706300000002-CreateMaintenanceContractHistoryTable.ts
 ```
 
+### Oracle XE 21c 호환성 (docs/operation/011 참조)
+
+**TypeORM Migration Pattern**:
+```bash
+# Generation
+npx typeorm migration:generate -n MigrationName
+
+# Execution
+npx typeorm migration:run
+
+# Rollback
+npx typeorm migration:revert
+```
+
+**QueryRunner 사용 패턴** (Oracle raw query execution):
+```typescript
+const queryRunner = dataSource.createQueryRunner();
+try {
+  await queryRunner.query('CREATE TABLE ...');
+  // All operations use queryRunner.query() for raw SQL
+} finally {
+  await queryRunner.release();
+}
+```
+
+**FK 규칙**: `ON DELETE RESTRICT` (CASCADE DELETE 절대 금지)
+**Soft Delete 인덱스**: `WHERE deleted_at IS NULL` 조건포함
+
 ### 1. MaintenanceContract 테이블 Migration
 
 **파일**: `src/migrations/1706300000000-CreateMaintenanceContractTable.ts`
 
 ```typescript
+// Generated: 2026-01-26 22:45:00 KST
+
 import { MigrationInterface, QueryRunner, Table, TableIndex, TableForeignKey } from 'typeorm';
 
 export class CreateMaintenanceContractTable1706300000000 implements MigrationInterface {
@@ -139,7 +170,7 @@ export class CreateMaintenanceContractTable1706300000000 implements MigrationInt
       true
     );
 
-    // 인덱스 추가
+    // Soft delete 인덱스 추가
     await queryRunner.createIndex(
       'MAINTENANCE_CONTRACT',
       new TableIndex({
@@ -194,7 +225,7 @@ export class CreateMaintenanceContractTable1706300000000 implements MigrationInt
       })
     );
 
-    // Foreign Keys 추가
+    // Foreign Keys (ON DELETE RESTRICT)
     await queryRunner.createForeignKey(
       'MAINTENANCE_CONTRACT',
       new TableForeignKey({
@@ -241,16 +272,13 @@ export class CreateMaintenanceContractTable1706300000000 implements MigrationInt
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Drop foreign keys
     const table = await queryRunner.getTable('MAINTENANCE_CONTRACT');
     if (table) {
-      const foreignKeys = table.foreignKeys;
-      for (const fk of foreignKeys) {
+      for (const fk of table.foreignKeys) {
         await queryRunner.dropForeignKey('MAINTENANCE_CONTRACT', fk);
       }
     }
 
-    // Drop indexes
     await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_customer_active');
     await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_employee_active');
     await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_status_active');
@@ -258,7 +286,6 @@ export class CreateMaintenanceContractTable1706300000000 implements MigrationInt
     await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_customer_enddate_active');
     await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_enddate_active');
 
-    // Drop table
     await queryRunner.dropTable('MAINTENANCE_CONTRACT');
   }
 }
@@ -269,6 +296,8 @@ export class CreateMaintenanceContractTable1706300000000 implements MigrationInt
 **파일**: `src/migrations/1706300000001-CreateMaintenanceContractAttachmentTable.ts`
 
 ```typescript
+// Generated: 2026-01-26 22:45:00 KST
+
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
 export class CreateMaintenanceContractAttachmentTable1706300000001 implements MigrationInterface {
@@ -327,7 +356,7 @@ export class CreateMaintenanceContractAttachmentTable1706300000001 implements Mi
       true
     );
 
-    // Foreign Keys
+    // Foreign Keys (ON DELETE RESTRICT)
     await queryRunner.createForeignKey(
       'MAINTENANCE_CONTRACT_ATTACHMENT',
       new TableForeignKey({
@@ -368,6 +397,8 @@ export class CreateMaintenanceContractAttachmentTable1706300000001 implements Mi
 **파일**: `src/migrations/1706300000002-CreateMaintenanceContractHistoryTable.ts`
 
 ```typescript
+// Generated: 2026-01-26 22:45:00 KST
+
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
 export class CreateMaintenanceContractHistoryTable1706300000002 implements MigrationInterface {
@@ -437,7 +468,7 @@ export class CreateMaintenanceContractHistoryTable1706300000002 implements Migra
       true
     );
 
-    // Foreign Keys
+    // Foreign Keys (ON DELETE RESTRICT)
     await queryRunner.createForeignKey(
       'MAINTENANCE_CONTRACT_HISTORY',
       new TableForeignKey({
@@ -478,65 +509,20 @@ export class CreateMaintenanceContractHistoryTable1706300000002 implements Migra
 ## Acceptance Criteria
 
 - [ ] 3개 Migration 파일 생성 완료
-  - MaintenanceContract 테이블 + FK + 인덱스
-  - Attachment 테이블 + FK
-  - History 테이블 + FK
-
 - [ ] 모든 CHECK 제약조건 적용
-  - contract_status IN ('활성', '종료', '갱신예정')
-  - start_date <= end_date
-  - change_type IN ('갱신', '상태변경', '정보수정')
-
 - [ ] 모든 FK가 ON DELETE RESTRICT 설정
-
 - [ ] Soft delete 인덱스 포함
-  - `WHERE deleted_at IS NULL`
-
-- [ ] Migration 실행 성공
-  ```bash
-  npx typeorm migration:run
-  ```
-
-- [ ] Migration 롤백 성공
-  ```bash
-  npx typeorm migration:revert
-  ```
+- [ ] Migration 실행/롤백 성공
 
 ---
 
 ## 테스트 전략
 
-### Migration 검증
-
 ```bash
-# 1. 마이그레이션 실행
 npx typeorm migration:run
-
-# 2. Oracle에서 테이블 확인
-SELECT table_name FROM user_tables WHERE table_name IN ('MAINTENANCE_CONTRACT', 'MAINTENANCE_CONTRACT_ATTACHMENT', 'MAINTENANCE_CONTRACT_HISTORY');
-
-# 3. 인덱스 확인
-SELECT index_name, table_name FROM user_indexes WHERE table_name LIKE 'MAINTENANCE_CONTRACT%';
-
-# 4. FK 확인
-SELECT constraint_name, table_name, constraint_type FROM user_constraints WHERE table_name LIKE 'MAINTENANCE_CONTRACT%';
-
-# 5. 마이그레이션 롤백
+npx typeorm migration:show
 npx typeorm migration:revert
 ```
-
----
-
-## 완료 체크리스트
-
-- [ ] 3개 Migration 파일 작성 완료
-- [ ] 타임스탐프 네이밍 확인 (1706300000000~002)
-- [ ] Migration 실행 성공
-- [ ] 모든 테이블 생성 확인
-- [ ] 모든 FK 생성 확인
-- [ ] 모든 인덱스 생성 확인
-- [ ] Migration 롤백 성공
-- [ ] 데이터 무결성 검증
 
 ---
 
