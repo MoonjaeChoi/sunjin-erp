@@ -1,4 +1,4 @@
-// Generated: 2026-01-27 01:00:00 KST
+// Generated: 2026-01-27 01:30:00 KST
 
 'use client';
 
@@ -6,30 +6,65 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useMaintenanceContractList } from '@/hooks/useMaintenanceContracts';
+import { useMaintenanceContractList, useMaintenanceContractStats } from '@/hooks/useMaintenanceContracts';
+import MaintenanceContractTable from '@/components/features/maintenance/MaintenanceContractTable';
+import MaintenanceContractFilters from '@/components/features/maintenance/MaintenanceContractFilters';
+import MaintenanceContractStats from '@/components/features/maintenance/MaintenanceContractStats';
 import type { ContractFilters } from '@/types/maintenance';
 
 /**
  * 유지보수 계약 목록 페이지 (Client Component)
- * - 계약 목록 조회 및 필터링
- * - 페이지네이션
- * - 정렬
- * - 신규 등록 버튼
+ * - 계약 통계 표시
+ * - 계약 필터 패널
+ * - 계약 목록 테이블
+ * - 페이지네이션 및 정렬
  */
 export default function MaintenanceListPageClient() {
   const [filters, setFilters] = useState<ContractFilters>({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  const [sortBy, setSortBy] = useState('');
+  const [order, setOrder] = useState<'ASC' | 'DESC'>('ASC');
 
   // 계약 목록 조회
-  const { data: listResponse, isLoading, error } = useMaintenanceContractList(
+  const { data: listResponse, isLoading: listLoading, error } = useMaintenanceContractList(
     filters,
     page,
-    limit
+    limit,
+    sortBy,
+    order
   );
+
+  // 계약 통계 조회
+  const { data: statsResponse, isLoading: statsLoading } = useMaintenanceContractStats();
 
   const contracts = listResponse?.data || [];
   const pagination = listResponse?.pagination;
+  const stats = statsResponse?.data || null;
+
+  // 필터 적용
+  const handleFilterChange = (newFilters: ContractFilters) => {
+    setFilters(newFilters);
+    setPage(1); // 필터 변경 시 첫 페이지로 리셋
+  };
+
+  // 정렬 처리
+  const handleSort = (column: string, sortOrder: 'ASC' | 'DESC') => {
+    setSortBy(column);
+    setOrder(sortOrder);
+    setPage(1);
+  };
+
+  // 페이지 변경
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  // 삭제 처리 (placeholder - 실제 구현은 2071_18에서)
+  const handleDelete = (id: number) => {
+    console.log('Delete contract:', id);
+    // 실제 삭제는 mutation으로 구현됨
+  };
 
   return (
     <div className="space-y-6">
@@ -49,138 +84,45 @@ export default function MaintenanceListPageClient() {
         </Link>
       </div>
 
-      {/* Filters Section - Placeholder for 2071_15 */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">필터</h2>
-        <p className="text-xs text-gray-400">
-          필터 컴포넌트는 2071_15에서 구현됩니다.
-        </p>
+      {/* Error Alert */}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-700">
+            오류가 발생했습니다: {error.message}
+          </p>
+        </div>
+      )}
+
+      {/* Statistics Section */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">통계</h2>
+        <MaintenanceContractStats stats={stats} isLoading={statsLoading} />
       </div>
 
-      {/* List Section - Placeholder for 2071_15 */}
-      <div className="rounded-lg border bg-white">
-        {isLoading && (
-          <div className="p-8 text-center">
-            <p className="text-sm text-gray-500">로딩 중...</p>
-          </div>
-        )}
+      {/* Filters Section */}
+      <div>
+        <MaintenanceContractFilters
+          onFilterChange={handleFilterChange}
+          onReset={() => {
+            setFilters({});
+            setPage(1);
+          }}
+        />
+      </div>
 
-        {error && (
-          <div className="p-8 text-center">
-            <p className="text-sm text-red-500">오류가 발생했습니다: {error.message}</p>
-          </div>
-        )}
-
-        {!isLoading && !error && contracts.length === 0 && (
-          <div className="p-8 text-center">
-            <p className="text-sm text-gray-500">계약이 없습니다.</p>
-          </div>
-        )}
-
-        {!isLoading && !error && contracts.length > 0 && (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-gray-50">
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      계약명
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      고객사
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      상태
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      만료일
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      담당자
-                    </th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">
-                      작업
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contracts.map((contract) => (
-                    <tr key={contract.id} className="border-b hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <Link
-                          href={`/maintenance/${contract.id}`}
-                          className="text-sm font-medium text-blue-600 hover:underline"
-                        >
-                          {contract.contract_name}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {contract.customer?.name || '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <span
-                          className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                            contract.contract_status === '활성'
-                              ? 'bg-green-100 text-green-800'
-                              : contract.contract_status === '종료'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {contract.contract_status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {contract.end_date
-                          ? new Date(contract.end_date).toLocaleDateString('ko-KR')
-                          : '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {contract.assignedEmployee?.name || '-'}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <Link
-                          href={`/maintenance/${contract.id}`}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          상세보기
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination - Placeholder */}
-            {pagination && (
-              <div className="flex items-center justify-between border-t px-6 py-4">
-                <p className="text-sm text-gray-500">
-                  총 {pagination.total}개 ({pagination.page} / {pagination.totalPages}
-                  )
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page === 1}
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                  >
-                    이전
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= pagination.totalPages}
-                    onClick={() => setPage(page + 1)}
-                  >
-                    다음
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+      {/* Table Section */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">계약 목록</h2>
+        <MaintenanceContractTable
+          contracts={contracts}
+          pagination={pagination}
+          sortBy={sortBy}
+          order={order}
+          isLoading={listLoading}
+          onPageChange={handlePageChange}
+          onSort={handleSort}
+          onDelete={handleDelete}
+        />
       </div>
     </div>
   );
