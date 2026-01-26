@@ -468,16 +468,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
       // Get next ID from sequence
       const seqResult = await queryRunner.query(
-        `SELECT ISSUE_SEQ.NEXTVAL as "id" FROM DUAL`
+        `SELECT ISSUE_SEQ.NEXTVAL as id FROM DUAL`
       );
       const issueId = seqResult[0]?.id;
 
       const insertSql = `
         INSERT INTO ISSUE (
-          "id", "CUSTOMER_ID", "TITLE", "SEVERITY", "DESCRIPTION", "STATUS",
-          "IS_PUBLIC", "CREATED_BY_ID", "ASSIGNED_TO_ID",
-          "TREATMENT_METHOD", "TREATMENT_TIME_MINUTES", "TREATMENT_RESULT",
-          "CREATED_AT", "UPDATED_AT", "DELETED_AT"
+          id, customer_id, title, severity, description, status,
+          is_public, created_by_id, assigned_to_id,
+          treatment_method, treatment_time_minutes, treatment_result,
+          created_at, updated_at, deleted_at
         ) VALUES (
           :id, :customerId, :title, :severity, :description, :status,
           :isPublic, :createdById, :assignedToId,
@@ -510,13 +510,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       try {
         // Get next history ID from sequence
         const historySeqResult = await queryRunner.query(
-          `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as "id" FROM DUAL`
+          `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as id FROM DUAL`
         );
         const historyId = historySeqResult[0]?.id;
 
         await queryRunner.query(
           `INSERT INTO ISSUE_HISTORY (
-            "id", "ISSUE_ID", "CHANGE_TYPE", "OLD_VALUE", "NEW_VALUE", "CHANGED_BY_ID", "CHANGED_AT", "REMARK"
+            id, issue_id, change_type, old_value, new_value, changed_by_id, changed_at, remark
           ) VALUES (
             :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
           )`,
