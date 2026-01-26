@@ -18,7 +18,7 @@ import { Employee } from './Employee';
 export type InventoryStatus = '재고' | '출고' | '고장' | '폐기';
 
 @Entity('INVENTORY')
-@Check(`"current_status" IN ('재고', '출고', '고장', '폐기')`)
+@Check('"current_status" IN (\'재고\', \'출고\', \'고장\', \'폐기\')')
 @Index('IDX_INVENTORY_SERIAL_NUMBER', ['serial_number'], { unique: true })
 @Index('IDX_INVENTORY_CATEGORY', ['category'])
 @Index('IDX_INVENTORY_CURRENT_STATUS', ['current_status'])
@@ -82,7 +82,7 @@ export class Inventory {
     type: 'varchar2',
     length: 20,
     nullable: false,
-    default: `'재고'`,
+    default: '\'재고\'',
   })
   current_status!: InventoryStatus;
   // 기본값: '재고'
