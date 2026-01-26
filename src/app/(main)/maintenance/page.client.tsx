@@ -1,15 +1,22 @@
-// Generated: 2026-01-27 01:30:00 KST
+// Generated: 2026-01-27 21:50:00 KST
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useMaintenanceContractList, useMaintenanceContractStats } from '@/hooks/useMaintenanceContracts';
+import { useMaintenanceContractList, useMaintenanceContractStats, useMaintenanceContractDetail } from '@/hooks/useMaintenanceContracts';
 import MaintenanceContractTable from '@/components/features/maintenance/MaintenanceContractTable';
 import MaintenanceContractFilters from '@/components/features/maintenance/MaintenanceContractFilters';
 import MaintenanceContractStats from '@/components/features/maintenance/MaintenanceContractStats';
+import CreateMaintenanceContractForm from '@/components/features/maintenance/CreateMaintenanceContractForm';
+import UpdateMaintenanceContractForm from '@/components/features/maintenance/UpdateMaintenanceContractForm';
+import StatusChangeForm from '@/components/features/maintenance/StatusChangeForm';
+import DeleteConfirmDialog from '@/components/features/maintenance/DeleteConfirmDialog';
+import { useMaintenanceModals } from '@/components/features/maintenance/useMaintenanceModals';
+import { useMaintenanceContractMutations } from '@/hooks/useMaintenanceContracts';
+import { toast } from 'sonner';
 import type { ContractFilters } from '@/types/maintenance';
 
 /**
@@ -20,6 +27,21 @@ import type { ContractFilters } from '@/types/maintenance';
  * - 페이지네이션 및 정렬
  */
 export default function MaintenanceListPageClient() {
+  const { deleteMutation } = useMaintenanceContractMutations();
+
+  // Modal state management
+  const modals = useMaintenanceModals();
+
+  // Fetch contract details for edit and status change
+  const { data: contractDetailResponse, isLoading: contractDetailLoading } = useMaintenanceContractDetail(
+    modals.selectedContractId && (modals.activeModal === 'edit' || modals.activeModal === 'status-change' || modals.activeModal === 'delete')
+      ? modals.selectedContractId
+      : null
+  );
+
+  const selectedContract = contractDetailResponse?.data;
+
+  // List state
   const [filters, setFilters] = useState<ContractFilters>({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -60,11 +82,23 @@ export default function MaintenanceListPageClient() {
     setPage(newPage);
   };
 
-  // 삭제 처리 (placeholder - 실제 구현은 2071_18에서)
-  const handleDelete = (id: number) => {
-    console.log('Delete contract:', id);
-    // 실제 삭제는 mutation으로 구현됨
-  };
+  // Modal handlers
+  const handleMutationSuccess = useCallback(() => {
+    toast.success('작업이 완료되었습니다.');
+    modals.closeModal();
+  }, [modals]);
+
+  const handleDelete = useCallback(async () => {
+    if (!modals.selectedContractId) return;
+
+    try {
+      await deleteMutation.mutateAsync(modals.selectedContractId);
+      toast.success('계약이 삭제되었습니다.');
+      modals.closeModal();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '삭제 실패');
+    }
+  }, [modals, deleteMutation]);
 
   return (
     <div className="space-y-6">
@@ -76,12 +110,10 @@ export default function MaintenanceListPageClient() {
             고객사 유지보수 계약을 관리하고 추적합니다.
           </p>
         </div>
-        <Link href="/maintenance/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            신규 계약 등록
-          </Button>
-        </Link>
+        <Button onClick={modals.openCreateModal}>
+          <Plus className="mr-2 h-4 w-4" />
+          신규 계약 등록
+        </Button>
       </div>
 
       {/* Error Alert */}
@@ -121,9 +153,49 @@ export default function MaintenanceListPageClient() {
           isLoading={listLoading}
           onPageChange={handlePageChange}
           onSort={handleSort}
-          onDelete={handleDelete}
+          onEdit={modals.openEditModal}
+          onDelete={modals.openDeleteModal}
         />
       </div>
+
+      {/* Modals */}
+      {/* Create Modal */}
+      <CreateMaintenanceContractForm
+        open={modals.activeModal === 'create'}
+        onOpenChange={modals.closeModal}
+        onSuccess={handleMutationSuccess}
+      />
+
+      {/* Edit Modal */}
+      {selectedContract && modals.activeModal === 'edit' && (
+        <UpdateMaintenanceContractForm
+          contract={selectedContract}
+          open={true}
+          onOpenChange={modals.closeModal}
+          onSuccess={handleMutationSuccess}
+        />
+      )}
+
+      {/* Status Change Modal */}
+      {selectedContract && modals.activeModal === 'status-change' && (
+        <StatusChangeForm
+          contract={selectedContract}
+          open={true}
+          onOpenChange={modals.closeModal}
+          onSuccess={handleMutationSuccess}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {selectedContract && modals.activeModal === 'delete' && (
+        <DeleteConfirmDialog
+          contract={selectedContract}
+          open={true}
+          onOpenChange={modals.closeModal}
+          onConfirm={handleDelete}
+          isDeleting={deleteMutation.isPending}
+        />
+      )}
     </div>
   );
 }
