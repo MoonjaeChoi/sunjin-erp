@@ -28,11 +28,13 @@ export const authOptions: NextAuthOptions = {
 
           let connection: any;
           try {
+            console.log('[Auth] Getting oracledb connection...');
             connection = await oracledb.getConnection({
               user: process.env.ORACLE_USERNAME || 'sunjin_admin',
               password: process.env.ORACLE_PASSWORD || '',
               connectionString: `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'XEPDB1'}`,
             });
+            console.log('[Auth] Connection established, querying employee...');
 
             const result = await connection.execute(
               `SELECT "id", "name", "username", "password_hash", "role", "department_id"
@@ -40,22 +42,28 @@ export const authOptions: NextAuthOptions = {
                WHERE "username" = :username AND "deleted_at" IS NULL`,
               { username: credentials.username }
             );
+            console.log('[Auth] Query result:', result.rows ? `${result.rows.length} rows` : 'no rows');
 
             if (!result.rows || result.rows.length === 0) {
+              console.log('[Auth] User not found');
               return null;
             }
 
             const [id, name, username_col, password_hash, role, department_id] = result.rows[0];
+            console.log('[Auth] User found, verifying password...');
 
             const isValid = await bcrypt.compare(
               credentials.password,
               password_hash
             );
+            console.log('[Auth] Password valid:', isValid);
 
             if (!isValid) {
+              console.log('[Auth] Password mismatch');
               return null;
             }
 
+            console.log('[Auth] Authentication successful for user:', name);
             return {
               id: String(id),
               name: name,
@@ -67,12 +75,15 @@ export const authOptions: NextAuthOptions = {
               try {
                 await connection.close();
               } catch (err) {
-                // Ignore close errors
+                console.error('[Auth] Error closing connection:', err);
               }
             }
           }
         } catch (error) {
-          console.error('[Auth] Error during authorization:', error);
+          console.error('[Auth] Error during authorization:', error instanceof Error ? error.message : String(error));
+          if (error instanceof Error) {
+            console.error('[Auth] Stack:', error.stack);
+          }
           return null;
         }
       },
