@@ -203,9 +203,9 @@ export interface InventoryDataTableProps {
     totalPages: number;
   };
   isLoading?: boolean;
-  onSort: (sortBy: string, order: 'asc' | 'desc') => void;
-  onPageChange: (page: number) => void;
-  onRowClick: (id: number) => void;
+  onSort?: (sortBy: string, order: 'asc' | 'desc') => void;
+  onPageChange?: (page: number) => void;
+  onRowClick?: (id: number) => void;
 }
 
 export interface InventoryStatsProps {

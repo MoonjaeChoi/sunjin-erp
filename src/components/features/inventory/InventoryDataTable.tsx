@@ -15,16 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
-import { ChevronUpDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ChevronsUpDown } from 'lucide-react';
 
 export default function InventoryDataTable({
   data,
@@ -63,9 +55,9 @@ export default function InventoryDataTable({
   };
 
   const renderSortIcon = (field: string) => {
-    if (sort.sortBy !== field) return <ChevronUpDown className="w-4 h-4 opacity-30" />;
+    if (sort.sortBy !== field) return <ChevronsUpDown className="w-4 h-4 opacity-30" />;
     const rotateClass = sort.order === 'DESC' ? 'rotate-180' : '';
-    return <ChevronUpDown className={'w-4 h-4 ' + rotateClass} />;
+    return <ChevronsUpDown className={'w-4 h-4 ' + rotateClass} />;
   };
 
   return (
@@ -148,42 +140,39 @@ export default function InventoryDataTable({
       </div>
 
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex justify-center">
-          <Pagination>
-            <PaginationContent>
-              <PaginationPrevious
-                onClick={() => handlePageChange(Math.max(1, pagination.page - 1))}
-                className={pagination.page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-              />
-
-              {[...Array(Math.min(5, pagination.totalPages))].map((_, idx) => {
-                const pageNum = idx + 1;
-                return (
-                  <PaginationItem key={pageNum}>
-                    <PaginationLink
-                      onClick={() => handlePageChange(pageNum)}
-                      isActive={pagination.page === pageNum}
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-
-              {pagination.totalPages > 5 && (
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              )}
-
-              <PaginationNext
-                onClick={() => handlePageChange(Math.min(pagination.totalPages, pagination.page + 1))}
-                className={
-                  pagination.page === pagination.totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'
-                }
-              />
-            </PaginationContent>
-          </Pagination>
+        <div className="flex justify-center gap-2 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(Math.max(1, pagination.page - 1))}
+            disabled={pagination.page === 1}
+          >
+            이전
+          </Button>
+          <div className="flex items-center gap-1">
+            {[...Array(Math.min(5, pagination.totalPages))].map((_, idx) => {
+              const pageNum = idx + 1;
+              return (
+                <Button
+                  key={pageNum}
+                  variant={pagination.page === pageNum ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+            {pagination.totalPages > 5 && <span className="text-gray-400">...</span>}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(Math.min(pagination.totalPages, pagination.page + 1))}
+            disabled={pagination.page === pagination.totalPages}
+          >
+            다음
+          </Button>
         </div>
       )}
     </div>
