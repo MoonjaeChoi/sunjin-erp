@@ -338,7 +338,7 @@ export async function POST(request: NextRequest) {
     const insertResult = await queryRunner.query(
       `INSERT INTO maintenance_contracts
       (id, customer_id, contract_name, contract_type, start_date, end_date, assigned_employee_id, contract_amount, contract_status, notes, created_by_id, updated_by_id, created_at, updated_at)
-      VALUES (MAINTENANCE_CONTRACTS_ID_SEQ.NEXTVAL, :customer_id, :contract_name, :contract_type, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'), :assigned_employee_id, :contract_amount, '활성', :notes, :created_by_id, :updated_by_id, :created_at, :updated_at)`,
+      VALUES (SEQ_MAINTENANCE_CONTRACTS.NEXTVAL, :customer_id, :contract_name, :contract_type, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'), :assigned_employee_id, :contract_amount, '활성', :notes, :created_by_id, :updated_by_id, :created_at, :updated_at)`,
       {
         customer_id,
         contract_name,
@@ -366,7 +366,7 @@ export async function POST(request: NextRequest) {
     await queryRunner.query(
       `INSERT INTO MAINTENANCE_CONTRACT_HISTORIES
       (ID, MAINTENANCE_CONTRACT_ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT, DELETED_AT)
-      VALUES (MAINTENANCE_CONTRACT_HISTORIES_ID_SEQ.NEXTVAL, :contract_id, '정보_수정', '계약 생성', :changed_by_id, :changed_at, NULL)`,
+      VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORIES.NEXTVAL, :contract_id, '정보_수정', '계약 생성', :changed_by_id, :changed_at, NULL)`,
       {
         contract_id: contractId,
         changed_by_id: userId,
