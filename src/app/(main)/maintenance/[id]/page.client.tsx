@@ -1,4 +1,4 @@
-// Generated: 2026-01-27 01:10:00 KST
+// Generated: 2026-01-27 02:20:00 KST
 
 'use client';
 
@@ -6,10 +6,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronRight, ArrowLeft, MoreVertical, FileText, History } from 'lucide-react';
+import { ChevronRight, ArrowLeft, MoreVertical } from 'lucide-react';
 import { useMaintenanceContractDetail, useMaintenanceContractMutations } from '@/hooks/useMaintenanceContracts';
 import { useExpiryWarning } from '@/hooks/useMaintenanceUtils';
+import ContractDetailTabs from '@/components/features/maintenance/ContractDetailTabs';
+import UpdateMaintenanceContractForm from '@/components/features/maintenance/UpdateMaintenanceContractForm';
+import StatusChangeForm from '@/components/features/maintenance/StatusChangeForm';
 
 interface MaintenanceDetailPageClientProps {
   contractId: number;
@@ -26,11 +28,12 @@ export default function MaintenanceDetailPageClient({
   contractId,
 }: MaintenanceDetailPageClientProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('overview');
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const [isStatusChangeFormOpen, setIsStatusChangeFormOpen] = useState(false);
 
   // 계약 상세 조회
-  const { data: detailResponse, isLoading, error } = useMaintenanceContractDetail(contractId);
+  const { data: detailResponse, isLoading, error, refetch } = useMaintenanceContractDetail(contractId);
   const contract = detailResponse?.data;
 
   // 뮤테이션
@@ -121,7 +124,7 @@ export default function MaintenanceDetailPageClient({
             >
               {contract.contract_status}
             </span>
-            {contract && expiryWarning && (
+            {expiryWarning && (
               <span
                 className={`text-xs font-medium ${
                   expiryWarning.level === 'danger'
@@ -139,7 +142,7 @@ export default function MaintenanceDetailPageClient({
           </div>
         </div>
 
-        {/* Action Menu - Placeholder for 2071_18 */}
+        {/* Action Menu */}
         <div className="relative">
           <Button
             variant="outline"
@@ -150,11 +153,24 @@ export default function MaintenanceDetailPageClient({
           </Button>
           {showActionMenu && (
             <div className="absolute right-0 mt-2 w-48 rounded-lg border bg-white shadow-lg z-10">
-              <Link href={`/maintenance/${contractId}/edit`} className="block">
-                <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
-                  수정
-                </button>
-              </Link>
+              <button
+                onClick={() => {
+                  setShowActionMenu(false);
+                  setIsEditFormOpen(true);
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+              >
+                수정
+              </button>
+              <button
+                onClick={() => {
+                  setShowActionMenu(false);
+                  setIsStatusChangeFormOpen(true);
+                }}
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+              >
+                상태 변경
+              </button>
               <button
                 onClick={() => {
                   setShowActionMenu(false);
@@ -163,12 +179,6 @@ export default function MaintenanceDetailPageClient({
                 className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
               >
                 삭제
-              </button>
-              <button
-                onClick={() => setShowActionMenu(false)}
-                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-              >
-                상태 변경
               </button>
             </div>
           )}
@@ -200,125 +210,17 @@ export default function MaintenanceDetailPageClient({
         </div>
       )}
 
-      {/* Tabs Section - Placeholder for 2071_16 */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">기본 정보</TabsTrigger>
-          <TabsTrigger value="attachments">
-            <FileText className="mr-2 h-4 w-4" />
-            첨부파일
-          </TabsTrigger>
-          <TabsTrigger value="history">
-            <History className="mr-2 h-4 w-4" />
-            변경이력
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab - Placeholder for 2071_16 MaintenanceContractDetailView */}
-        <TabsContent value="overview" className="space-y-4 mt-6">
-          <div className="rounded-lg border bg-white p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">고객사</h3>
-                <p className="text-sm text-gray-900">{contract.customer?.name || '-'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">계약 유형</h3>
-                <p className="text-sm text-gray-900">{contract.contract_type || '-'}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">시작일</h3>
-                <p className="text-sm text-gray-900">
-                  {contract.start_date
-                    ? new Date(contract.start_date).toLocaleDateString('ko-KR')
-                    : '-'}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">종료일</h3>
-                <p className="text-sm text-gray-900">
-                  {contract.end_date
-                    ? new Date(contract.end_date).toLocaleDateString('ko-KR')
-                    : '-'}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">계약금액</h3>
-                <p className="text-sm text-gray-900">
-                  {contract.contract_amount
-                    ? `${contract.contract_amount.toLocaleString('ko-KR')}원`
-                    : '-'}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-1">담당자</h3>
-                <p className="text-sm text-gray-900">
-                  {contract.assignedEmployee?.name || '-'}
-                </p>
-              </div>
-            </div>
-
-            {contract.notes && (
-              <div className="mt-6 pt-6 border-t">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">비고</h3>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{contract.notes}</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* Attachments Tab - Placeholder for 2071_16 MaintenanceContractAttachments */}
-        <TabsContent value="attachments" className="mt-6">
-          <div className="rounded-lg border bg-white p-6">
-            {contract.attachments && contract.attachments.length > 0 ? (
-              <div className="space-y-4">
-                {contract.attachments.map((attachment) => (
-                  <div
-                    key={attachment.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                  >
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{attachment.file_name}</p>
-                      <p className="text-xs text-gray-500">
-                        {(attachment.file_size / 1024).toFixed(2)} KB
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      다운로드
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 text-center py-8">첨부파일이 없습니다.</p>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* History Tab - Placeholder for 2071_16 InventoryHistory */}
-        <TabsContent value="history" className="mt-6">
-          <div className="rounded-lg border bg-white p-6">
-            {contract.histories && contract.histories.length > 0 ? (
-              <div className="space-y-4">
-                {contract.histories.map((history) => (
-                  <div key={history.id} className="border-l-2 border-blue-500 pl-4">
-                    <p className="text-sm font-medium text-gray-900">{history.change_type}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {history.changed_by?.name} ·{' '}
-                      {new Date(history.changed_at).toLocaleString('ko-KR')}
-                    </p>
-                    {history.reason && (
-                      <p className="text-sm text-gray-700 mt-2">{history.reason}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 text-center py-8">변경 이력이 없습니다.</p>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* Detail Tabs */}
+      <ContractDetailTabs
+        contract={contract}
+        isLoading={isLoading}
+        onEdit={() => router.push(`/maintenance/${contractId}/edit`)}
+        onDelete={handleDelete}
+        onStatusChange={() => {
+          // Status change 액션 (2071_18에서 구현)
+          console.log('Status change action - to be implemented in 2071_18');
+        }}
+      />
 
       {/* Back Button */}
       <div className="flex justify-start">
@@ -329,6 +231,28 @@ export default function MaintenanceDetailPageClient({
           </Button>
         </Link>
       </div>
+
+      {/* Modal Dialogs */}
+      {contract && (
+        <>
+          <UpdateMaintenanceContractForm
+            contract={contract}
+            open={isEditFormOpen}
+            onOpenChange={setIsEditFormOpen}
+            onSuccess={() => {
+              refetch();
+            }}
+          />
+          <StatusChangeForm
+            contract={contract}
+            open={isStatusChangeFormOpen}
+            onOpenChange={setIsStatusChangeFormOpen}
+            onSuccess={() => {
+              refetch();
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
