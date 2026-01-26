@@ -68,7 +68,7 @@ export default function InventoryListPageClient() {
       )}
 
       {/* 상세보기 다이얼로그 */}
-      <InventoryDetailDialog open={isDetailOpen} inventoryId={selectedInventoryId} />
+      <InventoryDetailDialog />
     </div>
   );
 }
