@@ -111,7 +111,7 @@ export default function MaintenanceContractFilters({
           </div>
 
           {/* Date Range */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 시작일 (From)
@@ -145,7 +145,7 @@ export default function MaintenanceContractFilters({
           </div>
 
           {/* End Date Range */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 종료일 (From)

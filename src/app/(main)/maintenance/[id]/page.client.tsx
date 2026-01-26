@@ -109,10 +109,10 @@ export default function MaintenanceDetailPageClient({
       </nav>
 
       {/* Header with Status Badge and Action Menu */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{contract.contract_name}</h1>
-          <div className="mt-2 flex items-center gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900 break-words">{contract.contract_name}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
             <span
               className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
                 contract.contract_status === '활성'
@@ -143,7 +143,7 @@ export default function MaintenanceDetailPageClient({
         </div>
 
         {/* Action Menu */}
-        <div className="relative">
+        <div className="relative sm:flex-shrink-0">
           <Button
             variant="outline"
             size="icon"

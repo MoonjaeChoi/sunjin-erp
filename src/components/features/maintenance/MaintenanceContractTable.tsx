@@ -140,7 +140,7 @@ export default function MaintenanceContractTable({
                   <SortIcon column="contract_name" />
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">
                 <button
                   onClick={() => handleSort('customer_name')}
                   className="flex items-center gap-2 hover:bg-gray-100 px-2 py-1 rounded cursor-pointer"
@@ -158,7 +158,7 @@ export default function MaintenanceContractTable({
                   <SortIcon column="contract_status" />
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">
                 <button
                   onClick={() => handleSort('end_date')}
                   className="flex items-center gap-2 hover:bg-gray-100 px-2 py-1 rounded cursor-pointer"
@@ -167,7 +167,7 @@ export default function MaintenanceContractTable({
                   <SortIcon column="end_date" />
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 hidden lg:table-cell">
                 <button
                   onClick={() => handleSort('assigned_employee_name')}
                   className="flex items-center gap-2 hover:bg-gray-100 px-2 py-1 rounded cursor-pointer"
@@ -262,12 +262,12 @@ function MaintenanceContractTableRow({
       <td className="px-6 py-4">
         <Link
           href={`/maintenance/${contract.id}`}
-          className="text-sm font-medium text-blue-600 hover:underline block truncate"
+          className="text-sm font-medium text-blue-600 hover:underline block truncate max-w-[200px] lg:max-w-[300px]"
         >
           {contract.contract_name}
         </Link>
       </td>
-      <td className="px-6 py-4 text-sm text-gray-700">
+      <td className="px-6 py-4 text-sm text-gray-700 hidden md:table-cell">
         {contract.customer?.name || '-'}
       </td>
       <td className="px-6 py-4">
@@ -283,7 +283,7 @@ function MaintenanceContractTableRow({
           {contract.contract_status}
         </span>
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 hidden md:table-cell">
         <div className="text-sm">
           <div className="text-gray-900">
             {contract.end_date
@@ -305,7 +305,7 @@ function MaintenanceContractTableRow({
           )}
         </div>
       </td>
-      <td className="px-6 py-4 text-sm text-gray-700">
+      <td className="px-6 py-4 text-sm text-gray-700 hidden lg:table-cell">
         {contract.assignedEmployee?.name || '-'}
       </td>
       <td className="px-6 py-4 text-center relative">

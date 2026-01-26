@@ -103,14 +103,14 @@ export default function MaintenanceListPageClient() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">유지보수 계약</h1>
           <p className="mt-1 text-sm text-gray-500">
             고객사 유지보수 계약을 관리하고 추적합니다.
           </p>
         </div>
-        <Button onClick={modals.openCreateModal}>
+        <Button onClick={modals.openCreateModal} className="sm:flex-shrink-0">
           <Plus className="mr-2 h-4 w-4" />
           신규 계약 등록
         </Button>

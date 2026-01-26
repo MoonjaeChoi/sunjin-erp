@@ -50,21 +50,25 @@ export default function ContractDetailTabs({
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="overview">기본 정보</TabsTrigger>
-        <TabsTrigger value="attachments" className="flex items-center gap-2">
+        <TabsTrigger value="overview" className="text-xs sm:text-sm">
+          기본 정보
+        </TabsTrigger>
+        <TabsTrigger value="attachments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
           <FileText className="h-4 w-4" />
-          첨부파일
+          <span className="hidden sm:inline">첨부파일</span>
+          <span className="sm:hidden">파일</span>
           {attachmentCount > 0 && (
-            <Badge variant="secondary" className="ml-1">
+            <Badge variant="secondary" className="ml-0 sm:ml-1 text-xs">
               {attachmentCount}
             </Badge>
           )}
         </TabsTrigger>
-        <TabsTrigger value="history" className="flex items-center gap-2">
+        <TabsTrigger value="history" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
           <HistoryIcon className="h-4 w-4" />
-          변경이력
+          <span className="hidden sm:inline">변경이력</span>
+          <span className="sm:hidden">이력</span>
           {historyCount > 0 && (
-            <Badge variant="secondary" className="ml-1">
+            <Badge variant="secondary" className="ml-0 sm:ml-1 text-xs">
               {historyCount}
             </Badge>
           )}
