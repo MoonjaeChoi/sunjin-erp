@@ -71,7 +71,7 @@ export class IssueAttachment {
   deleted_at!: Date | null;
 
   // Relations
-  @ManyToOne(() => Issue, (issue) => issue.attachments, {
+  @ManyToOne(() => Issue, {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'issue_id' })

@@ -95,7 +95,7 @@ export class MaintenanceContractHistory {
   deleted_at!: Date | null;
 
   // Relations
-  @ManyToOne(() => MaintenanceContract, (contract) => contract.histories, {
+  @ManyToOne(() => MaintenanceContract, {
     onDelete: 'RESTRICT',
     eager: false,
   })

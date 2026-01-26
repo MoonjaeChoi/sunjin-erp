@@ -5,7 +5,6 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  OneToMany,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
@@ -14,8 +13,6 @@ import {
 } from 'typeorm';
 import { Customer } from './Customer';
 import { Employee } from './Employee';
-import { MaintenanceContractAttachment } from './MaintenanceContractAttachment';
-import { MaintenanceContractHistory } from './MaintenanceContractHistory';
 
 export type ContractStatus = '활성' | '종료' | '갱신예정';
 
@@ -179,24 +176,4 @@ export class MaintenanceContract {
     name: 'updated_by_id',
   })
   updatedBy!: Employee;
-
-  @OneToMany(
-    () => MaintenanceContractAttachment,
-    (attachment) => attachment.contract,
-    {
-      cascade: false,
-      eager: false,
-    }
-  )
-  attachments!: MaintenanceContractAttachment[];
-
-  @OneToMany(
-    () => MaintenanceContractHistory,
-    (history) => history.contract,
-    {
-      cascade: false,
-      eager: false,
-    }
-  )
-  histories!: MaintenanceContractHistory[];
 }

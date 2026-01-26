@@ -107,7 +107,7 @@ export class InventoryHistory {
   changed_at!: Date;
 
   // Relations
-  @ManyToOne(() => Inventory, (inv) => inv.histories, {
+  @ManyToOne(() => Inventory, {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'inventory_id' })

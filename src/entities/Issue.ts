@@ -10,14 +10,11 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
   Index,
   Check,
 } from 'typeorm';
 import { Customer } from './Customer';
 import { Employee } from './Employee';
-import { IssueAttachment } from './IssueAttachment';
-import { IssueHistory } from './IssueHistory';
 
 export type IssueStatus = 'INTAKE' | 'IN_PROGRESS' | 'COMPLETED';
 export type IssueSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
@@ -155,10 +152,4 @@ export class Issue {
   @ManyToOne(() => Employee, { nullable: true })
   @JoinColumn({ name: 'assigned_to_id' })
   assignedTo!: Employee | null;
-
-  @OneToMany(() => IssueAttachment, (attachment) => attachment.issue)
-  attachments!: IssueAttachment[];
-
-  @OneToMany(() => IssueHistory, (history) => history.issue)
-  histories!: IssueHistory[];
 }

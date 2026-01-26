@@ -81,7 +81,7 @@ export class IssueHistory {
   remark!: string | null;
 
   // Relations
-  @ManyToOne(() => Issue, (issue) => issue.histories)
+  @ManyToOne(() => Issue)
   @JoinColumn({ name: 'issue_id' })
   issue!: Issue;
 

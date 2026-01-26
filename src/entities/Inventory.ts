@@ -10,12 +10,10 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
   Check,
   Index,
 } from 'typeorm';
 import { Employee } from './Employee';
-import { InventoryHistory } from './InventoryHistory';
 
 export type InventoryStatus = '재고' | '출고' | '고장' | '폐기';
 
@@ -137,9 +135,4 @@ export class Inventory {
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'updated_by_id' })
   updated_by!: Employee;
-
-  @OneToMany(() => InventoryHistory, (history) => history.inventory, {
-    lazy: true,
-  })
-  histories!: InventoryHistory[];
 }
