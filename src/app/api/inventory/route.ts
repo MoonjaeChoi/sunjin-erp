@@ -211,3 +211,134 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = session.user as any;
+    if (!['ADMIN', 'MANAGER'].includes(user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const body: any = await request.json();
+
+    // 필드 검증
+    if (!body.category || !body.model || !body.serial_number || !body.purchase_date || !body.purchase_from || !body.current_location) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const ds = await getDataSource();
+    const queryRunner = ds.createQueryRunner();
+
+    try {
+      await queryRunner.startTransaction();
+
+      // 1. 시리얼번호 중복 체크
+      const checkQuery = `
+        SELECT COUNT(*) as CNT
+        FROM INVENTORY
+        WHERE SERIAL_NUMBER = :serialNumber AND DELETED_AT IS NULL
+      `;
+      const [checkResult] = await queryRunner.query(checkQuery, {
+        serialNumber: body.serial_number,
+      });
+
+      if (checkResult.CNT > 0) {
+        await queryRunner.rollbackTransaction();
+        return NextResponse.json({ error: 'Serial number already exists' }, { status: 409 });
+      }
+
+      // 2. 재고 등록
+      const insertQuery = `
+        INSERT INTO INVENTORY (
+          CATEGORY, MODEL, SERIAL_NUMBER, PURCHASE_DATE, PURCHASE_FROM,
+          CURRENT_LOCATION, CURRENT_STATUS, NOTES, CREATED_BY_ID, UPDATED_BY_ID,
+          CREATED_AT, UPDATED_AT
+        )
+        VALUES (
+          :category, :model, :serialNumber, TO_DATE(:purchaseDate, 'YYYY-MM-DD'), :purchaseFrom,
+          :currentLocation, '재고', :notes, :createdById, :updatedById,
+          CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        )
+      `;
+
+      await queryRunner.query(insertQuery, {
+        category: body.category,
+        model: body.model,
+        serialNumber: body.serial_number,
+        purchaseDate: body.purchase_date,
+        purchaseFrom: body.purchase_from,
+        currentLocation: body.current_location,
+        notes: body.notes || null,
+        createdById: user.id,
+        updatedById: user.id,
+      });
+
+      // 3. 생성된 ID 조회
+      const idQuery = `
+        SELECT MAX(ID) as ID
+        FROM INVENTORY
+        WHERE SERIAL_NUMBER = :serialNumber AND CREATED_BY_ID = :createdById
+      `;
+      const [idResult] = await queryRunner.query(idQuery, {
+        serialNumber: body.serial_number,
+        createdById: user.id,
+      });
+
+      const inventoryId = idResult.ID;
+
+      // 4. 이력 기록 생성 (입고)
+      const historyQuery = `
+        INSERT INTO INVENTORY_HISTORY (
+          INVENTORY_ID, CHANGE_TYPE, NEW_STATUS, CHANGED_BY_ID, CHANGED_AT
+        )
+        VALUES (
+          :inventoryId, '입고', '재고', :changedById, CURRENT_TIMESTAMP
+        )
+      `;
+
+      await queryRunner.query(historyQuery, {
+        inventoryId,
+        changedById: user.id,
+      });
+
+      await queryRunner.commitTransaction();
+
+      // 5. 생성된 재고 조회
+      const detailQuery = `
+        SELECT ID, CATEGORY, MODEL, SERIAL_NUMBER, PURCHASE_DATE, PURCHASE_FROM,
+               CURRENT_LOCATION, CURRENT_STATUS, CREATED_AT, UPDATED_AT
+        FROM INVENTORY WHERE ID = :id
+      `;
+      const [inventory] = await queryRunner.query(detailQuery, { id: inventoryId });
+
+      return NextResponse.json(
+        {
+          id: inventory.ID,
+          category: inventory.CATEGORY,
+          model: inventory.MODEL,
+          serial_number: inventory.SERIAL_NUMBER,
+          purchase_date: inventory.PURCHASE_DATE.toISOString().split('T')[0],
+          purchase_from: inventory.PURCHASE_FROM,
+          current_location: inventory.CURRENT_LOCATION,
+          current_status: inventory.CURRENT_STATUS,
+          created_at: inventory.CREATED_AT.toISOString(),
+          updated_at: inventory.UPDATED_AT.toISOString(),
+        },
+        { status: 201 }
+      );
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  } catch (error) {
+    console.error('POST /api/inventory error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
