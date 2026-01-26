@@ -36,17 +36,13 @@ async function initMaintenanceTables() {
           end_date DATE NOT NULL,
           assigned_employee_id NUMBER NOT NULL,
           contract_amount NUMBER(15, 2),
-          contract_status VARCHAR2(50) DEFAULT '활성' NOT NULL,
+          contract_status VARCHAR2(50) NOT NULL,
           notes CLOB,
-          created_at DATE DEFAULT SYSDATE NOT NULL,
-          updated_at DATE DEFAULT SYSDATE NOT NULL,
+          created_at DATE NOT NULL,
+          updated_at DATE NOT NULL,
           created_by_id NUMBER,
           updated_by_id NUMBER,
-          deleted_at DATE,
-          CONSTRAINT fk_maintenance_customer FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE RESTRICT,
-          CONSTRAINT fk_maintenance_employee FOREIGN KEY (assigned_employee_id) REFERENCES employee(id) ON DELETE RESTRICT,
-          CONSTRAINT fk_maintenance_creator FOREIGN KEY (created_by_id) REFERENCES employee(id) ON DELETE SET NULL,
-          CONSTRAINT fk_maintenance_updater FOREIGN KEY (updated_by_id) REFERENCES employee(id) ON DELETE SET NULL
+          deleted_at DATE
         )
       `);
       console.log('✓ MAINTENANCE_CONTRACTS 테이블 생성됨');
@@ -56,6 +52,47 @@ async function initMaintenanceTables() {
       } else {
         throw e;
       }
+    }
+
+    // 1-1. 외래 키 추가
+    try {
+      await conn.execute(`
+        ALTER TABLE maintenance_contracts
+        ADD CONSTRAINT fk_maintenance_customer
+        FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE RESTRICT
+      `);
+    } catch (e) {
+      // 이미 있으면 무시
+    }
+
+    try {
+      await conn.execute(`
+        ALTER TABLE maintenance_contracts
+        ADD CONSTRAINT fk_maintenance_employee
+        FOREIGN KEY (assigned_employee_id) REFERENCES employee(id) ON DELETE RESTRICT
+      `);
+    } catch (e) {
+      // 이미 있으면 무시
+    }
+
+    try {
+      await conn.execute(`
+        ALTER TABLE maintenance_contracts
+        ADD CONSTRAINT fk_maintenance_creator
+        FOREIGN KEY (created_by_id) REFERENCES employee(id) ON DELETE SET NULL
+      `);
+    } catch (e) {
+      // 이미 있으면 무시
+    }
+
+    try {
+      await conn.execute(`
+        ALTER TABLE maintenance_contracts
+        ADD CONSTRAINT fk_maintenance_updater
+        FOREIGN KEY (updated_by_id) REFERENCES employee(id) ON DELETE SET NULL
+      `);
+    } catch (e) {
+      // 이미 있으면 무시
     }
 
     // 2. MAINTENANCE_CONTRACTS 시퀀스
@@ -85,10 +122,8 @@ async function initMaintenanceTables() {
           file_path VARCHAR2(500) NOT NULL,
           file_size NUMBER,
           uploaded_by_id NUMBER NOT NULL,
-          created_at DATE DEFAULT SYSDATE NOT NULL,
-          deleted_at DATE,
-          CONSTRAINT fk_maint_attach_contract FOREIGN KEY (maintenance_contract_id) REFERENCES maintenance_contracts(id) ON DELETE RESTRICT,
-          CONSTRAINT fk_maint_attach_uploader FOREIGN KEY (uploaded_by_id) REFERENCES employee(id) ON DELETE SET NULL
+          created_at DATE NOT NULL,
+          deleted_at DATE
         )
       `);
       console.log('✓ MAINTENANCE_CONTRACT_ATTACHMENTS 테이블 생성됨');
@@ -98,6 +133,26 @@ async function initMaintenanceTables() {
       } else {
         throw e;
       }
+    }
+
+    try {
+      await conn.execute(`
+        ALTER TABLE maintenance_contract_attachments
+        ADD CONSTRAINT fk_maint_attach_contract
+        FOREIGN KEY (maintenance_contract_id) REFERENCES maintenance_contracts(id) ON DELETE RESTRICT
+      `);
+    } catch (e) {
+      // 이미 있으면 무시
+    }
+
+    try {
+      await conn.execute(`
+        ALTER TABLE maintenance_contract_attachments
+        ADD CONSTRAINT fk_maint_attach_uploader
+        FOREIGN KEY (uploaded_by_id) REFERENCES employee(id) ON DELETE SET NULL
+      `);
+    } catch (e) {
+      // 이미 있으면 무시
     }
 
     // 4. MAINTENANCE_CONTRACT_HISTORIES 테이블
@@ -111,10 +166,8 @@ async function initMaintenanceTables() {
           previous_end_date DATE,
           new_end_date DATE,
           changed_by_id NUMBER NOT NULL,
-          changed_at DATE DEFAULT SYSDATE NOT NULL,
-          deleted_at DATE,
-          CONSTRAINT fk_maint_history_contract FOREIGN KEY (maintenance_contract_id) REFERENCES maintenance_contracts(id) ON DELETE RESTRICT,
-          CONSTRAINT fk_maint_history_user FOREIGN KEY (changed_by_id) REFERENCES employee(id) ON DELETE SET NULL
+          changed_at DATE NOT NULL,
+          deleted_at DATE
         )
       `);
       console.log('✓ MAINTENANCE_CONTRACT_HISTORIES 테이블 생성됨');
@@ -124,6 +177,26 @@ async function initMaintenanceTables() {
       } else {
         throw e;
       }
+    }
+
+    try {
+      await conn.execute(`
+        ALTER TABLE maintenance_contract_histories
+        ADD CONSTRAINT fk_maint_history_contract
+        FOREIGN KEY (maintenance_contract_id) REFERENCES maintenance_contracts(id) ON DELETE RESTRICT
+      `);
+    } catch (e) {
+      // 이미 있으면 무시
+    }
+
+    try {
+      await conn.execute(`
+        ALTER TABLE maintenance_contract_histories
+        ADD CONSTRAINT fk_maint_history_user
+        FOREIGN KEY (changed_by_id) REFERENCES employee(id) ON DELETE SET NULL
+      `);
+    } catch (e) {
+      // 이미 있으면 무시
     }
 
     // 5. 인덱스 생성
