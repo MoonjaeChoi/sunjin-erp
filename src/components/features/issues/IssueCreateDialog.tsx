@@ -4,6 +4,8 @@
 
 import { useState } from 'react';
 import { useCreateIssueMutation } from '@/hooks/issues';
+import { useCustomerListQuery } from '@/hooks/customers';
+import { useEmployeeListQuery } from '@/hooks/employees';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -33,11 +35,16 @@ interface IssueCreateDialogProps {
 export default function IssueCreateDialog({
   open,
   onOpenChange,
-  customers = [],
-  employees = [],
+  customers: customersProp = [],
+  employees: employeesProp = [],
 }: IssueCreateDialogProps) {
   const router = useRouter();
   const createMutation = useCreateIssueMutation();
+  const { data: customerData } = useCustomerListQuery();
+  const { data: employeeData } = useEmployeeListQuery();
+
+  const customers = customerData?.customers || customersProp;
+  const employees = employeeData?.employees || employeesProp;
 
   const [formData, setFormData] = useState({
     customer_id: '',
