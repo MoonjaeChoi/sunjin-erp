@@ -1,14 +1,25 @@
+// Generated: 2026-01-27 01:00:00 KST
+
+import type { Metadata } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import MaintenanceListPageClient from './page.client';
+
 export const dynamic = 'force-dynamic';
 
-// Generated: 2026-01-25 02:00:00 KST
+export const metadata: Metadata = {
+  title: '유지보수 계약 관리 - Sunjin ERP',
+  description: '유지보수 계약을 관리하고 추적합니다.',
+};
 
-export default function MaintenancePage() {
-  return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold text-gray-700 mb-2">유지보수</h1>
-        <p className="text-sm text-gray-400">준비 중입니다.</p>
-      </div>
-    </div>
-  );
+export default async function MaintenanceListPage() {
+  const session = await getServerSession(authOptions);
+
+  // 인증 확인
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  return <MaintenanceListPageClient />;
 }
