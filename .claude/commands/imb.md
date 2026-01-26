@@ -35,34 +35,441 @@ PRD(Product Requirement Document)를 실행 가능한 구현 태스크로 분해
 - **UI**: shadcn/ui + Tailwind CSS + Lucide React Icons
 - **Testing**: Jest/Vitest + React Testing Library + Playwright
 
-### 2. Next.js App Router 규칙
+### 2. Next.js App Router + API 엔드포인트 규칙
+
+**참고**: `docs/operation/012_엔드포인트작성규칙.md` 참조
+
+#### 2.1 Server/Client Component 분리
+
 - **Server Component (SC)**: 기본값. 데이터 fetching, 세션 조회, 정적 렌더링
 - **Client Component (CC)**: `'use client'` 선언 필수. 인터랙션, useState, Zustand, TanStack Query
 - **Composition Pattern**: SC에서 CC를 children/props로 전달
-- **API Route Handlers**: `src/app/api/[module]/route.ts` (REST 패턴)
+
+#### 2.2 API Route Handlers 표준
+
+**디렉토리 구조**:
+```
+src/app/api/
+├── [module]/
+│   ├── route.ts           # GET (list), POST (create)
+│   ├── [id]/route.ts      # GET (detail), PUT (update), DELETE (delete)
+│   └── [action]/route.ts  # Custom endpoints (e.g., /api/issues/summary)
+```
+
+#### 2.3 REST API 표준 패턴
+
+| 메서드 | 경로 | 설명 | 응답 | 상태 |
+|--------|------|------|------|------|
+| GET | `/api/[module]` | 목록 조회 (페이지네이션) | `{ data: [], pagination: {...} }` | 200 |
+| GET | `/api/[module]/[id]` | 단일 조회 | `{ data: {...} }` | 200 |
+| POST | `/api/[module]` | 새 항목 생성 | `{ message: "Created", data: {...} }` | 201 |
+| PUT | `/api/[module]/[id]` | 항목 수정 | `{ message: "Updated", data: {...} }` | 200 |
+| DELETE | `/api/[module]/[id]` | 항목 삭제 (Soft Delete) | `{ message: "Deleted" }` | 200 |
+
+#### 2.4 쿼리 파라미터 규칙
+
+```typescript
+// 페이지네이션
+page=1&page_size=20
+
+// 정렬
+sort_by=created_at&sort_order=DESC
+
+// 필터링 (상태, 담당자 등)
+status=ACTIVE,PENDING
+assigned_employee_id=5
+
+// 검색
+keyword=검색어
+
+// 날짜 범위
+date_from=2026-01-01&date_to=2026-01-31
+
+// 조합 예시
+/api/maintenance?page=1&page_size=20&sort_by=created_at&sort_order=DESC&status=활성
+```
+
+#### 2.5 GET 목록 조회 템플릿
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { getDataSource } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  try {
+    // 1. 인증 검증
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const user = session.user as any;
+    const userId = user.id;
+    const userRole = user.role;
+
+    // 2. 쿼리 파라미터 파싱
+    const searchParams = req.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const page_size = Math.min(100, parseInt(searchParams.get('page_size') || '20', 10));
+    const status = searchParams.get('status');
+
+    // 3. 권한별 WHERE 절 (RBAC)
+    const whereClauses: string[] = ['"deleted_at" IS NULL'];
+    const params: any = { offset: (page - 1) * page_size, pageSize: page_size };
+
+    if (status) {
+      whereClauses.push(`"contract_status" = :status`);
+      params.status = status;
+    }
+
+    if (userRole === 'USER') {
+      // USER는 자신의 데이터만
+      whereClauses.push(`"assigned_employee_id" = :userId`);
+      params.userId = userId;
+    }
+
+    // 4. 데이터베이스 쿼리
+    const ds = await getDataSource();
+    const queryRunner = ds.createQueryRunner();
+
+    try {
+      const query = `
+        SELECT * FROM MAINTENANCE_CONTRACT
+        WHERE ${whereClauses.join(' AND ')}
+        ORDER BY "created_at" DESC
+        OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
+      `;
+
+      const countQuery = `
+        SELECT COUNT(*) as total FROM MAINTENANCE_CONTRACT
+        WHERE ${whereClauses.join(' AND ')}
+      `;
+
+      const [items, countResult] = await Promise.all([
+        queryRunner.query(query, params),
+        queryRunner.query(countQuery, params),
+      ]);
+
+      const total = parseInt(countResult[0]?.total || '0', 10);
+
+      // 5. 응답 반환
+      return NextResponse.json({
+        data: items,
+        pagination: {
+          page,
+          page_size,
+          total,
+          total_pages: Math.ceil(total / page_size),
+        },
+      });
+    } finally {
+      await queryRunner.release();
+    }
+  } catch (error) {
+    console.error('GET /api/maintenance error:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+#### 2.6 POST 생성 템플릿
+
+```typescript
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  try {
+    // 1. 인증 검증
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. RBAC 권한 검증 (MANAGER+ 필요)
+    const user = session.user as any;
+    if (!['MANAGER', 'ADMIN'].includes(user.role)) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
+
+    // 3. 요청 본문 파싱
+    const body = await req.json();
+
+    // 4. 필드 검증
+    const errors: Record<string, string> = {};
+    if (!body.contract_name) errors.contract_name = '계약명 필수';
+    if (!body.customer_id) errors.customer_id = '고객 필수';
+    if (!body.start_date || !body.end_date) errors.dates = '날짜 필수';
+
+    if (Object.keys(errors).length > 0) {
+      return NextResponse.json(
+        { message: 'Validation failed', errors },
+        { status: 400 }
+      );
+    }
+
+    // 5. 데이터 삽입 (트랜잭션)
+    const ds = await getDataSource();
+    const queryRunner = ds.createQueryRunner();
+
+    try {
+      await queryRunner.startTransaction();
+
+      const now = new Date();
+      const result = await queryRunner.query(
+        `INSERT INTO MAINTENANCE_CONTRACT
+         ("contract_name", "customer_id", "start_date", "end_date", "assigned_employee_id",
+          "created_by_id", "created_at", "updated_at", "deleted_at")
+         VALUES (:name, :customerId, :startDate, :endDate, :assignedEmployeeId,
+                 :createdById, :createdAt, :updatedAt, :deletedAt)
+         RETURNING "id"`,
+        {
+          name: body.contract_name,
+          customerId: body.customer_id,
+          startDate: body.start_date,
+          endDate: body.end_date,
+          assignedEmployeeId: body.assigned_employee_id,
+          createdById: user.id,
+          createdAt: now,
+          updatedAt: now,
+          deletedAt: null,
+        }
+      );
+
+      // 이력 기록
+      await queryRunner.query(
+        `INSERT INTO MAINTENANCE_CONTRACT_HISTORY
+         ("maintenance_contract_id", "change_type", "changed_by_id", "changed_at")
+         VALUES (:contractId, :changeType, :changedById, :changedAt)`,
+        {
+          contractId: result[0].id,
+          changeType: '생성',
+          changedById: user.id,
+          changedAt: now,
+        }
+      );
+
+      await queryRunner.commitTransaction();
+
+      return NextResponse.json(
+        { message: 'Created successfully', data: result[0] },
+        { status: 201 }
+      );
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  } catch (error) {
+    console.error('POST /api/maintenance error:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+#### 2.7 응답 형식 표준
+
+**성공 응답**:
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "page_size": 20,
+    "total": 100,
+    "total_pages": 5
+  }
+}
+```
+
+**에러 응답**:
+```json
+{
+  "message": "에러 메시지",
+  "errors": {
+    "field_name": "에러 설명"
+  }
+}
+```
+
+**HTTP 상태 코드**:
+- 200: OK (조회, 수정)
+- 201: Created (생성 성공)
+- 400: Bad Request (입력값 검증 실패)
+- 401: Unauthorized (인증 필요)
+- 403: Forbidden (권한 부족)
+- 404: Not Found (데이터 없음)
+- 500: Internal Server Error (서버 오류)
 
 ### 3. 데이터베이스 규칙 (Oracle XE 21c + TypeORM)
 
-**TypeORM Entity**: `src/entities/[EntityName].ts`
+**참고**: `docs/operation/011_데이터베이스연결.md` 참조
+
+#### 3.1 환경 설정
+
+| 항목 | 값 |
+|------|-----|
+| 데이터베이스 | Oracle XE 21c |
+| 서비스명 | XEPDB1 |
+| 스키마 | `sunjin_admin` |
+| 로컬 호스트 | localhost:1521 |
+| 스테이징 | 192.168.75.194:1521 |
+
+```bash
+# .env 설정
+ORACLE_HOST=localhost
+ORACLE_PORT=1521
+ORACLE_SERVICE_NAME=XEPDB1
+ORACLE_USERNAME=sunjin_admin
+ORACLE_PASSWORD=<password>
+```
+
+#### 3.2 TypeORM 설정 (`src/lib/db.ts`)
+
+```typescript
+import { DataSource } from 'typeorm';
+
+export const appDataSource = new DataSource({
+  type: 'oracle',
+  host: process.env.ORACLE_HOST || 'localhost',
+  port: parseInt(process.env.ORACLE_PORT || '1521', 10),
+  username: process.env.ORACLE_USERNAME,
+  password: process.env.ORACLE_PASSWORD,
+  sid: process.env.ORACLE_SERVICE_NAME,
+  synchronize: false,
+  logging: false,
+  entities: ['src/entities/**/*.ts'],
+  migrations: ['src/migrations/**/*.ts'],
+});
+
+export async function getDataSource() {
+  if (!appDataSource.isInitialized) {
+    await appDataSource.initialize();
+  }
+  return appDataSource;
+}
+```
+
+#### 3.3 TypeORM Entity 규칙
+
+**Entity File**: `src/entities/[EntityName].ts`
+
+필수 사항:
 - ✅ `VARCHAR2` (VARCHAR 금지), `NUMBER`, `CLOB` (TEXT 금지)
 - ✅ Sequence objects for auto-increment IDs
 - ✅ `deleted_at`, `created_at`, `updated_at` column 필수
 - ✅ Foreign Key: `ON DELETE RESTRICT`
+- ✅ Check constraints 포함 (데이터 무결성)
 
-**TypeORM Migration**: `src/migrations/`
-```bash
-npx typeorm migration:generate -n MigrationName   # 생성
-npx typeorm migration:run                          # 실행
-npx typeorm migration:revert                       # 롤백
-```
-
-**금지사항**:
+금지 사항:
 - ❌ CASCADE DELETE 절대 금지
 - ❌ ON DELETE CASCADE 절대 금지
 - ❌ Physical DELETE 금지 (soft delete only — `deleted_at` 설정)
-- ❌ Fallback DB 금지 (Oracle 실패 시 SQLite 등 대체 금지 → HTTP 500 반환)
-- ✅ 목록 조회 시 `WHERE deleted_at IS NULL` (또는 TypeORM `{ deletedAt: IsNull() }`)
-- ✅ 삭제 전 의존성 확인 (관련 레코드 존재 여부 검증)
+
+#### 3.4 QueryRunner 사용 (Raw SQL)
+
+```typescript
+const ds = await getDataSource();
+const queryRunner = ds.createQueryRunner();
+
+try {
+  // 트랜잭션 시작
+  await queryRunner.startTransaction();
+
+  const result = await queryRunner.query(
+    `SELECT * FROM EMPLOYEE WHERE "id" = :id`,
+    { id: 1 }
+  );
+
+  // 트랜잭션 커밋
+  await queryRunner.commitTransaction();
+} catch (error) {
+  // 롤백
+  await queryRunner.rollbackTransaction();
+  throw error;
+} finally {
+  // 반드시 해제 필수
+  await queryRunner.release();
+}
+```
+
+#### 3.5 열 식별자 (Column Identifier) 규칙
+
+**중요**: Oracle은 quoted identifier 사용 시 대소문자 구분
+
+| 테이블 | 열 이름 | 예시 |
+|--------|---------|------|
+| EMPLOYEE | 소문자 | `"id"`, `"username"`, `"password_hash"` |
+| CUSTOMER | 소문자 | `"id"`, `"name"`, `"deleted_at"` |
+| ISSUE | 대문자 | `"ID"`, `"CUSTOMER_ID"`, `"CREATED_AT"` |
+
+**올바른 사용**:
+```typescript
+// ✓ 올바름
+SELECT "id", "username" FROM EMPLOYEE WHERE "id" = :id
+
+// ❌ 에러 (ORA-00904)
+SELECT id, username FROM EMPLOYEE  // quoted identifier 없음
+```
+
+**JOIN 예시**:
+```typescript
+// ISSUE (대문자) ← → CUSTOMER (소문자)
+const query = `
+  SELECT
+    "i"."ID",
+    "i"."CUSTOMER_ID",
+    "c"."id",
+    "c"."name"
+  FROM ISSUE "i"
+  LEFT JOIN CUSTOMER "c" ON "c"."id" = "i"."CUSTOMER_ID"
+  WHERE "c"."deleted_at" IS NULL
+`;
+```
+
+#### 3.6 Migration 관리
+
+```bash
+npx typeorm migration:generate -n CreateEmployeeTable   # 생성
+npx typeorm migration:run                               # 실행
+npx typeorm migration:revert                            # 롤백
+npx typeorm migration:show                              # 이력 확인
+```
+
+#### 3.7 Soft Delete 패턴
+
+**목록 조회 시 필수**:
+```typescript
+// Soft delete 필터링
+const result = await queryRunner.query(
+  `SELECT * FROM MAINTENANCE_CONTRACT WHERE "deleted_at" IS NULL`
+);
+```
+
+**Cascade Soft Delete**:
+```typescript
+// 계약 삭제 시 관련 데이터 함께 soft delete
+await queryRunner.query(
+  `UPDATE MAINTENANCE_CONTRACT SET "deleted_at" = CURRENT_TIMESTAMP WHERE "id" = :id`,
+  { id: contractId }
+);
+await queryRunner.query(
+  `UPDATE MAINTENANCE_CONTRACT_ATTACHMENT SET "deleted_at" = CURRENT_TIMESTAMP
+   WHERE "maintenance_contract_id" = :id`,
+  { id: contractId }
+);
+```
 
 ### 4. 테스트 전략 (Testing Strategy)
 
@@ -518,13 +925,27 @@ npm run test -- --coverage  # 커버리지 확인 (80%+ 라인, 75%+ 브랜치)
 
 ## 금지 사항 (MANDATORY)
 
+### Database Layer
 1. ❌ **CASCADE DELETE** — Soft delete + ON DELETE RESTRICT 사용
-2. ❌ **Fallback DB** — Oracle 전용 (SQLite 등 대체 금지)
-3. ❌ **Physical DELETE** — `deleted_at` column 사용
-4. ❌ **SC에서 Client API** — useState, useEffect, Zustand 등 CC에서만
-5. ❌ **Zustand에 서버 데이터** — TanStack Query 사용
-6. ❌ **인라인 스타일** — Tailwind CSS 사용
-7. ❌ **`any` 타입 무분별 사용** — strict mode 준수
+2. ❌ **ON DELETE CASCADE** — 절대 금지, ON DELETE RESTRICT만 사용
+3. ❌ **Physical DELETE** — `deleted_at` column 사용 (soft delete만)
+4. ❌ **Fallback DB** — Oracle 실패 시 SQLite 등 대체 금지 → HTTP 500 반환
+5. ❌ **QueryRunner 미해제** — try/finally에서 반드시 `release()` 호출
+6. ❌ **Quoted identifier 미사용** — 모든 열은 큰따옴표 감싸기 (대소문자 구분)
+
+### API Route Layer
+7. ❌ **인증 검증 생략** — 모든 엔드포인트에서 `getServerSession()` 필수
+8. ❌ **RBAC 검증 생략** — 권한별 접근 제어 필수 (401, 403 반환)
+9. ❌ **입력 검증 생략** — 모든 필드 검증 필수 (400 반환)
+10. ❌ **응답 형식 비표준화** — `{ data: [...], pagination: {...} }` 표준 준수
+11. ❌ **에러 로깅 생략** — console.error로 상세 로깅 필수
+12. ❌ **트랜잭션 미사용** — 관련 데이터 다중 수정 시 필수
+
+### Frontend Layer
+13. ❌ **SC에서 Client API** — useState, useEffect, Zustand 등 CC에서만
+14. ❌ **Zustand에 서버 데이터** — TanStack Query 사용
+15. ❌ **인라인 스타일** — Tailwind CSS 사용
+16. ❌ **`any` 타입 무분별 사용** — strict mode 준수
 
 ---
 
