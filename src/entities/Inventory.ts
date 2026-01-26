@@ -19,7 +19,6 @@ export type InventoryStatus = '재고' | '출고' | '고장' | '폐기';
 
 @Entity('INVENTORY')
 @Check('"current_status" IN (\'재고\', \'출고\', \'고장\', \'폐기\')')
-@Index('IDX_INVENTORY_SERIAL_NUMBER', ['serial_number'], { unique: true })
 @Index('IDX_INVENTORY_CATEGORY', ['category'])
 @Index('IDX_INVENTORY_CURRENT_STATUS', ['current_status'])
 @Index('IDX_INVENTORY_DELETED_AT', ['deleted_at'])

@@ -14,7 +14,6 @@ import {
 export type EmployeeRole = 'ADMIN' | 'MANAGER' | 'USER';
 
 @Entity('EMPLOYEE')
-@Index('IDX_EMPLOYEE_USERNAME', ['username'], { unique: true })
 @Index('IDX_EMPLOYEE_DELETED_AT', ['deleted_at'])
 export class Employee {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
