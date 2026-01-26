@@ -1,7 +1,7 @@
 // Generated: 2026-01-26 19:15:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDataSource } from '@/lib/db';
 
 // 초기화 API - 마이그레이션 및 테스트 데이터 생성
 export async function POST(req: NextRequest) {
@@ -11,14 +11,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '권한 없음' }, { status: 401 });
     }
 
-    const db = await getDb();
+    const ds = await getDataSource();
 
     // 테이블 존재 확인
-    const result = await db.query(
+    const result = await ds.query(
       `SELECT COUNT(*) as TOTAL FROM user_tables WHERE table_name = 'INVENTORY'`
     );
 
-    if (result.rows[0]?.TOTAL > 0) {
+    if (result[0]?.TOTAL > 0) {
       return NextResponse.json(
         { message: 'INVENTORY 테이블이 이미 존재합니다' },
         { status: 200 }
@@ -26,11 +26,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Sequences 생성
-    await db.execute(`CREATE SEQUENCE INVENTORY_SEQ START WITH 1 INCREMENT BY 1`);
-    await db.execute(`CREATE SEQUENCE INVENTORY_HISTORY_SEQ START WITH 1 INCREMENT BY 1`);
+    await ds.query(`CREATE SEQUENCE INVENTORY_SEQ START WITH 1 INCREMENT BY 1`);
+    await ds.query(`CREATE SEQUENCE INVENTORY_HISTORY_SEQ START WITH 1 INCREMENT BY 1`);
 
     // INVENTORY 테이블 생성
-    await db.execute(`
+    await ds.query(`
       CREATE TABLE INVENTORY (
         id NUMBER DEFAULT INVENTORY_SEQ.NEXTVAL PRIMARY KEY,
         category VARCHAR2(50) NOT NULL,
@@ -51,22 +51,22 @@ export async function POST(req: NextRequest) {
     `);
 
     // 인덱스 생성
-    await db.execute(
+    await ds.query(
       `CREATE UNIQUE INDEX idx_inventory_serial_active ON INVENTORY(serial_number) WHERE deleted_at IS NULL`
     );
-    await db.execute(`CREATE INDEX idx_inventory_status ON INVENTORY(current_status) WHERE deleted_at IS NULL`);
-    await db.execute(`CREATE INDEX idx_inventory_category ON INVENTORY(category) WHERE deleted_at IS NULL`);
+    await ds.query(`CREATE INDEX idx_inventory_status ON INVENTORY(current_status) WHERE deleted_at IS NULL`);
+    await ds.query(`CREATE INDEX idx_inventory_category ON INVENTORY(category) WHERE deleted_at IS NULL`);
 
     // 외래키 추가
-    await db.execute(
+    await ds.query(
       `ALTER TABLE INVENTORY ADD CONSTRAINT FK_INVENTORY_CREATED_BY FOREIGN KEY (created_by_id) REFERENCES EMPLOYEE(id) ON DELETE RESTRICT`
     );
-    await db.execute(
+    await ds.query(
       `ALTER TABLE INVENTORY ADD CONSTRAINT FK_INVENTORY_UPDATED_BY FOREIGN KEY (updated_by_id) REFERENCES EMPLOYEE(id) ON DELETE RESTRICT`
     );
 
     // INVENTORY_HISTORY 테이블 생성
-    await db.execute(`
+    await ds.query(`
       CREATE TABLE INVENTORY_HISTORY (
         id NUMBER DEFAULT INVENTORY_HISTORY_SEQ.NEXTVAL PRIMARY KEY,
         inventory_id NUMBER NOT NULL,
@@ -84,10 +84,10 @@ export async function POST(req: NextRequest) {
     `);
 
     // INVENTORY_HISTORY 외래키
-    await db.execute(
+    await ds.query(
       `ALTER TABLE INVENTORY_HISTORY ADD CONSTRAINT FK_INVENTORY_HISTORY_INVENTORY FOREIGN KEY (inventory_id) REFERENCES INVENTORY(id) ON DELETE RESTRICT`
     );
-    await db.execute(
+    await ds.query(
       `ALTER TABLE INVENTORY_HISTORY ADD CONSTRAINT FK_INVENTORY_HISTORY_CHANGED_BY FOREIGN KEY (changed_by_id) REFERENCES EMPLOYEE(id) ON DELETE RESTRICT`
     );
 
