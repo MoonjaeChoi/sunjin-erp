@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
 
     // 9. 의존성 확인 (Customer, Employee 존재 여부)
     const customerCheck = await queryRunner.query(
-      'SELECT id FROM CUSTOMER WHERE id = :customer_id AND deleted_at IS NULL',
+      'SELECT "id" FROM CUSTOMER WHERE "id" = :customer_id AND "deleted_at" IS NULL',
       { customer_id }
     );
 
@@ -316,7 +316,7 @@ export async function POST(request: NextRequest) {
     }
 
     const employeeCheck = await queryRunner.query(
-      'SELECT id FROM EMPLOYEE WHERE id = :assigned_employee_id AND deleted_at IS NULL',
+      'SELECT "id" FROM EMPLOYEE WHERE "id" = :assigned_employee_id AND "deleted_at" IS NULL',
       { assigned_employee_id }
     );
 
