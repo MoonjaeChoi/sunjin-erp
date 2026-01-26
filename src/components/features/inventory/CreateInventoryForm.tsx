@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -144,6 +145,7 @@ export default function CreateInventoryForm({ open, onClose }: CreateInventoryFo
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>신규 입고 등록</DialogTitle>
+          <DialogDescription>새로운 장비를 재고에 등록합니다.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">

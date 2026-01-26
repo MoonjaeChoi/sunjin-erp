@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -118,6 +119,7 @@ export default function StatusChangeForm({ open, onClose }: StatusChangeFormProp
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>상태 변경</DialogTitle>
+          <DialogDescription>장비의 상태를 변경합니다.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">

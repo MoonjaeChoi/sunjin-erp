@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -105,6 +106,7 @@ export default function CheckinForm({ open, onClose }: CheckinFormProps) {
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>반납 처리</DialogTitle>
+          <DialogDescription>출고된 장비를 반납 처리합니다.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">

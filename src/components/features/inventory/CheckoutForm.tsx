@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -118,6 +119,7 @@ export default function CheckoutForm({ open, onClose }: CheckoutFormProps) {
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>출고 처리</DialogTitle>
+          <DialogDescription>재고에 있는 장비를 출고 처리합니다.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">

@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -105,6 +106,7 @@ export default function RelocateForm({ open, onClose }: RelocateFormProps) {
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>위치 변경</DialogTitle>
+          <DialogDescription>장비의 위치를 변경합니다.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
