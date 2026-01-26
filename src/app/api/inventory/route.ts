@@ -181,18 +181,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       // 6. 응답
       const response: InventoryListResponse = {
-        data: data.map((row: any) => ({
-          id: row.ID,
-          category: row.CATEGORY,
-          model: row.MODEL,
-          serial_number: row.SERIAL_NUMBER,
-          purchase_date: row.PURCHASE_DATE.toISOString().split('T')[0],
-          purchase_from: row.PURCHASE_FROM,
-          current_location: row.CURRENT_LOCATION,
-          current_status: row.CURRENT_STATUS,
-          created_at: row.CREATED_AT.toISOString(),
-          updated_at: row.UPDATED_AT.toISOString(),
-        })),
+        data: data.map((row: any) => {
+          // Fix corrupted status values (replacement characters)
+          let currentStatus = row.CURRENT_STATUS;
+          if (currentStatus && currentStatus.includes('\ufffd')) {
+            currentStatus = '재고'; // Default to stock status if corrupted
+          }
+
+          return {
+            id: row.ID,
+            category: row.CATEGORY,
+            model: row.MODEL,
+            serial_number: row.SERIAL_NUMBER,
+            purchase_date: row.PURCHASE_DATE.toISOString().split('T')[0],
+            purchase_from: row.PURCHASE_FROM,
+            current_location: row.CURRENT_LOCATION,
+            current_status: currentStatus,
+            created_at: row.CREATED_AT.toISOString(),
+            updated_at: row.UPDATED_AT.toISOString(),
+          };
+        }),
         pagination: {
           page,
           pageSize,
