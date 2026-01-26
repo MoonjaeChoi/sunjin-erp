@@ -1,4 +1,4 @@
-// Generated: 2026-01-26 22:50:00 KST
+// Generated: 2026-01-27 18:00:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -15,6 +15,8 @@ export const dynamic = 'force-dynamic';
  * - 쿼리 파라미터: status, assignedEmployeeId, customerId, contractNameSearch, startDateFrom, startDateTo, endDateFrom, endDateTo, sortBy, order, page, limit
  */
 export async function GET(request: NextRequest) {
+  let queryRunner;
+
   try {
     // 1. 세션 검증
     const session = await getServerSession(authOptions);
@@ -41,39 +43,105 @@ export async function GET(request: NextRequest) {
     // 4. 쿼리 파라미터 파싱
     const searchParams = request.nextUrl.searchParams;
 
-    const filters = {
-      status: searchParams.get('status') || undefined,
-      customerId: searchParams.get('customerId')
-        ? parseInt(searchParams.get('customerId')!)
-        : undefined,
-      assignedEmployeeId: searchParams.get('assignedEmployeeId')
-        ? parseInt(searchParams.get('assignedEmployeeId')!)
-        : undefined,
-      contractNameSearch: searchParams.get('contractNameSearch') || undefined,
-      startDateFrom: searchParams.get('startDateFrom')
-        ? new Date(searchParams.get('startDateFrom')!)
-        : undefined,
-      startDateTo: searchParams.get('startDateTo')
-        ? new Date(searchParams.get('startDateTo')!)
-        : undefined,
-      endDateFrom: searchParams.get('endDateFrom')
-        ? new Date(searchParams.get('endDateFrom')!)
-        : undefined,
-      endDateTo: searchParams.get('endDateTo')
-        ? new Date(searchParams.get('endDateTo')!)
-        : undefined,
-      sortBy: searchParams.get('sortBy') || 'mc.created_at',
-      sortOrder: (searchParams.get('order') || 'DESC') as 'ASC' | 'DESC',
-    };
+    const status = searchParams.get('status') || undefined;
+    const customerId = searchParams.get('customerId')
+      ? parseInt(searchParams.get('customerId')!)
+      : undefined;
+    const assignedEmployeeId = searchParams.get('assignedEmployeeId')
+      ? parseInt(searchParams.get('assignedEmployeeId')!)
+      : undefined;
+    const contractNameSearch = searchParams.get('contractNameSearch') || undefined;
+    const startDateFrom = searchParams.get('startDateFrom') || undefined;
+    const startDateTo = searchParams.get('startDateTo') || undefined;
+    const endDateFrom = searchParams.get('endDateFrom') || undefined;
+    const endDateTo = searchParams.get('endDateTo') || undefined;
+    const sortBy = searchParams.get('sortBy') || 'mc.created_at';
+    const sortOrder = (searchParams.get('order') || 'DESC') as 'ASC' | 'DESC';
 
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
-    // 5. 서비스를 통해 계약 조회
-    const { MaintenanceContractRepository } = await import('../../../lib/maintenance-repository');
-    const repository = new MaintenanceContractRepository(dataSource);
-    const [contracts, total] = await repository.findActiveContracts(filters, {
-      page,
+    // 5. Raw SQL 쿼리 구성
+    queryRunner = dataSource.createQueryRunner();
+
+    let whereClause = 'WHERE mc.deleted_at IS NULL';
+    const params: any = {};
+
+    if (status) {
+      whereClause += ' AND mc.contract_status = :status';
+      params.status = status;
+    }
+
+    if (customerId) {
+      whereClause += ' AND mc.customer_id = :customerId';
+      params.customerId = customerId;
+    }
+
+    if (assignedEmployeeId) {
+      whereClause += ' AND mc.assigned_employee_id = :assignedEmployeeId';
+      params.assignedEmployeeId = assignedEmployeeId;
+    }
+
+    if (contractNameSearch) {
+      whereClause += ' AND LOWER(mc.contract_name) LIKE LOWER(:contractNameSearch)';
+      params.contractNameSearch = `%${contractNameSearch}%`;
+    }
+
+    if (startDateFrom) {
+      whereClause += ' AND mc.start_date >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
+      params.startDateFrom = startDateFrom;
+    }
+
+    if (startDateTo) {
+      whereClause += ' AND mc.start_date <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
+      params.startDateTo = startDateTo;
+    }
+
+    if (endDateFrom) {
+      whereClause += ' AND mc.end_date >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
+      params.endDateFrom = endDateFrom;
+    }
+
+    if (endDateTo) {
+      whereClause += ' AND mc.end_date <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
+      params.endDateTo = endDateTo;
+    }
+
+    const offset = (page - 1) * limit;
+
+    // 총 개수 조회
+    const countResult = await queryRunner.query(
+      `SELECT COUNT(*) as total FROM maintenance_contracts mc ${whereClause}`,
+      Object.values(params)
+    );
+    const total = parseInt(countResult[0]?.TOTAL || '0');
+
+    // 목록 조회
+    const sql = `
+      SELECT
+        mc.id,
+        mc.customer_id,
+        mc.contract_name,
+        mc.contract_type,
+        mc.start_date,
+        mc.end_date,
+        mc.assigned_employee_id,
+        mc.contract_amount,
+        mc.contract_status,
+        mc.notes,
+        mc.created_at,
+        mc.updated_at,
+        mc.created_by_id,
+        mc.updated_by_id
+      FROM maintenance_contracts mc
+      ${whereClause}
+      ORDER BY ${sortBy} ${sortOrder}
+      OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+    `;
+
+    const contracts = await queryRunner.query(sql, {
+      ...params,
+      offset,
       limit,
     });
 
@@ -81,7 +149,22 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(total / limit);
     return NextResponse.json(
       {
-        data: contracts,
+        data: contracts.map((c: any) => ({
+          id: c.ID,
+          customer_id: c.CUSTOMER_ID,
+          contract_name: c.CONTRACT_NAME,
+          contract_type: c.CONTRACT_TYPE,
+          start_date: c.START_DATE,
+          end_date: c.END_DATE,
+          assigned_employee_id: c.ASSIGNED_EMPLOYEE_ID,
+          contract_amount: c.CONTRACT_AMOUNT,
+          contract_status: c.CONTRACT_STATUS,
+          notes: c.NOTES,
+          created_at: c.CREATED_AT,
+          updated_at: c.UPDATED_AT,
+          created_by_id: c.CREATED_BY_ID,
+          updated_by_id: c.UPDATED_BY_ID,
+        })),
         pagination: {
           page,
           limit,
@@ -100,6 +183,10 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    if (queryRunner) {
+      await queryRunner.release();
+    }
   }
 }
 
@@ -111,7 +198,7 @@ export async function GET(request: NextRequest) {
  * - 요청 본문: customer_id, contract_name, contract_type, start_date, end_date, assigned_employee_id, contract_amount?, notes?
  */
 export async function POST(request: NextRequest) {
-  let dataSource;
+  let queryRunner;
 
   try {
     // 1. 세션 검증
@@ -128,7 +215,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. 데이터베이스 연결 확인
-    dataSource = await getDataSource();
+    const dataSource = await getDataSource();
     if (!dataSource.isInitialized) {
       return NextResponse.json(
         { error: 'Database connection failed' },
@@ -207,18 +294,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 8. 의존성 확인 (Customer, Employee 존재 여부) - 동적 import 사용
-    const { Customer } = await import('../../../entities/Customer');
-    const { Employee } = await import('../../../entities/Employee');
+    // 8. QueryRunner 생성 및 트랜잭션 시작
+    queryRunner = dataSource.createQueryRunner();
+    await queryRunner.startTransaction();
 
-    const customerRepo = dataSource.getRepository(Customer);
-    const employeeRepo = dataSource.getRepository(Employee);
+    // 9. 의존성 확인 (Customer, Employee 존재 여부)
+    const customerCheck = await queryRunner.query(
+      'SELECT id FROM customers WHERE id = :customer_id AND deleted_at IS NULL',
+      { customer_id }
+    );
 
-    const customerExists = await customerRepo.findOne({
-      where: { id: customer_id, deleted_at: null },
-    });
-
-    if (!customerExists) {
+    if (customerCheck.length === 0) {
+      await queryRunner.rollbackTransaction();
       return NextResponse.json(
         {
           error: 'Not Found',
@@ -228,11 +315,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const employeeExists = await employeeRepo.findOne({
-      where: { id: assigned_employee_id, deleted_at: null },
-    });
+    const employeeCheck = await queryRunner.query(
+      'SELECT id FROM employees WHERE id = :assigned_employee_id AND deleted_at IS NULL',
+      { assigned_employee_id }
+    );
 
-    if (!employeeExists) {
+    if (employeeCheck.length === 0) {
+      await queryRunner.rollbackTransaction();
       return NextResponse.json(
         {
           error: 'Not Found',
@@ -242,33 +331,84 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 9. 서비스를 통해 계약 생성 (트랜잭션 포함)
-    const { MaintenanceContractService } = await import('../../../lib/maintenance-service');
-    const service = new MaintenanceContractService(dataSource);
+    // 10. 계약 생성
     const userId = (session.user as any)?.id as number;
-    const contract = await service.createContract(
+    const now = new Date();
+
+    const insertResult = await queryRunner.query(
+      `INSERT INTO maintenance_contracts
+      (customer_id, contract_name, contract_type, start_date, end_date, assigned_employee_id, contract_amount, contract_status, notes, created_by_id, updated_by_id, created_at, updated_at)
+      VALUES (:customer_id, :contract_name, :contract_type, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'), :assigned_employee_id, :contract_amount, '활성', :notes, :created_by_id, :updated_by_id, :created_at, :updated_at)`,
       {
         customer_id,
         contract_name,
         contract_type,
-        start_date: startDate,
-        end_date: endDate,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
         assigned_employee_id,
         contract_amount: contract_amount || null,
         notes: notes || null,
-      },
-      userId
+        created_by_id: userId,
+        updated_by_id: userId,
+        created_at: now,
+        updated_at: now,
+      }
     );
 
-    // 10. 성공 응답
+    // 11. 최근 생성된 계약 ID 조회 (Oracle에서)
+    const lastIdResult = await queryRunner.query(
+      'SELECT MAX(id) as id FROM maintenance_contracts WHERE customer_id = :customer_id',
+      { customer_id }
+    );
+    const contractId = lastIdResult[0]?.ID;
+
+    // 12. 이력 기록
+    await queryRunner.query(
+      `INSERT INTO maintenance_contract_histories
+      (maintenance_contract_id, change_type, reason, changed_by_id, changed_at, deleted_at)
+      VALUES (:contract_id, '정보_수정', '계약 생성', :changed_by_id, :changed_at, NULL)`,
+      {
+        contract_id: contractId,
+        changed_by_id: userId,
+        changed_at: now,
+      }
+    );
+
+    // 13. 커밋
+    await queryRunner.commitTransaction();
+
+    // 14. 생성된 계약 조회 및 반환
+    const created = await queryRunner.query(
+      'SELECT * FROM maintenance_contracts WHERE id = :id',
+      { id: contractId }
+    );
+
+    const contract = created[0];
+
     return NextResponse.json(
       {
-        data: contract,
+        data: {
+          id: contract.ID,
+          customer_id: contract.CUSTOMER_ID,
+          contract_name: contract.CONTRACT_NAME,
+          contract_type: contract.CONTRACT_TYPE,
+          start_date: contract.START_DATE,
+          end_date: contract.END_DATE,
+          assigned_employee_id: contract.ASSIGNED_EMPLOYEE_ID,
+          contract_amount: contract.CONTRACT_AMOUNT,
+          contract_status: contract.CONTRACT_STATUS,
+          notes: contract.NOTES,
+          created_at: contract.CREATED_AT,
+          updated_at: contract.UPDATED_AT,
+        },
         message: '유지보수 계약이 생성되었습니다.',
       },
       { status: 201 }
     );
   } catch (error) {
+    if (queryRunner && queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction();
+    }
     console.error('POST /api/maintenance error:', error);
     return NextResponse.json(
       {
@@ -277,5 +417,9 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    if (queryRunner) {
+      await queryRunner.release();
+    }
   }
 }

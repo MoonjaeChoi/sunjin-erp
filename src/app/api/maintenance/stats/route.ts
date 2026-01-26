@@ -1,5 +1,4 @@
-// Generated: 2026-01-27 00:05:00 KST
-
+// Generated: 2026-01-27 18:00:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -13,9 +12,11 @@ export const dynamic = 'force-dynamic';
  *
  * 계약 통계 조회
  * - 권한: USER+ (모든 인증 사용자)
- * - 응답: { byStatus, expiringIn30Days, expiringIn60Days }
+ * - 응답: { byStatus, expiringIn30Days, expiringIn60Days, total }
  */
 export async function GET(request: NextRequest) {
+  let queryRunner;
+
   try {
     // 1. 세션 검증
     const session = await getServerSession(authOptions);
@@ -39,49 +40,73 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 4. 서비스를 통해 통계 조회
-    const { MaintenanceContractService } = await import(
-      '../../../../lib/maintenance-service'
-    );
-    const service = new MaintenanceContractService(dataSource);
-    const stats = await service.getStats();
+    queryRunner = dataSource.createQueryRunner();
 
-    // 5. 만료 임박 계약 수 계산 (30일, 60일)
-    const { MaintenanceContractRepository } = await import(
-      '../../../../lib/maintenance-repository'
-    );
-    const repository = new MaintenanceContractRepository(dataSource);
-    const expiringContracts = await repository.findExpiringContracts(60);
+    // 4. 상태별 계약 수 조회
+    const statusStats = await queryRunner.query(`
+      SELECT
+        contract_status,
+        COUNT(*) as count
+      FROM maintenance_contracts
+      WHERE deleted_at IS NULL
+      GROUP BY contract_status
+    `);
 
+    const byStatus: Record<string, number> = {};
+    let total = 0;
+
+    for (const row of statusStats) {
+      const status = row.CONTRACT_STATUS;
+      const count = parseInt(row.COUNT || '0');
+      byStatus[status] = count;
+      total += count;
+    }
+
+    // 5. 만료 예정 계약 조회 (30일, 60일)
     const today = new Date();
     const thirtyDaysLater = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysLater = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
 
+    const expiringContracts = await queryRunner.query(`
+      SELECT
+        id,
+        end_date
+      FROM maintenance_contracts
+      WHERE deleted_at IS NULL
+      AND contract_status = '활성'
+      AND end_date <= :sixtyDaysLater
+      AND end_date >= :today
+    `, {
+      today: today.toISOString().split('T')[0],
+      sixtyDaysLater: sixtyDaysLater.toISOString().split('T')[0],
+    });
+
     let expiringIn30Days = 0;
     let expiringIn60Days = 0;
 
-    expiringContracts.forEach((contract: any) => {
-      const endDate = new Date(contract.end_date);
+    for (const contract of expiringContracts) {
+      const endDate = new Date(contract.END_DATE);
+
       if (endDate <= thirtyDaysLater && endDate >= today) {
         expiringIn30Days++;
         expiringIn60Days++;
       } else if (endDate <= sixtyDaysLater && endDate > thirtyDaysLater) {
         expiringIn60Days++;
       }
-    });
+    }
 
     // 6. 응답 구성
     const response = {
-      byStatus: stats.byStatus,
+      byStatus,
       expiringIn30Days,
       expiringIn60Days,
-      total: stats.total,
+      total,
     };
 
     // 7. 성공 응답
     return NextResponse.json({ data: response }, { status: 200 });
   } catch (error) {
-    console.error(`GET /api/maintenance/stats error:`, error);
+    console.error('GET /api/maintenance/stats error:', error);
     return NextResponse.json(
       {
         error: 'Internal Server Error',
@@ -89,5 +114,9 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    if (queryRunner) {
+      await queryRunner.release();
+    }
   }
 }
