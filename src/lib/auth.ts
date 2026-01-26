@@ -32,9 +32,9 @@ export const authOptions: NextAuthOptions = {
             });
 
             const result = await connection.execute(
-              `SELECT id, name, username, password_hash, role, department_id
+              `SELECT "id", "name", "username", "password_hash", "role", "department_id"
                FROM EMPLOYEE
-               WHERE username = :username AND deleted_at IS NULL`,
+               WHERE "username" = :username AND "deleted_at" IS NULL`,
               { username: credentials.username }
             );
 
@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
               return null;
             }
 
-            const [id, name, username, password_hash, role, department_id] = result.rows[0];
+            const [id, name, username_col, password_hash, role, department_id] = result.rows[0];
 
             const isValid = await bcrypt.compare(
               credentials.password,
