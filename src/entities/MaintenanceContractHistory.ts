@@ -11,6 +11,7 @@ import {
   DeleteDateColumn,
   Index,
 } from 'typeorm';
+import { MaintenanceContract } from './MaintenanceContract';
 import { Employee } from './Employee';
 
 export type MaintenanceChangeType = '갱신' | '상태변경' | '정보수정';
@@ -94,14 +95,14 @@ export class MaintenanceContractHistory {
   deleted_at!: Date | null;
 
   // Relations
-  @ManyToOne('MaintenanceContract', {
+  @ManyToOne(() => MaintenanceContract, {
     onDelete: 'RESTRICT',
     eager: false,
   })
   @JoinColumn({
     name: 'maintenance_contract_id',
   })
-  contract: any; // Type info unavailable due to lazy loading
+  contract!: MaintenanceContract;
 
   @ManyToOne(() => Employee, {
     onDelete: 'RESTRICT',

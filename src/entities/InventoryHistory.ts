@@ -10,6 +10,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
+import { Inventory } from './Inventory';
 import { Employee } from './Employee';
 
 export type ChangeType = '입고' | '출고' | '반납' | '위치변경' | '상태변경';
@@ -106,11 +107,11 @@ export class InventoryHistory {
   changed_at!: Date;
 
   // Relations
-  @ManyToOne('Inventory', {
+  @ManyToOne(() => Inventory, {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'inventory_id' })
-  inventory: any; // Type info unavailable due to lazy loading
+  inventory!: Inventory;
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'changed_by_id' })
