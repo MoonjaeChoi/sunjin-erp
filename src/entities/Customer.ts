@@ -1,37 +1,100 @@
-// Generated: 2026-01-25 05:20:00 KST
-
+// Generated: 2026-01-27 22:50:00 KST
 
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  Index,
   CreateDateColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
-  Index,
 } from 'typeorm';
 
-export type CustomerCategory = 'RESELLER' | 'END_USER' | 'MAINTENANCE' | 'GENERAL';
+export type CustomerClassification = 'RESELLER' | 'END_USER' | 'MAINTENANCE' | 'GENERAL';
+
+// Backward compatibility alias
+export type CustomerCategory = CustomerClassification;
 
 @Entity('CUSTOMER')
-@Index('IDX_CUSTOMER_DELETED_AT', ['deleted_at'])
-@Index('IDX_CUSTOMER_CATEGORY', ['category'])
+@Index('idx_customer_deleted_at', ['deletedAt'])
+@Index('idx_customer_classification', ['classification'])
+@Index('idx_customer_created_at', ['createdAt'])
 export class Customer {
-  @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
+  @PrimaryGeneratedColumn({ name: 'id', type: 'number' })
   id!: number;
 
-  @Column({ name: 'name', type: 'varchar', length: 100, nullable: false, unique: true })
+  @Column({
+    name: 'name',
+    type: 'varchar2',
+    length: 200,
+    nullable: false,
+  })
   name!: string;
 
-  @Column({ name: 'category', type: 'varchar', length: 20, nullable: false })
-  category!: CustomerCategory;
+  @Column({
+    name: 'code',
+    type: 'varchar2',
+    length: 20,
+    nullable: false,
+    unique: true,
+  })
+  code!: string; // Auto-generated: CUST-00001
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
-  created_at!: Date;
+  @Column({
+    name: 'classification',
+    type: 'varchar2',
+    length: 20,
+    nullable: false,
+  })
+  classification!: CustomerClassification;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
-  updated_at!: Date;
+  @Column({
+    name: 'address',
+    type: 'varchar2',
+    length: 500,
+    nullable: true,
+  })
+  address?: string;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
-  deleted_at!: Date | null;
+  @Column({
+    name: 'phone',
+    type: 'varchar2',
+    length: 20,
+    nullable: true,
+  })
+  phone?: string;
+
+  @Column({
+    name: 'email',
+    type: 'varchar2',
+    length: 100,
+    nullable: true,
+  })
+  email?: string;
+
+  @Column({
+    name: 'memo',
+    type: 'clob',
+    nullable: true,
+  })
+  memo?: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt!: Date;
+
+  @Column({ name: 'created_by_id', type: 'number', nullable: false })
+  createdById!: number;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt!: Date;
+
+  @Column({ name: 'updated_by_id', type: 'number', nullable: false })
+  updatedById!: number;
+
+  @Column({
+    name: 'deleted_at',
+    type: 'timestamp',
+    nullable: true,
+  })
+  deletedAt?: Date | null;
+
 }
