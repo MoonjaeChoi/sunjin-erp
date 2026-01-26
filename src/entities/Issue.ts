@@ -21,7 +21,7 @@ export type IssueSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 export type TreatmentMethod = 'REMOTE' | 'PHONE' | 'ONSITE' | null;
 
 @Entity('ISSUE')
-@Check('CHK_ISSUE_TREATMENT_TIME', '"treatment_time_minutes" IS NULL OR ("treatment_time_minutes" >= 1 AND "treatment_time_minutes" <= 1440)')
+@Check('"treatment_time_minutes" IS NULL OR ("treatment_time_minutes" >= 1 AND "treatment_time_minutes" <= 1440)')
 @Index('IDX_ISSUE_CUSTOMER_ID', ['customer_id'])
 @Index('IDX_ISSUE_CREATED_BY_ID', ['created_by_id'])
 @Index('IDX_ISSUE_ASSIGNED_TO_ID', ['assigned_to_id'])

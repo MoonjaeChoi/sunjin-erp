@@ -14,9 +14,9 @@ import {
 import { TaskType, WorkType, TaskStatus } from '@/types/task';
 
 @Entity('TASK')
-@Check('CHK_TASK_START_TIME', '"start_time" IS NULL OR ("start_time" >= 0 AND "start_time" <= 1439)')
-@Check('CHK_TASK_END_TIME', '"end_time" IS NULL OR ("end_time" >= 0 AND "end_time" <= 1439)')
-@Check('CHK_TASK_TIME_ORDER', '("start_time" IS NULL OR "end_time" IS NULL) OR "start_time" < "end_time"')
+@Check('"start_time" IS NULL OR ("start_time" >= 0 AND "start_time" <= 1439)')
+@Check('"end_time" IS NULL OR ("end_time" >= 0 AND "end_time" <= 1439)')
+@Check('("start_time" IS NULL OR "end_time" IS NULL) OR "start_time" < "end_time"')
 @Index('IDX_TASK_DATE_EMPLOYEE', ['task_date', 'employee_id'])
 @Index('IDX_TASK_EMPLOYEE_DATE', ['employee_id', 'task_date', 'deleted_at'])
 @Index('IDX_TASK_EMPLOYEE_STATUS', ['employee_id', 'status'])

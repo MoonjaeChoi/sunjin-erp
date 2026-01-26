@@ -17,9 +17,9 @@ export type SupportMethod = 'ONSITE' | 'REMOTE' | 'PHONE';
 export type SupportStatus = 'RECEIVED' | 'IN_PROGRESS' | 'COMPLETED';
 
 @Entity('TECH_SUPPORT')
-@Check('CHK_TS_START_TIME', '"start_time" IS NULL OR ("start_time" >= 0 AND "start_time" <= 1439)')
-@Check('CHK_TS_END_TIME', '"end_time" IS NULL OR ("end_time" >= 0 AND "end_time" <= 1439)')
-@Check('CHK_TS_TIME_ORDER', '("start_time" IS NULL OR "end_time" IS NULL) OR "start_time" < "end_time"')
+@Check('"start_time" IS NULL OR ("start_time" >= 0 AND "start_time" <= 1439)')
+@Check('"end_time" IS NULL OR ("end_time" >= 0 AND "end_time" <= 1439)')
+@Check('("start_time" IS NULL OR "end_time" IS NULL) OR "start_time" < "end_time"')
 @Index('IDX_TECHSUPPORT_DATE_EMPLOYEE', ['support_date', 'employee_id'])
 @Index('IDX_TECHSUPPORT_CUSTOMER', ['customer_id'])
 @Index('IDX_TECHSUPPORT_STATUS', ['status'])
