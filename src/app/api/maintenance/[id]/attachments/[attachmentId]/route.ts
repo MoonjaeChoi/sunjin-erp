@@ -2,8 +2,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { authOptions } from '../../../../../../lib/auth';
+import { getDataSource } from '../../../../../../lib/db';
 import { IsNull } from 'typeorm';
 
 export const dynamic = 'force-dynamic';
