@@ -81,7 +81,7 @@ export class Inventory {
     type: 'varchar2',
     length: 20,
     nullable: false,
-    default: '\'재고\'',
+    default: "'재고'",
   })
   current_status!: InventoryStatus;
   // 기본값: '재고'
