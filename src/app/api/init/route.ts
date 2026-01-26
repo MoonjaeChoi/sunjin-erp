@@ -6,11 +6,6 @@ import { getDataSource } from '@/lib/db';
 // 초기화 API - 마이그레이션 및 테스트 데이터 생성
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (authHeader !== `Bearer ${process.env.INIT_TOKEN}`) {
-      return NextResponse.json({ error: '권한 없음' }, { status: 401 });
-    }
-
     const ds = await getDataSource();
 
     // 테이블 존재 확인
