@@ -33,18 +33,37 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
       )
     `);
 
-    // 3. INVENTORY 테이블 인덱스
+    // 3. INVENTORY 테이블 인덱스 (부분 인덱스 포함 성능 최적화)
+    // 부분 고유 인덱스 (활성 레코드만)
     await queryRunner.query(
-      `CREATE UNIQUE INDEX IDX_INVENTORY_SERIAL_NUMBER ON INVENTORY(serial_number)`
+      `CREATE UNIQUE INDEX idx_inventory_serial_active ON INVENTORY(serial_number) WHERE deleted_at IS NULL`
+    );
+
+    // 필터링 성능 인덱스 (활성 레코드만)
+    await queryRunner.query(
+      `CREATE INDEX idx_inventory_status ON INVENTORY(current_status) WHERE deleted_at IS NULL`
     );
     await queryRunner.query(
-      `CREATE INDEX IDX_INVENTORY_CATEGORY ON INVENTORY(category)`
+      `CREATE INDEX idx_inventory_category ON INVENTORY(category) WHERE deleted_at IS NULL`
     );
     await queryRunner.query(
-      `CREATE INDEX IDX_INVENTORY_CURRENT_STATUS ON INVENTORY(current_status)`
+      `CREATE INDEX idx_inventory_location ON INVENTORY(current_location) WHERE deleted_at IS NULL`
+    );
+
+    // 검색 성능 인덱스 (활성 레코드만)
+    await queryRunner.query(
+      `CREATE INDEX idx_inventory_serial_search ON INVENTORY(serial_number) WHERE deleted_at IS NULL`
     );
     await queryRunner.query(
-      `CREATE INDEX IDX_INVENTORY_DELETED_AT ON INVENTORY(deleted_at)`
+      `CREATE INDEX idx_inventory_model_search ON INVENTORY(model) WHERE deleted_at IS NULL`
+    );
+
+    // 감사 및 정렬 인덱스
+    await queryRunner.query(
+      `CREATE INDEX idx_inventory_created_at ON INVENTORY(created_at) WHERE deleted_at IS NULL`
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_inventory_deleted_at ON INVENTORY(deleted_at)`
     );
 
     // 4. INVENTORY 외래키 추가
@@ -75,10 +94,13 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
 
     // 6. INVENTORY_HISTORY 테이블 인덱스
     await queryRunner.query(
-      `CREATE INDEX IDX_INVENTORY_HISTORY_INVENTORY_ID ON INVENTORY_HISTORY(inventory_id)`
+      `CREATE INDEX idx_inventory_history_inventory_id ON INVENTORY_HISTORY(inventory_id)`
     );
     await queryRunner.query(
-      `CREATE INDEX IDX_INVENTORY_HISTORY_CHANGED_AT ON INVENTORY_HISTORY(changed_at)`
+      `CREATE INDEX idx_inventory_history_changed_at ON INVENTORY_HISTORY(changed_at)`
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_inventory_history_change_type ON INVENTORY_HISTORY(change_type)`
     );
 
     // 7. INVENTORY_HISTORY 외래키 추가
@@ -91,6 +113,11 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // 인덱스 제거 (INVENTORY_HISTORY)
+    await queryRunner.query(`DROP INDEX idx_inventory_history_change_type`);
+    await queryRunner.query(`DROP INDEX idx_inventory_history_changed_at`);
+    await queryRunner.query(`DROP INDEX idx_inventory_history_inventory_id`);
+
     // 외래키 제거
     await queryRunner.query(
       `ALTER TABLE INVENTORY_HISTORY DROP CONSTRAINT FK_INVENTORY_HISTORY_CHANGED_BY`
@@ -108,6 +135,16 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
     // 테이블 및 시퀀스 제거
     await queryRunner.query(`DROP TABLE INVENTORY_HISTORY`);
     await queryRunner.query(`DROP SEQUENCE INVENTORY_HISTORY_SEQ`);
+
+    // 인덱스 제거 (INVENTORY)
+    await queryRunner.query(`DROP INDEX idx_inventory_deleted_at`);
+    await queryRunner.query(`DROP INDEX idx_inventory_created_at`);
+    await queryRunner.query(`DROP INDEX idx_inventory_model_search`);
+    await queryRunner.query(`DROP INDEX idx_inventory_serial_search`);
+    await queryRunner.query(`DROP INDEX idx_inventory_location`);
+    await queryRunner.query(`DROP INDEX idx_inventory_category`);
+    await queryRunner.query(`DROP INDEX idx_inventory_status`);
+    await queryRunner.query(`DROP INDEX idx_inventory_serial_active`);
 
     await queryRunner.query(`DROP TABLE INVENTORY`);
     await queryRunner.query(`DROP SEQUENCE INVENTORY_SEQ`);
