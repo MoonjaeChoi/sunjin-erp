@@ -465,22 +465,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
       // 7. Issue INSERT
       const now = new Date();
+
+      // Get next ID from sequence
+      const seqResult = await queryRunner.query(
+        `SELECT ISSUE_SEQ.NEXTVAL as "id" FROM DUAL`
+      );
+      const issueId = seqResult[0]?.id;
+
       const insertSql = `
         INSERT INTO ISSUE (
-          "CUSTOMER_ID", "TITLE", "SEVERITY", "DESCRIPTION", "STATUS",
+          "id", "CUSTOMER_ID", "TITLE", "SEVERITY", "DESCRIPTION", "STATUS",
           "IS_PUBLIC", "CREATED_BY_ID", "ASSIGNED_TO_ID",
           "TREATMENT_METHOD", "TREATMENT_TIME_MINUTES", "TREATMENT_RESULT",
           "CREATED_AT", "UPDATED_AT", "DELETED_AT"
         ) VALUES (
-          :customerId, :title, :severity, :description, :status,
+          :id, :customerId, :title, :severity, :description, :status,
           :isPublic, :createdById, :assignedToId,
           :treatmentMethod, :treatmentTimeMinutes, :treatmentResult,
           :createdAt, :updatedAt, :deletedAt
         )
-        RETURNING "ID", "CREATED_AT"
       `;
 
-      const issueResult = await queryRunner.query(insertSql, {
+      await queryRunner.query(insertSql, {
+        id: issueId,
         customerId: customer_id,
         title,
         severity,
@@ -497,28 +504,31 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         deletedAt: null,
       });
 
-      const issueId = issueResult[0]?.id;
-      const createdAt = issueResult[0]?.created_at;
+      const createdAt = now;
 
       // 8. IssueHistory 첫 기록
       try {
+        // Get next history ID from sequence
+        const historySeqResult = await queryRunner.query(
+          `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as "id" FROM DUAL`
+        );
+        const historyId = historySeqResult[0]?.id;
+
         await queryRunner.query(
           `INSERT INTO ISSUE_HISTORY (
-            "ISSUE_ID", "CHANGE_TYPE", "OLD_VALUE", "NEW_VALUE", "CHANGED_BY_ID", "REMARK",
-            "CREATED_AT", "UPDATED_AT"
+            "id", "ISSUE_ID", "CHANGE_TYPE", "OLD_VALUE", "NEW_VALUE", "CHANGED_BY_ID", "CHANGED_AT", "REMARK"
           ) VALUES (
-            :issueId, :changeType, :oldValue, :newValue, :changedById, :remark,
-            :createdAt, :updatedAt
+            :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
           )`,
           {
+            id: historyId,
             issueId,
             changeType: 'STATUS_CHANGE',
             oldValue: null,
             newValue: 'INTAKE',
             changedById: userId,
+            changedAt: now,
             remark: 'Issue created',
-            createdAt: now,
-            updatedAt: now,
           }
         );
       } catch (historyError) {
