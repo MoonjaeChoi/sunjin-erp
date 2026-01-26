@@ -5,7 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
-  debug: false,
+  debug: true,
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -14,7 +14,10 @@ export const authOptions: NextAuthOptions = {
         password: { label: '비밀번호', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('[Auth] Login attempt:', { username: credentials?.username });
+
         if (!credentials?.username || !credentials?.password) {
+          console.log('[Auth] Missing credentials');
           return null;
         }
 
@@ -24,6 +27,7 @@ export const authOptions: NextAuthOptions = {
 
           const ds = await getDataSource();
           if (!ds.isInitialized) {
+            console.log('[Auth] DataSource not initialized');
             return null;
           }
 
@@ -37,21 +41,33 @@ export const authOptions: NextAuthOptions = {
               { username: credentials.username }
             );
 
+            console.log('[Auth] Query result:', { found: result?.length > 0 });
+
             if (!result || result.length === 0) {
+              console.log('[Auth] Employee not found:', credentials.username);
               return null;
             }
 
             const employee = result[0];
+            console.log('[Auth] Employee found:', {
+              id: employee.id,
+              username: employee.username,
+              hasHash: !!employee.password_hash,
+            });
 
             const isValid = await bcrypt.compare(
               credentials.password,
               employee.password_hash
             );
 
+            console.log('[Auth] Password valid:', isValid);
+
             if (!isValid) {
+              console.log('[Auth] Invalid password');
               return null;
             }
 
+            console.log('[Auth] Authorization successful');
             return {
               id: String(employee.id),
               name: employee.name,
