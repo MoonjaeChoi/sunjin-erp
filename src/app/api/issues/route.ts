@@ -266,19 +266,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       delete countParams.offset;
       delete countParams.pageSize;
 
-      console.log('Main query:', query);
-      console.log('Count query:', countQuery);
-      console.log('Params:', params);
-      console.log('CountParams:', countParams);
-
       const [issues, countResult] = await Promise.all([
         queryRunner.query(query, params),
         queryRunner.query(countQuery, countParams),
       ]);
 
-      console.log('Count result:', countResult);
-      console.log('Count result[0]:', countResult[0]);
-      const total = parseInt(countResult[0]?.total || countResult[0]?.TOTAL || '0', 10);
+      // COUNT(*) as total returns uppercase TOTAL key in Oracle
+      const total = parseInt(countResult[0]?.TOTAL || '0', 10);
 
       // 7. 응답 반환
       const formattedIssues: IssueListItem[] = issues.map((row: any) => ({
