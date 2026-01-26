@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -109,6 +110,7 @@ export default function IssueCreateDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>신규 장애 등록</DialogTitle>
+          <DialogDescription>새로운 장애 건을 등록합니다.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="space-y-4">
@@ -210,16 +212,16 @@ export default function IssueCreateDialog({
           <div>
             <label className="block text-sm font-medium mb-1">담당자</label>
             <Select
-              value={formData.assigned_to_id}
+              value={formData.assigned_to_id || '__none__'}
               onValueChange={(value) =>
-                setFormData({ ...formData, assigned_to_id: value })
+                setFormData({ ...formData, assigned_to_id: value === '__none__' ? '' : value })
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="미지정" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">미지정</SelectItem>
+                <SelectItem value="__none__">미지정</SelectItem>
                 {employees.map((e) => (
                   <SelectItem key={e.id} value={e.id.toString()}>
                     {e.name}

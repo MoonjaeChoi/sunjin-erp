@@ -184,16 +184,16 @@ export default function IssueCreateForm({ onSuccess }: IssueCreateFormProps) {
         <div>
           <label className="block text-sm font-medium mb-2">담당자</label>
           <Select
-            value={formData.assigned_to_id}
+            value={formData.assigned_to_id || '__none__'}
             onValueChange={(value) =>
-              setFormData({ ...formData, assigned_to_id: value })
+              setFormData({ ...formData, assigned_to_id: value === '__none__' ? '' : value })
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="미지정" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">미지정</SelectItem>
+              <SelectItem value="__none__">미지정</SelectItem>
               <SelectItem value="1">담당자 A</SelectItem>
               <SelectItem value="2">담당자 B</SelectItem>
             </SelectContent>

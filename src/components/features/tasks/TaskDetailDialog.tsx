@@ -41,16 +41,16 @@ interface TaskDetailDialogProps {
 }
 
 function timeToHourMinute(minutes: number | null): { hour: string; minute: string } {
-  if (minutes === null) return { hour: '', minute: '' };
+  if (minutes === null) return { hour: '__none__', minute: '__none__' };
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return { hour: String(h), minute: String(m) };
 }
 
 function hourMinuteToTime(hour: string, minute: string): number | null {
-  if (hour === '' && minute === '') return null;
-  const h = hour === '' ? 0 : Number(hour);
-  const m = minute === '' ? 0 : Number(minute);
+  if ((hour === '' || hour === '__none__') && (minute === '' || minute === '__none__')) return null;
+  const h = (hour === '' || hour === '__none__') ? 0 : Number(hour);
+  const m = (minute === '' || minute === '__none__') ? 0 : Number(minute);
   return h * 60 + m;
 }
 
@@ -226,7 +226,7 @@ export function TaskDetailDialog({ taskId, onClose }: TaskDetailDialogProps) {
                       <SelectValue placeholder="시" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">-</SelectItem>
+                      <SelectItem value="__none__" hidden>-</SelectItem>
                       {hourOptions.map((h) => (
                         <SelectItem key={h} value={String(h)}>
                           {String(h).padStart(2, '0')}시
@@ -239,7 +239,7 @@ export function TaskDetailDialog({ taskId, onClose }: TaskDetailDialogProps) {
                       <SelectValue placeholder="분" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">-</SelectItem>
+                      <SelectItem value="__none__" hidden>-</SelectItem>
                       {minuteOptions.map((m) => (
                         <SelectItem key={m} value={String(m)}>
                           {String(m).padStart(2, '0')}분
@@ -257,7 +257,7 @@ export function TaskDetailDialog({ taskId, onClose }: TaskDetailDialogProps) {
                       <SelectValue placeholder="시" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">-</SelectItem>
+                      <SelectItem value="__none__" hidden>-</SelectItem>
                       {hourOptions.map((h) => (
                         <SelectItem key={h} value={String(h)}>
                           {String(h).padStart(2, '0')}시
@@ -270,7 +270,7 @@ export function TaskDetailDialog({ taskId, onClose }: TaskDetailDialogProps) {
                       <SelectValue placeholder="분" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">-</SelectItem>
+                      <SelectItem value="__none__" hidden>-</SelectItem>
                       {minuteOptions.map((m) => (
                         <SelectItem key={m} value={String(m)}>
                           {String(m).padStart(2, '0')}분
