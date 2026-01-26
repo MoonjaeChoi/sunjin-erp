@@ -1,5 +1,8 @@
 // Generated: 2026-01-26 22:50:00 KST
 
+// CRITICAL: Load reflect-metadata BEFORE any imports
+require('reflect-metadata');
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
