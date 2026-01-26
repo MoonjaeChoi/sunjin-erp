@@ -156,10 +156,10 @@ export function TechSupportCreateDialog({ open, onClose }: TechSupportCreateDial
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="tech-support-create-description">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>기술지원 등록</DialogTitle>
-          <DialogDescription id="tech-support-create-description">새로운 기술지원 건을 등록합니다.</DialogDescription>
+          <DialogDescription>새로운 기술지원 건을 등록합니다.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">

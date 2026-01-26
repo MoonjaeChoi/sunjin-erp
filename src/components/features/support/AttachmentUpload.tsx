@@ -156,10 +156,10 @@ export function AttachmentUpload({ supportId, attachmentName, canEdit }: Attachm
 
       {/* 교체 확인 Dialog */}
       <Dialog open={replaceOpen} onOpenChange={setReplaceOpen}>
-        <DialogContent aria-describedby="attachment-replace-description">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>파일 교체</DialogTitle>
-            <DialogDescription id="attachment-replace-description">기존 파일이 교체됩니다. 계속하시겠습니까?</DialogDescription>
+            <DialogDescription>기존 파일이 교체됩니다. 계속하시겠습니까?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setReplaceOpen(false); setPendingFile(null); }}>취소</Button>
@@ -170,10 +170,10 @@ export function AttachmentUpload({ supportId, attachmentName, canEdit }: Attachm
 
       {/* 삭제 확인 Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent aria-describedby="attachment-delete-description">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>파일 삭제</DialogTitle>
-            <DialogDescription id="attachment-delete-description">첨부파일을 삭제합니다. 이 작업은 취소할 수 없습니다.</DialogDescription>
+            <DialogDescription>첨부파일을 삭제합니다. 이 작업은 취소할 수 없습니다.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>취소</Button>
