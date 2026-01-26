@@ -80,12 +80,9 @@ export async function getDataSource(): Promise<any> {
       entities: entities,
       migrations: ['src/migrations/*.ts'],
       synchronize: false,
-      logging: process.env.NODE_ENV === 'development',
+      logging: false,  // Disable logging to reduce verbosity
       extra: {
         charset: 'AL32UTF8',
-        fetchAsString: ['CLOB', 'VARCHAR', 'VARCHAR2', 'CHAR'],
-        fetchAsBuffer: ['BLOB'],
-        preFetchRowCount: 100,
       },
     });
 
