@@ -30,9 +30,7 @@ export type ContractStatus = '활성' | '종료' | '갱신예정';
 @Index('IDX_MC_STATUS', ['contract_status'])
 @Index('IDX_MC_END_DATE', ['end_date'])
 @Index('IDX_MC_DELETED_AT', ['deleted_at'])
-@Index('IDX_MC_STATUS_ENDDATE_ACTIVE', ['contract_status', 'end_date'], {
-  where: 'deleted_at IS NULL',
-})
+@Index('IDX_MC_STATUS_ENDDATE_ACTIVE', { synchronize: false })
 export class MaintenanceContract {
   @PrimaryGeneratedColumn('increment', {
     name: 'id',
