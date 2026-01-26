@@ -314,15 +314,11 @@ export async function POST(request: NextRequest) {
 
       // 2. Get next ID from sequence
       const seqResult = await queryRunner.query(
-        `SELECT TECH_SUPPORT_ID_SEQ.NEXTVAL as id FROM DUAL`
+        `SELECT TECH_SUPPORT_ID_SEQ.NEXTVAL as "id" FROM DUAL`
       );
-      console.log('Sequence result:', seqResult);
-      console.log('Sequence result[0]:', seqResult[0]);
       const supportId = seqResult[0]?.id;
-      console.log('Support ID:', supportId);
 
       if (!supportId) {
-        console.warn('No support ID generated');
         return NextResponse.json(
           { error: 'Failed to generate ID' },
           { status: 500 }
