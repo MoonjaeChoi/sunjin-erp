@@ -14,11 +14,14 @@ export const authOptions: NextAuthOptions = {
         password: { label: '비밀번호', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('[Auth] authorize() called with username:', credentials?.username);
         if (!credentials?.username || !credentials?.password) {
+          console.log('[Auth] Missing credentials');
           return null;
         }
 
         try {
+          console.log('[Auth] Attempting direct oracledb connection...');
           // Use oracledb directly to bypass TypeORM DataSource initialization issues
           // @ts-ignore - oracledb doesn't have type definitions
           const oracledb = await import('oracledb');
