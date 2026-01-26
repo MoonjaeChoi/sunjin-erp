@@ -5,7 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
-  debug: false,
+  debug: true,  // Enable debug logging
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -101,22 +101,31 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         console.log('[Auth JWT] Adding user data to token:', { id: user.id, name: user.name, role: (user as any).role });
         token.id = Number(user.id);
+        token.name = user.name;
         token.role = (user as any).role;
         token.department = (user as any).department;
       }
-      console.log('[Auth JWT] token:', { id: token.id, email: token.email, role: token.role });
+      console.log('[Auth JWT] returning token:', { id: token.id, name: token.name, email: token.email, role: token.role });
       return token;
     },
     async session({ session, token }) {
-      console.log('[Auth Session] callback - token:', { id: token.id, role: token.role });
+      console.log('[Auth Session] callback - token:', { id: token.id, name: token.name, role: token.role });
       if (session.user) {
         console.log('[Auth Session] Adding token data to session');
         (session.user as any).id = token.id;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string || '';
         (session.user as any).role = token.role || 'USER';
         (session.user as any).department = token.department;
       }
-      console.log('[Auth Session] session user:', { id: (session.user as any)?.id, email: session.user?.email, role: (session.user as any)?.role });
+      console.log('[Auth Session] returning session with user:', { id: (session.user as any)?.id, name: session.user?.name, email: session.user?.email, role: (session.user as any)?.role });
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      console.log('[Auth Redirect] url:', url, 'baseUrl:', baseUrl);
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
 };
