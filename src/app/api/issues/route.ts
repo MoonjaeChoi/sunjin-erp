@@ -116,7 +116,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const sort_order = (searchParams.get('sort_order') || 'DESC').toUpperCase();
 
     // 3. 권한별 WHERE 절 동적 구성 (RLS)
-    const whereClauses: string[] = ['"i"."DELETED_AT" IS NULL'];
+    // Note: ISSUE table uses unquoted column names (stored as uppercase by Oracle)
+    const whereClauses: string[] = ['i.DELETED_AT IS NULL'];
     const params: any = {};
     let paramIndex = 0;
 
@@ -125,16 +126,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     } else if (userRole === 'MANAGER') {
       // MANAGER: 같은 부서 담당자의 Issue만
       whereClauses.push(
-        `"i"."ASSIGNED_TO_ID" IS NOT NULL AND "e_assigned"."department_id" = :departmentId${paramIndex}`
+        `i.ASSIGNED_TO_ID IS NOT NULL AND e_assigned.department_id = :departmentId${paramIndex}`
       );
       params[`departmentId${paramIndex}`] = userDepartmentId;
       paramIndex++;
     } else if (userRole === 'USER') {
       // USER: 자신 생성 + 자신 담당 + 같은 부서 공개
       whereClauses.push(
-        `("i"."CREATED_BY_ID" = :userId${paramIndex}
-         OR "i"."ASSIGNED_TO_ID" = :userId${paramIndex + 1}
-         OR ("i"."IS_PUBLIC" = 1 AND "e_assigned"."department_id" = :departmentId${paramIndex + 2}))`
+        `(i.CREATED_BY_ID = :userId${paramIndex}
+         OR i.ASSIGNED_TO_ID = :userId${paramIndex + 1}
+         OR (i.IS_PUBLIC = 1 AND e_assigned.department_id = :departmentId${paramIndex + 2}))`
       );
       params[`userId${paramIndex}`] = userId;
       params[`userId${paramIndex + 1}`] = userId;
@@ -144,7 +145,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // 4. 필터 적용 (AND 조합)
     if (customer_id) {
-      whereClauses.push(`"i"."CUSTOMER_ID" = :customerId${paramIndex}`);
+      whereClauses.push(`i.CUSTOMER_ID = :customerId${paramIndex}`);
       params[`customerId${paramIndex}`] = customer_id;
       paramIndex++;
     }
@@ -153,7 +154,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const statusPlaceholders = status
         .map((_, i) => `:status${paramIndex + i}`)
         .join(',');
-      whereClauses.push(`"i"."STATUS" IN (${statusPlaceholders})`);
+      whereClauses.push(`i.STATUS IN (${statusPlaceholders})`);
       status.forEach((s, i) => {
         params[`status${paramIndex + i}`] = s;
       });
@@ -164,7 +165,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const severityPlaceholders = severity
         .map((_, i) => `:severity${paramIndex + i}`)
         .join(',');
-      whereClauses.push(`"i"."SEVERITY" IN (${severityPlaceholders})`);
+      whereClauses.push(`i.SEVERITY IN (${severityPlaceholders})`);
       severity.forEach((s, i) => {
         params[`severity${paramIndex + i}`] = s;
       });
@@ -172,20 +173,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     if (assignee_id) {
-      whereClauses.push(`"i"."ASSIGNED_TO_ID" = :assigneeId${paramIndex}`);
+      whereClauses.push(`i.ASSIGNED_TO_ID = :assigneeId${paramIndex}`);
       params[`assigneeId${paramIndex}`] = assignee_id;
       paramIndex++;
     }
 
     if (created_by_id) {
-      whereClauses.push(`"i"."CREATED_BY_ID" = :createdById${paramIndex}`);
+      whereClauses.push(`i.CREATED_BY_ID = :createdById${paramIndex}`);
       params[`createdById${paramIndex}`] = created_by_id;
       paramIndex++;
     }
 
     if (date_from) {
       whereClauses.push(
-        `TRUNC("i"."CREATED_AT") >= TRUNC(TO_DATE(:dateFrom${paramIndex}, 'YYYY-MM-DD'))`
+        `TRUNC(i.CREATED_AT) >= TRUNC(TO_DATE(:dateFrom${paramIndex}, 'YYYY-MM-DD'))`
       );
       params[`dateFrom${paramIndex}`] = date_from;
       paramIndex++;
@@ -193,7 +194,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (date_to) {
       whereClauses.push(
-        `TRUNC("i"."CREATED_AT") <= TRUNC(TO_DATE(:dateTo${paramIndex}, 'YYYY-MM-DD'))`
+        `TRUNC(i.CREATED_AT) <= TRUNC(TO_DATE(:dateTo${paramIndex}, 'YYYY-MM-DD'))`
       );
       params[`dateTo${paramIndex}`] = date_to;
       paramIndex++;
@@ -201,8 +202,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (keyword) {
       whereClauses.push(
-        `(LOWER("i"."TITLE") LIKE LOWER(:keyword${paramIndex})
-         OR LOWER(DBMS_LOB.SUBSTR("i"."DESCRIPTION", 4000, 1)) LIKE LOWER(:keyword${paramIndex}))`
+        `(LOWER(i.TITLE) LIKE LOWER(:keyword${paramIndex})
+         OR LOWER(DBMS_LOB.SUBSTR(i.DESCRIPTION, 4000, 1)) LIKE LOWER(:keyword${paramIndex}))`
       );
       params[`keyword${paramIndex}`] = `%${keyword}%`;
       paramIndex++;
@@ -225,38 +226,38 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       const query = `
         SELECT
-          "i"."ID",
-          "i"."CUSTOMER_ID",
-          "i"."TITLE",
-          "i"."DESCRIPTION",
-          "i"."SEVERITY",
-          "i"."STATUS",
-          "i"."IS_PUBLIC",
-          "i"."CREATED_BY_ID",
-          "i"."ASSIGNED_TO_ID",
-          "i"."TREATMENT_METHOD",
-          "i"."TREATMENT_TIME_MINUTES",
-          "i"."TREATMENT_RESULT",
-          "i"."CREATED_AT",
-          "i"."COMPLETED_AT",
-          "i"."UPDATED_AT",
-          "i"."DELETED_AT",
-          "c"."name" AS customer_name,
-          "e_created"."name" AS created_by_name,
-          "e_assigned"."name" AS assigned_to_name
-        FROM ISSUE "i"
-        LEFT JOIN CUSTOMER "c" ON "c"."id" = "i"."CUSTOMER_ID" AND "c"."deleted_at" IS NULL
-        LEFT JOIN EMPLOYEE "e_created" ON "e_created"."id" = "i"."CREATED_BY_ID" AND "e_created"."deleted_at" IS NULL
-        LEFT JOIN EMPLOYEE "e_assigned" ON "e_assigned"."id" = "i"."ASSIGNED_TO_ID" AND "e_assigned"."deleted_at" IS NULL
+          i.ID,
+          i.CUSTOMER_ID,
+          i.TITLE,
+          i.DESCRIPTION,
+          i.SEVERITY,
+          i.STATUS,
+          i.IS_PUBLIC,
+          i.CREATED_BY_ID,
+          i.ASSIGNED_TO_ID,
+          i.TREATMENT_METHOD,
+          i.TREATMENT_TIME_MINUTES,
+          i.TREATMENT_RESULT,
+          i.CREATED_AT,
+          i.COMPLETED_AT,
+          i.UPDATED_AT,
+          i.DELETED_AT,
+          c."name" AS customer_name,
+          e_created."name" AS created_by_name,
+          e_assigned."name" AS assigned_to_name
+        FROM ISSUE i
+        LEFT JOIN CUSTOMER c ON c."id" = i.CUSTOMER_ID AND c."deleted_at" IS NULL
+        LEFT JOIN EMPLOYEE e_created ON e_created."id" = i.CREATED_BY_ID AND e_created."deleted_at" IS NULL
+        LEFT JOIN EMPLOYEE e_assigned ON e_assigned."id" = i.ASSIGNED_TO_ID AND e_assigned."deleted_at" IS NULL
         WHERE ${whereClauses.join(' AND ')}
-        ORDER BY "i"."${finalSortBy.toUpperCase()}" ${finalSortOrder}
+        ORDER BY i.${finalSortBy.toUpperCase()} ${finalSortOrder}
         OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
       `;
 
       const countQuery = `
         SELECT COUNT(*) as total
-        FROM ISSUE "i"
-        LEFT JOIN EMPLOYEE "e_assigned" ON "e_assigned"."id" = "i"."ASSIGNED_TO_ID"
+        FROM ISSUE i
+        LEFT JOIN EMPLOYEE e_assigned ON e_assigned."id" = i.ASSIGNED_TO_ID
         WHERE ${whereClauses.join(' AND ')}
       `;
 
@@ -279,24 +280,24 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       // 7. 응답 반환
       const formattedIssues: IssueListItem[] = issues.map((row: any) => ({
-        id: row.id,
-        customer_id: row.customer_id,
+        id: row.ID,
+        customer_id: row.CUSTOMER_ID,
         customer_name: row.customer_name || '',
-        title: row.title,
-        description: row.description,
-        severity: row.severity,
-        status: row.status,
-        is_public: row.is_public,
-        created_by_id: row.created_by_id,
+        title: row.TITLE,
+        description: row.DESCRIPTION,
+        severity: row.SEVERITY,
+        status: row.STATUS,
+        is_public: row.IS_PUBLIC,
+        created_by_id: row.CREATED_BY_ID,
         created_by_name: row.created_by_name || '',
-        assigned_to_id: row.assigned_to_id,
+        assigned_to_id: row.ASSIGNED_TO_ID,
         assigned_to_name: row.assigned_to_name || null,
-        treatment_method: row.treatment_method,
-        treatment_time_minutes: row.treatment_time_minutes,
-        treatment_result: row.treatment_result,
-        created_at: row.created_at,
-        completed_at: row.completed_at,
-        updated_at: row.updated_at,
+        treatment_method: row.TREATMENT_METHOD,
+        treatment_time_minutes: row.TREATMENT_TIME_MINUTES,
+        treatment_result: row.TREATMENT_RESULT,
+        created_at: row.CREATED_AT,
+        completed_at: row.COMPLETED_AT,
+        updated_at: row.UPDATED_AT,
       }));
 
       return NextResponse.json<IssueListResponse>({
