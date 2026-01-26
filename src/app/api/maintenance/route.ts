@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const startDateTo = searchParams.get('startDateTo') || undefined;
     const endDateFrom = searchParams.get('endDateFrom') || undefined;
     const endDateTo = searchParams.get('endDateTo') || undefined;
-    const sortBy = searchParams.get('sortBy') || 'mc.created_at';
+    const sortBy = searchParams.get('sortBy') || 'mc.CREATED_AT';
     const sortOrder = (searchParams.get('order') || 'DESC') as 'ASC' | 'DESC';
 
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
@@ -64,46 +64,46 @@ export async function GET(request: NextRequest) {
     // 5. Raw SQL 쿼리 구성
     queryRunner = dataSource.createQueryRunner();
 
-    let whereClause = 'WHERE mc.deleted_at IS NULL';
+    let whereClause = 'WHERE mc.DELETED_AT IS NULL';
     const params: any = {};
 
     if (status) {
-      whereClause += ' AND mc.contract_status = :status';
+      whereClause += ' AND mc.CONTRACT_STATUS = :status';
       params.status = status;
     }
 
     if (customerId) {
-      whereClause += ' AND mc.customer_id = :customerId';
+      whereClause += ' AND mc.CUSTOMER_ID = :customerId';
       params.customerId = customerId;
     }
 
     if (assignedEmployeeId) {
-      whereClause += ' AND mc.assigned_employee_id = :assignedEmployeeId';
+      whereClause += ' AND mc.ASSIGNED_EMPLOYEE_ID = :assignedEmployeeId';
       params.assignedEmployeeId = assignedEmployeeId;
     }
 
     if (contractNameSearch) {
-      whereClause += ' AND LOWER(mc.contract_name) LIKE LOWER(:contractNameSearch)';
+      whereClause += ' AND LOWER(mc.CONTRACT_NAME) LIKE LOWER(:contractNameSearch)';
       params.contractNameSearch = `%${contractNameSearch}%`;
     }
 
     if (startDateFrom) {
-      whereClause += ' AND mc.start_date >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND mc.START_DATE >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
       params.startDateFrom = startDateFrom;
     }
 
     if (startDateTo) {
-      whereClause += ' AND mc.start_date <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND mc.START_DATE <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
       params.startDateTo = startDateTo;
     }
 
     if (endDateFrom) {
-      whereClause += ' AND mc.end_date >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND mc.END_DATE >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
       params.endDateFrom = endDateFrom;
     }
 
     if (endDateTo) {
-      whereClause += ' AND mc.end_date <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND mc.END_DATE <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
       params.endDateTo = endDateTo;
     }
 
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
 
     // 총 개수 조회
     const countResult = await queryRunner.query(
-      `SELECT COUNT(*) as total FROM maintenance_contracts mc ${whereClause}`,
+      `SELECT COUNT(*) as total FROM MAINTENANCE_CONTRACTS mc ${whereClause}`,
       Object.values(params)
     );
     const total = parseInt(countResult[0]?.TOTAL || '0');
@@ -119,21 +119,21 @@ export async function GET(request: NextRequest) {
     // 목록 조회
     const sql = `
       SELECT
-        mc.id,
-        mc.customer_id,
-        mc.contract_name,
-        mc.contract_type,
-        mc.start_date,
-        mc.end_date,
-        mc.assigned_employee_id,
-        mc.contract_amount,
-        mc.contract_status,
-        mc.notes,
-        mc.created_at,
-        mc.updated_at,
-        mc.created_by_id,
-        mc.updated_by_id
-      FROM maintenance_contracts mc
+        mc.ID as id,
+        mc.CUSTOMER_ID as customer_id,
+        mc.CONTRACT_NAME as contract_name,
+        mc.CONTRACT_TYPE as contract_type,
+        mc.START_DATE as start_date,
+        mc.END_DATE as end_date,
+        mc.ASSIGNED_EMPLOYEE_ID as assigned_employee_id,
+        mc.CONTRACT_AMOUNT as contract_amount,
+        mc.CONTRACT_STATUS as contract_status,
+        mc.NOTES as notes,
+        mc.CREATED_AT as created_at,
+        mc.UPDATED_AT as updated_at,
+        mc.CREATED_BY_ID as created_by_id,
+        mc.UPDATED_BY_ID as updated_by_id
+      FROM MAINTENANCE_CONTRACTS mc
       ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
@@ -337,8 +337,8 @@ export async function POST(request: NextRequest) {
 
     const insertResult = await queryRunner.query(
       `INSERT INTO maintenance_contracts
-      (customer_id, contract_name, contract_type, start_date, end_date, assigned_employee_id, contract_amount, contract_status, notes, created_by_id, updated_by_id, created_at, updated_at)
-      VALUES (:customer_id, :contract_name, :contract_type, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'), :assigned_employee_id, :contract_amount, '활성', :notes, :created_by_id, :updated_by_id, :created_at, :updated_at)`,
+      (id, customer_id, contract_name, contract_type, start_date, end_date, assigned_employee_id, contract_amount, contract_status, notes, created_by_id, updated_by_id, created_at, updated_at)
+      VALUES (MAINTENANCE_CONTRACTS_ID_SEQ.NEXTVAL, :customer_id, :contract_name, :contract_type, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'), :assigned_employee_id, :contract_amount, '활성', :notes, :created_by_id, :updated_by_id, :created_at, :updated_at)`,
       {
         customer_id,
         contract_name,
@@ -357,16 +357,16 @@ export async function POST(request: NextRequest) {
 
     // 11. 최근 생성된 계약 ID 조회 (Oracle에서)
     const lastIdResult = await queryRunner.query(
-      'SELECT MAX(id) as id FROM maintenance_contracts WHERE customer_id = :customer_id',
+      'SELECT MAX(ID) as id FROM MAINTENANCE_CONTRACTS WHERE CUSTOMER_ID = :customer_id',
       { customer_id }
     );
     const contractId = lastIdResult[0]?.ID;
 
     // 12. 이력 기록
     await queryRunner.query(
-      `INSERT INTO maintenance_contract_histories
-      (maintenance_contract_id, change_type, reason, changed_by_id, changed_at, deleted_at)
-      VALUES (:contract_id, '정보_수정', '계약 생성', :changed_by_id, :changed_at, NULL)`,
+      `INSERT INTO MAINTENANCE_CONTRACT_HISTORIES
+      (ID, MAINTENANCE_CONTRACT_ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT, DELETED_AT)
+      VALUES (MAINTENANCE_CONTRACT_HISTORIES_ID_SEQ.NEXTVAL, :contract_id, '정보_수정', '계약 생성', :changed_by_id, :changed_at, NULL)`,
       {
         contract_id: contractId,
         changed_by_id: userId,
@@ -379,7 +379,7 @@ export async function POST(request: NextRequest) {
 
     // 14. 생성된 계약 조회 및 반환
     const created = await queryRunner.query(
-      'SELECT * FROM maintenance_contracts WHERE id = :id',
+      'SELECT * FROM MAINTENANCE_CONTRACTS WHERE ID = :id',
       { id: contractId }
     );
 
