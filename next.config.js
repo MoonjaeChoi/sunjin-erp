@@ -14,6 +14,7 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ['oracledb', 'typeorm', 'reflect-metadata'],
+    instrumentationHook: true,
   },
 };
 

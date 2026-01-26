@@ -1,18 +1,79 @@
-// Generated: 2026-01-25 20:30:00 KST
+// Generated: 2026-01-27 14:30:00 KST
 
-// Load reflect-metadata immediately for decorators
-try {
-  require('reflect-metadata');
-} catch (e) {
-  console.warn('[DB] Warning: reflect-metadata could not be loaded');
-}
+// Note: reflect-metadata is loaded in instrumentation.ts to ensure it's available
+// before any TypeORM decorators are evaluated. We use dynamic imports below to avoid
+// circular dependency issues at build time.
 
-// Set Oracle character set environment variables for proper UTF-8 handling
-if (typeof process !== 'undefined') {
-  process.env.NLS_LANG = 'KOREAN_KOREA.AL32UTF8';
-}
+import 'reflect-metadata';
+import { DataSource } from 'typeorm';
 
 let dataSource: any = null;
+let entityImportsLoaded = false;
+let cachedEntities: any[] = [];
+
+async function loadEntities(): Promise<any[]> {
+  if (entityImportsLoaded) {
+    return cachedEntities;
+  }
+
+  try {
+    // Dynamically import entities at runtime to avoid circular dependency at build time
+    const [
+      { Task },
+      { Employee },
+      { Customer },
+      { TechSupport },
+      { Project },
+      { ProjectAttachment },
+      { Issue },
+      { IssueAttachment },
+      { IssueHistory },
+      { Inventory },
+      { InventoryHistory },
+      { MaintenanceContract },
+      { MaintenanceContractAttachment },
+      { MaintenanceContractHistory },
+    ] = await Promise.all([
+      import('@/entities/Task'),
+      import('@/entities/Employee'),
+      import('@/entities/Customer'),
+      import('@/entities/TechSupport'),
+      import('@/entities/Project'),
+      import('@/entities/ProjectAttachment'),
+      import('@/entities/Issue'),
+      import('@/entities/IssueAttachment'),
+      import('@/entities/IssueHistory'),
+      import('@/entities/Inventory'),
+      import('@/entities/InventoryHistory'),
+      import('@/entities/MaintenanceContract'),
+      import('@/entities/MaintenanceContractAttachment'),
+      import('@/entities/MaintenanceContractHistory'),
+    ]);
+
+    cachedEntities = [
+      Task,
+      Employee,
+      Customer,
+      TechSupport,
+      Project,
+      ProjectAttachment,
+      Issue,
+      IssueAttachment,
+      IssueHistory,
+      Inventory,
+      InventoryHistory,
+      MaintenanceContract,
+      MaintenanceContractAttachment,
+      MaintenanceContractHistory,
+    ];
+
+    entityImportsLoaded = true;
+    return cachedEntities;
+  } catch (error) {
+    console.error('[DB] Failed to load entities:', error);
+    throw error;
+  }
+}
 
 export async function getDataSource(): Promise<any> {
   if (dataSource && dataSource.isInitialized) {
@@ -20,21 +81,7 @@ export async function getDataSource(): Promise<any> {
   }
 
   try {
-    const { DataSource } = require('typeorm');
-    const { Task } = require('@/entities/Task');
-    const { Employee } = require('@/entities/Employee');
-    const { Customer } = require('@/entities/Customer');
-    const { TechSupport } = require('@/entities/TechSupport');
-    const { Project } = require('@/entities/Project');
-    const { ProjectAttachment } = require('@/entities/ProjectAttachment');
-    const { Issue } = require('@/entities/Issue');
-    const { IssueAttachment } = require('@/entities/IssueAttachment');
-    const { IssueHistory } = require('@/entities/IssueHistory');
-    const { Inventory } = require('@/entities/Inventory');
-    const { InventoryHistory } = require('@/entities/InventoryHistory');
-    const { MaintenanceContract } = require('@/entities/MaintenanceContract');
-    const { MaintenanceContractAttachment } = require('@/entities/MaintenanceContractAttachment');
-    const { MaintenanceContractHistory } = require('@/entities/MaintenanceContractHistory');
+    const entities = await loadEntities();
 
     dataSource = new DataSource({
       type: 'oracle',
@@ -43,22 +90,7 @@ export async function getDataSource(): Promise<any> {
       serviceName: process.env.ORACLE_SERVICE_NAME || 'XEPDB1',
       username: process.env.ORACLE_USERNAME || 'sunjin_admin',
       password: process.env.ORACLE_PASSWORD || '',
-      entities: [
-        Task,
-        Employee,
-        Customer,
-        TechSupport,
-        Project,
-        ProjectAttachment,
-        Issue,
-        IssueAttachment,
-        IssueHistory,
-        Inventory,
-        InventoryHistory,
-        MaintenanceContract,
-        MaintenanceContractAttachment,
-        MaintenanceContractHistory,
-      ],
+      entities: entities,
       migrations: ['src/migrations/*.ts'],
       synchronize: false,
       logging: process.env.NODE_ENV === 'development',
@@ -71,10 +103,10 @@ export async function getDataSource(): Promise<any> {
     });
 
     await dataSource.initialize();
+    console.log('[DB] TypeORM DataSource initialized successfully');
   } catch (error) {
     console.error('[DB] Error during initialization:', error instanceof Error ? error.message : String(error));
-    // If initialization fails (e.g., during build), create minimal datasource
-    // to prevent module loading errors
+    // If initialization fails, create minimal datasource to prevent runtime errors
     if (!dataSource) {
       dataSource = { isInitialized: false };
     }
