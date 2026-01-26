@@ -1,37 +1,55 @@
-// Generated: 2026-01-27 15:00:00 KST
+// Generated: 2026-01-27 15:45:00 KST
 
-// CRITICAL: Load reflect-metadata FIRST before any other imports
-// This must be at the absolute top of the file, before any other module loads
+// CRITICAL: Load reflect-metadata immediately when this module is imported
+// This must be before any TypeORM entity is imported or evaluated
 require('reflect-metadata');
 
+// Only import entities at runtime to avoid build-time circular dependencies
 import { DataSource } from 'typeorm';
 
 let dataSource: any = null;
-let entityImportsLoaded = false;
+let entitiesLoaded = false;
 let cachedEntities: any[] = [];
 
-async function loadEntities(): Promise<any[]> {
-  if (entityImportsLoaded) {
+async function ensureEntitiesLoaded(): Promise<any[]> {
+  if (entitiesLoaded && cachedEntities.length > 0) {
     return cachedEntities;
   }
 
   try {
-    // Dynamically import entities at runtime
-    // reflect-metadata has already been loaded by require() at module top
-    const Task = await import('@/entities/Task').then(m => m.Task);
-    const Employee = await import('@/entities/Employee').then(m => m.Employee);
-    const Customer = await import('@/entities/Customer').then(m => m.Customer);
-    const TechSupport = await import('@/entities/TechSupport').then(m => m.TechSupport);
-    const Project = await import('@/entities/Project').then(m => m.Project);
-    const ProjectAttachment = await import('@/entities/ProjectAttachment').then(m => m.ProjectAttachment);
-    const Issue = await import('@/entities/Issue').then(m => m.Issue);
-    const IssueAttachment = await import('@/entities/IssueAttachment').then(m => m.IssueAttachment);
-    const IssueHistory = await import('@/entities/IssueHistory').then(m => m.IssueHistory);
-    const Inventory = await import('@/entities/Inventory').then(m => m.Inventory);
-    const InventoryHistory = await import('@/entities/InventoryHistory').then(m => m.InventoryHistory);
-    const MaintenanceContract = await import('@/entities/MaintenanceContract').then(m => m.MaintenanceContract);
-    const MaintenanceContractAttachment = await import('@/entities/MaintenanceContractAttachment').then(m => m.MaintenanceContractAttachment);
-    const MaintenanceContractHistory = await import('@/entities/MaintenanceContractHistory').then(m => m.MaintenanceContractHistory);
+    // Delay entity import until runtime to avoid build-time circular dependencies
+    // This ensures reflect-metadata is fully loaded before decorators are evaluated
+    const [
+      { Task },
+      { Employee },
+      { Customer },
+      { TechSupport },
+      { Project },
+      { ProjectAttachment },
+      { Issue },
+      { IssueAttachment },
+      { IssueHistory },
+      { Inventory },
+      { InventoryHistory },
+      { MaintenanceContract },
+      { MaintenanceContractAttachment },
+      { MaintenanceContractHistory },
+    ] = await Promise.all([
+      import('@/entities/Task'),
+      import('@/entities/Employee'),
+      import('@/entities/Customer'),
+      import('@/entities/TechSupport'),
+      import('@/entities/Project'),
+      import('@/entities/ProjectAttachment'),
+      import('@/entities/Issue'),
+      import('@/entities/IssueAttachment'),
+      import('@/entities/IssueHistory'),
+      import('@/entities/Inventory'),
+      import('@/entities/InventoryHistory'),
+      import('@/entities/MaintenanceContract'),
+      import('@/entities/MaintenanceContractAttachment'),
+      import('@/entities/MaintenanceContractHistory'),
+    ]);
 
     cachedEntities = [
       Task,
@@ -50,8 +68,7 @@ async function loadEntities(): Promise<any[]> {
       MaintenanceContractHistory,
     ];
 
-    entityImportsLoaded = true;
-    console.log('[DB] Entities loaded successfully');
+    entitiesLoaded = true;
     return cachedEntities;
   } catch (error) {
     console.error('[DB] Failed to load entities:', error instanceof Error ? error.message : String(error));
@@ -65,7 +82,7 @@ export async function getDataSource(): Promise<any> {
   }
 
   try {
-    const entities = await loadEntities();
+    const entities = await ensureEntitiesLoaded();
 
     dataSource = new DataSource({
       type: 'oracle',
@@ -90,7 +107,8 @@ export async function getDataSource(): Promise<any> {
     console.log('[DB] TypeORM DataSource initialized successfully');
   } catch (error) {
     console.error('[DB] Error during initialization:', error instanceof Error ? error.message : String(error));
-    // If initialization fails, create minimal datasource to prevent runtime errors
+    // If initialization fails (e.g., during build), create minimal datasource
+    // to prevent module loading errors
     if (!dataSource) {
       dataSource = { isInitialized: false };
     }
