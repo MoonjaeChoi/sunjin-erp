@@ -15,7 +15,14 @@ export default function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
   };
 
   return (
-    <span className={`inline-block ${colors.badge} ${colors.text} rounded-full ${sizeClasses[size]} font-medium`} style={{ textRendering: 'geometricPrecision' }}>
+    <span
+      className={`inline-block ${colors.badge} ${colors.text} rounded-full ${sizeClasses[size]} font-medium`}
+      style={{
+        fontFamily: '"Noto Sans KR", sans-serif',
+        textRendering: 'optimizeLegibility',
+        WebkitFontSmoothing: 'antialiased',
+      }}
+    >
       {label}
     </span>
   );
