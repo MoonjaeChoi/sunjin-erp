@@ -312,22 +312,38 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // 2. INSERT
+      // 2. Get next ID from sequence
+      const seqResult = await queryRunner.query(
+        `SELECT TECH_SUPPORT_ID_SEQ.NEXTVAL as id FROM DUAL`
+      );
+      console.log('Sequence result:', seqResult);
+      console.log('Sequence result[0]:', seqResult[0]);
+      const supportId = seqResult[0]?.id;
+      console.log('Support ID:', supportId);
+
+      if (!supportId) {
+        console.warn('No support ID generated');
+        return NextResponse.json(
+          { error: 'Failed to generate ID' },
+          { status: 500 }
+        );
+      }
+
+      // 3. INSERT with explicit ID
       const insertSql = `
         INSERT INTO TECH_SUPPORT (
-          "title", "description", "support_date", "start_time", "end_time",
+          "id", "title", "description", "support_date", "start_time", "end_time",
           "support_type", "support_method", "status", "employee_id", "customer_id",
           "created_at", "updated_at", "deleted_at"
         ) VALUES (
-          :title, :description, :supportDate, :startTime, :endTime,
+          :id, :title, :description, :supportDate, :startTime, :endTime,
           :supportType, :supportMethod, :status, :employeeId, :customerId,
           :createdAt, :updatedAt, :deletedAt
         )
       `;
 
-      console.log('INSERT SQL:', insertSql);
-
       await queryRunner.query(insertSql, {
+        id: supportId,
         title: sanitizedTitle,
         description: body.description || null,
         supportDate: new Date(body.support_date),
@@ -342,14 +358,6 @@ export async function POST(request: NextRequest) {
         updatedAt: now,
         deletedAt: null,
       });
-
-      // 3. Get the last inserted ID (since we can't use RETURNING in all Oracle versions)
-      const idResult = await queryRunner.query(
-        `SELECT MAX("id") as id FROM TECH_SUPPORT WHERE "employee_id" = :empId AND "customer_id" = :custId AND "title" = :title`,
-        { empId: user.id, custId: body.customer_id, title: sanitizedTitle }
-      );
-
-      const supportId = idResult[0]?.id;
 
       return NextResponse.json(
         { message: 'Created successfully', id: supportId },
