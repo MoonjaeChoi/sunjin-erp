@@ -4,6 +4,7 @@
 
 **문서 번호**: 2071_11
 **원본 PRD**: `docs/prd/2071_유지보수_고객_관리_prd_v2.md`
+**개발 표준**: `CLAUDE.md` (TypeScript strict mode), `docs/standard/FRONTEND_CODING_STANDARDS_*.md`
 **구현 범위**: Frontend에서 사용할 타입/인터페이스 정의 및 유틸리티 타입
 **복잡도**: S (0.5-1일)
 **의존성**: 2071_05~10 (API 응답 스키마 확정)

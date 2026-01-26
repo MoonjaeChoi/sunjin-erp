@@ -4,6 +4,7 @@
 
 **문서 번호**: 2071_12
 **원본 PRD**: `docs/prd/2071_유지보수_고객_관리_prd_v2.md`
+**개발 표준**: `CLAUDE.md` (TanStack Query single source of truth, Zustand UI state only, staleTime/cacheTime patterns)
 **구현 범위**: React Query hooks for data fetching, caching, mutations
 **복잡도**: M (1-2일)
 **의존성**: 2071_05~11 (API 구현 + 타입 정의)
