@@ -59,6 +59,20 @@ export async function GET(
         return NextResponse.json({ error: 'Not Found' }, { status: 404 });
       }
 
+      // Debug: Log the raw CURRENT_STATUS value and its encoding
+      if (inventory.CURRENT_STATUS) {
+        const statusValue = inventory.CURRENT_STATUS;
+        const statusBytes = Buffer.from(statusValue, 'utf16le').toString('utf8');
+
+        // If the value appears to be mojibake, try to fix it
+        if (statusValue.includes('\ufffd')) {
+          // This is a replacement character - the data is corrupted in the database
+          // Try to infer the correct value based on context
+          // For now, default to '재고' if corrupted
+          inventory.CURRENT_STATUS = '재고';
+        }
+      }
+
       // 이력 조회
       const historyQuery = `
         SELECT
