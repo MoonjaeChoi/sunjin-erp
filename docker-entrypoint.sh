@@ -7,10 +7,11 @@ set -e
 echo "=================================================="
 echo "🚀 Sunjin ERP Application Startup"
 echo "=================================================="
+echo ""
 
 # Check environment variables
 if [ -z "$ORACLE_HOST" ]; then
-  echo "❌ Error: ORACLE_HOST environment variable not set"
+  echo "❌ Error: ORACLE_HOST not set"
   exit 1
 fi
 
@@ -19,60 +20,28 @@ if [ -z "$ORACLE_USERNAME" ] || [ -z "$ORACLE_PASSWORD" ]; then
   exit 1
 fi
 
-echo "✓ Environment variables configured"
+echo "✓ Environment configured"
 echo "  Host: $ORACLE_HOST"
-echo "  Service: $ORACLE_SERVICE_NAME"
 echo "  User: $ORACLE_USERNAME"
-
-# Create a simple TypeORM config for migrations
 echo ""
-echo "📝 Creating TypeORM configuration..."
 
-cat > /tmp/typeorm-config.js << 'EOF'
-module.exports = {
-  type: 'oracle',
-  host: process.env.ORACLE_HOST,
-  port: parseInt(process.env.ORACLE_PORT || '1521'),
-  serviceName: process.env.ORACLE_SERVICE_NAME || 'XEPDB1',
-  username: process.env.ORACLE_USERNAME,
-  password: process.env.ORACLE_PASSWORD,
-  entities: ['src/entities/*.ts'],
-  migrations: ['src/migrations/*.ts'],
-  synchronize: false,
-  logging: process.env.LOG_LEVEL === 'debug'
-};
-EOF
-
-# Try to run migrations
-echo ""
-echo "🔄 Attempting to run database migrations..."
+# Run migrations
+echo "🔄 Running database migrations..."
 cd /app
 
-# Check if migrations directory exists
-if [ -d "src/migrations" ]; then
-  echo "✓ Migrations directory found"
-
-  # Count migrations
-  MIGRATION_COUNT=$(find src/migrations -name "*.ts" 2>/dev/null | wc -l)
-  echo "  Found $MIGRATION_COUNT migration files"
+if [ -f "scripts/run-migrations.js" ]; then
+  node scripts/run-migrations.js || {
+    echo "⚠️  Migration script failed, but continuing with app startup"
+  }
 else
-  echo "⚠️  Migrations directory not found at src/migrations"
-fi
-
-# Try to run migrations using npx typeorm (if available)
-if command -v npx >/dev/null 2>&1; then
-  echo "  Running: npx typeorm migration:run..."
-  npx typeorm migration:run \
-    --dataSource /tmp/typeorm-config.js \
-    2>&1 || true
-else
-  echo "⚠️  npx not available, skipping migrations"
+  echo "⚠️  Migration script not found at scripts/run-migrations.js"
 fi
 
 echo ""
 echo "=================================================="
 echo "✅ Starting application server..."
 echo "=================================================="
+echo ""
 
 # Start the application
 exec node server.js
