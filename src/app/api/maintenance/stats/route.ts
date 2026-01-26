@@ -74,8 +74,8 @@ export async function GET(request: NextRequest) {
       FROM maintenance_contracts
       WHERE deleted_at IS NULL
       AND contract_status = '활성'
-      AND end_date <= :sixtyDaysLater
-      AND end_date >= :today
+      AND end_date <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
+      AND end_date >= TO_DATE(:today, 'YYYY-MM-DD')
     `, {
       today: today.toISOString().split('T')[0],
       sixtyDaysLater: sixtyDaysLater.toISOString().split('T')[0],
