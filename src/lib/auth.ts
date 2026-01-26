@@ -20,11 +20,12 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Use oracledb directly to bypass TypeORM DataSource initialization issues
-          const oracledb = await import('oracledb');
+          const oracledbModule = await import('oracledb');
+          const oracledb = oracledbModule as any;
 
-          let connection;
+          let connection: any;
           try {
-            connection = await oracledb.default.getConnection({
+            connection = await oracledb.getConnection({
               user: process.env.ORACLE_USERNAME || 'sunjin_admin',
               password: process.env.ORACLE_PASSWORD || '',
               connectionString: `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'XEPDB1'}`,
