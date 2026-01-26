@@ -156,10 +156,10 @@ export function TechSupportCreateDialog({ open, onClose }: TechSupportCreateDial
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="tech-support-create-description">
         <DialogHeader>
           <DialogTitle>기술지원 등록</DialogTitle>
-          <DialogDescription>새로운 기술지원 건을 등록합니다.</DialogDescription>
+          <DialogDescription id="tech-support-create-description">새로운 기술지원 건을 등록합니다.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -230,13 +230,14 @@ export function TechSupportCreateDialog({ open, onClose }: TechSupportCreateDial
           <div className="space-y-1">
             <label className="text-sm font-medium">지원 유형 *</label>
             <Select
-              value={form.support_type || ''}
-              onValueChange={(v) => setForm({ ...form, support_type: v as SupportType })}
+              value={form.support_type || '__placeholder__'}
+              onValueChange={(v) => v !== '__placeholder__' && setForm({ ...form, support_type: v as SupportType })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="선택하세요" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="__placeholder__" disabled hidden>선택하세요</SelectItem>
                 {Object.entries(SupportTypeLabel).map(([value, label]) => (
                   <SelectItem key={value} value={value}>{label}</SelectItem>
                 ))}
