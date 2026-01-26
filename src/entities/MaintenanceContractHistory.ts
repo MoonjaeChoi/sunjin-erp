@@ -1,5 +1,9 @@
 // Generated: 2026-01-26 22:45:00 KST
 
+// CRITICAL: Load reflect-metadata BEFORE decorators are evaluated
+require('reflect-metadata');
+
+
 import {
   Entity,
   PrimaryGeneratedColumn,
