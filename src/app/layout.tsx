@@ -1,5 +1,8 @@
 // Generated: 2026-01-24 21:20:00 KST
 
+// CRITICAL: Initialize reflect-metadata globally before any other imports
+import '../init-reflect-metadata';
+
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_KR } from 'next/font/google';
 import { Providers } from '@/components/providers/Providers';
