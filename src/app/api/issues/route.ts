@@ -466,18 +466,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       // 7. Issue INSERT
       const now = new Date();
 
-      // Get next ID from sequence
+      // Get next ID from sequence using quoted lowercase alias (like support endpoint)
       const seqResult = await queryRunner.query(
-        `SELECT ISSUE_SEQ.NEXTVAL as id FROM DUAL`
+        `SELECT ISSUE_SEQ.NEXTVAL as "id" FROM DUAL`
       );
       const issueId = seqResult[0]?.id;
 
+      if (!issueId) {
+        return NextResponse.json(
+          { message: 'Failed to generate issue ID' },
+          { status: 500 }
+        );
+      }
+
       const insertSql = `
         INSERT INTO ISSUE (
-          id, customer_id, title, severity, description, status,
-          is_public, created_by_id, assigned_to_id,
-          treatment_method, treatment_time_minutes, treatment_result,
-          created_at, updated_at, deleted_at
+          "id", "customer_id", "title", "severity", "description", "status",
+          "is_public", "created_by_id", "assigned_to_id",
+          "treatment_method", "treatment_time_minutes", "treatment_result",
+          "created_at", "updated_at", "deleted_at"
         ) VALUES (
           :id, :customerId, :title, :severity, :description, :status,
           :isPublic, :createdById, :assignedToId,
@@ -510,27 +517,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       try {
         // Get next history ID from sequence
         const historySeqResult = await queryRunner.query(
-          `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as id FROM DUAL`
+          `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as "id" FROM DUAL`
         );
         const historyId = historySeqResult[0]?.id;
 
-        await queryRunner.query(
-          `INSERT INTO ISSUE_HISTORY (
-            id, issue_id, change_type, old_value, new_value, changed_by_id, changed_at, remark
-          ) VALUES (
-            :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
-          )`,
-          {
-            id: historyId,
-            issueId,
-            changeType: 'STATUS_CHANGE',
-            oldValue: null,
-            newValue: 'INTAKE',
-            changedById: userId,
-            changedAt: now,
-            remark: 'Issue created',
-          }
-        );
+        if (historyId) {
+          await queryRunner.query(
+            `INSERT INTO ISSUE_HISTORY (
+              "id", "issue_id", "change_type", "old_value", "new_value", "changed_by_id", "changed_at", "remark"
+            ) VALUES (
+              :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
+            )`,
+            {
+              id: historyId,
+              issueId,
+              changeType: 'STATUS_CHANGE',
+              oldValue: null,
+              newValue: 'INTAKE',
+              changedById: userId,
+              changedAt: now,
+              remark: 'Issue created',
+            }
+          );
+        }
       } catch (historyError) {
         // ISSUE_HISTORY table might not exist yet - continue without it
         console.warn('ISSUE_HISTORY insert failed (table may not exist):', historyError);
