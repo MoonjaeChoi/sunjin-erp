@@ -1,10 +1,9 @@
-// Generated: 2026-01-27 14:30:00 KST
+// Generated: 2026-01-27 15:00:00 KST
 
-// Note: reflect-metadata is loaded in instrumentation.ts to ensure it's available
-// before any TypeORM decorators are evaluated. We use dynamic imports below to avoid
-// circular dependency issues at build time.
+// CRITICAL: Load reflect-metadata FIRST before any other imports
+// This must be at the absolute top of the file, before any other module loads
+require('reflect-metadata');
 
-import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 
 let dataSource: any = null;
@@ -17,38 +16,22 @@ async function loadEntities(): Promise<any[]> {
   }
 
   try {
-    // Dynamically import entities at runtime to avoid circular dependency at build time
-    const [
-      { Task },
-      { Employee },
-      { Customer },
-      { TechSupport },
-      { Project },
-      { ProjectAttachment },
-      { Issue },
-      { IssueAttachment },
-      { IssueHistory },
-      { Inventory },
-      { InventoryHistory },
-      { MaintenanceContract },
-      { MaintenanceContractAttachment },
-      { MaintenanceContractHistory },
-    ] = await Promise.all([
-      import('@/entities/Task'),
-      import('@/entities/Employee'),
-      import('@/entities/Customer'),
-      import('@/entities/TechSupport'),
-      import('@/entities/Project'),
-      import('@/entities/ProjectAttachment'),
-      import('@/entities/Issue'),
-      import('@/entities/IssueAttachment'),
-      import('@/entities/IssueHistory'),
-      import('@/entities/Inventory'),
-      import('@/entities/InventoryHistory'),
-      import('@/entities/MaintenanceContract'),
-      import('@/entities/MaintenanceContractAttachment'),
-      import('@/entities/MaintenanceContractHistory'),
-    ]);
+    // Dynamically import entities at runtime
+    // reflect-metadata has already been loaded by require() at module top
+    const Task = await import('@/entities/Task').then(m => m.Task);
+    const Employee = await import('@/entities/Employee').then(m => m.Employee);
+    const Customer = await import('@/entities/Customer').then(m => m.Customer);
+    const TechSupport = await import('@/entities/TechSupport').then(m => m.TechSupport);
+    const Project = await import('@/entities/Project').then(m => m.Project);
+    const ProjectAttachment = await import('@/entities/ProjectAttachment').then(m => m.ProjectAttachment);
+    const Issue = await import('@/entities/Issue').then(m => m.Issue);
+    const IssueAttachment = await import('@/entities/IssueAttachment').then(m => m.IssueAttachment);
+    const IssueHistory = await import('@/entities/IssueHistory').then(m => m.IssueHistory);
+    const Inventory = await import('@/entities/Inventory').then(m => m.Inventory);
+    const InventoryHistory = await import('@/entities/InventoryHistory').then(m => m.InventoryHistory);
+    const MaintenanceContract = await import('@/entities/MaintenanceContract').then(m => m.MaintenanceContract);
+    const MaintenanceContractAttachment = await import('@/entities/MaintenanceContractAttachment').then(m => m.MaintenanceContractAttachment);
+    const MaintenanceContractHistory = await import('@/entities/MaintenanceContractHistory').then(m => m.MaintenanceContractHistory);
 
     cachedEntities = [
       Task,
@@ -68,9 +51,10 @@ async function loadEntities(): Promise<any[]> {
     ];
 
     entityImportsLoaded = true;
+    console.log('[DB] Entities loaded successfully');
     return cachedEntities;
   } catch (error) {
-    console.error('[DB] Failed to load entities:', error);
+    console.error('[DB] Failed to load entities:', error instanceof Error ? error.message : String(error));
     throw error;
   }
 }
