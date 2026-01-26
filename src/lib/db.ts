@@ -25,6 +25,8 @@ export async function getDataSource(): Promise<any> {
     const { Issue } = require('@/entities/Issue');
     const { IssueAttachment } = require('@/entities/IssueAttachment');
     const { IssueHistory } = require('@/entities/IssueHistory');
+    const { Inventory } = require('@/entities/Inventory');
+    const { InventoryHistory } = require('@/entities/InventoryHistory');
 
     dataSource = new DataSource({
       type: 'oracle',
@@ -43,10 +45,15 @@ export async function getDataSource(): Promise<any> {
         Issue,
         IssueAttachment,
         IssueHistory,
+        Inventory,
+        InventoryHistory,
       ],
       migrations: ['src/migrations/*.ts'],
       synchronize: false,
       logging: process.env.NODE_ENV === 'development',
+      extra: {
+        charset: 'UTF8',
+      },
     });
 
     await dataSource.initialize();

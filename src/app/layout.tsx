@@ -10,6 +10,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Sunjin ERP',
   description: 'Sunjin ERP System',
+  charset: 'utf-8',
 };
 
 export default function RootLayout({
