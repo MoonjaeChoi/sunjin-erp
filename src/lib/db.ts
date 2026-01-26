@@ -7,6 +7,11 @@ try {
   console.warn('[DB] Warning: reflect-metadata could not be loaded');
 }
 
+// Set Oracle character set environment variables for proper UTF-8 handling
+if (typeof process !== 'undefined') {
+  process.env.NLS_LANG = 'KOREAN_KOREA.AL32UTF8';
+}
+
 let dataSource: any = null;
 
 export async function getDataSource(): Promise<any> {
@@ -53,6 +58,9 @@ export async function getDataSource(): Promise<any> {
       logging: process.env.NODE_ENV === 'development',
       extra: {
         charset: 'UTF8',
+        fetchAsString: ['CLOB'],
+        fetchAsBuffer: ['BLOB'],
+        preFetchRowCount: 100,
       },
     });
 

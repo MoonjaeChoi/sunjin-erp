@@ -145,7 +145,10 @@ export async function GET(
         overdueDays: isOverdue ? overdueDays : undefined,
       };
 
-      return NextResponse.json(response, { status: 200 });
+      return NextResponse.json(response, {
+        status: 200,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      });
     } finally {
       await queryRunner.release();
     }
