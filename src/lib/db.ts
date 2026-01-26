@@ -94,6 +94,9 @@ export async function getDataSource(): Promise<any> {
     return dataSource;
   } catch (error) {
     console.error('[DB] Error during initialization:', error instanceof Error ? error.message : String(error));
+    if (error instanceof Error) {
+      console.error('[DB] Error stack:', error.stack);
+    }
 
     // Return a graceful fallback to prevent application crashes
     // The API handlers will detect !isInitialized and return appropriate errors
