@@ -19,9 +19,12 @@ describe('InventoryStats', () => {
   test('should display total count correctly', () => {
     render(<InventoryStats stats={mockInventoryStats} isLoading={false} />);
 
-    const cards = screen.getAllByRole('region');
-    // First card should be total count
-    expect(cards.length).toBeGreaterThanOrEqual(5);
+    // All 5 stat cards should be rendered
+    expect(screen.getByTestId('stat-card-total')).toBeInTheDocument();
+    expect(screen.getByTestId('stat-card-stock')).toBeInTheDocument();
+    expect(screen.getByTestId('stat-card-checkout')).toBeInTheDocument();
+    expect(screen.getByTestId('stat-card-broken')).toBeInTheDocument();
+    expect(screen.getByTestId('stat-card-overdue')).toBeInTheDocument();
   });
 
   test('should display status breakdown', () => {
