@@ -45,12 +45,10 @@ export async function POST(req: NextRequest) {
       )
     `);
 
-    // 인덱스 생성
-    await ds.query(
-      `CREATE UNIQUE INDEX idx_inventory_serial_active ON INVENTORY(serial_number) WHERE deleted_at IS NULL`
-    );
-    await ds.query(`CREATE INDEX idx_inventory_status ON INVENTORY(current_status) WHERE deleted_at IS NULL`);
-    await ds.query(`CREATE INDEX idx_inventory_category ON INVENTORY(category) WHERE deleted_at IS NULL`);
+    // 인덱스 생성 (Oracle XE는 부분 인덱스 미지원)
+    await ds.query(`CREATE UNIQUE INDEX idx_inventory_serial ON INVENTORY(serial_number)`);
+    await ds.query(`CREATE INDEX idx_inventory_status ON INVENTORY(current_status)`);
+    await ds.query(`CREATE INDEX idx_inventory_category ON INVENTORY(category)`);
 
     // 외래키 추가
     await ds.query(

@@ -33,34 +33,34 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
       )
     `);
 
-    // 3. INVENTORY 테이블 인덱스 (부분 인덱스 포함 성능 최적화)
-    // 부분 고유 인덱스 (활성 레코드만)
+    // 3. INVENTORY 테이블 인덱스 (Oracle XE는 부분 인덱스 미지원)
+    // 고유 인덱스
     await queryRunner.query(
-      `CREATE UNIQUE INDEX idx_inventory_serial_active ON INVENTORY(serial_number) WHERE deleted_at IS NULL`
+      `CREATE UNIQUE INDEX idx_inventory_serial ON INVENTORY(serial_number)`
     );
 
-    // 필터링 성능 인덱스 (활성 레코드만)
+    // 필터링 성능 인덱스
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_status ON INVENTORY(current_status) WHERE deleted_at IS NULL`
+      `CREATE INDEX idx_inventory_status ON INVENTORY(current_status)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_category ON INVENTORY(category) WHERE deleted_at IS NULL`
+      `CREATE INDEX idx_inventory_category ON INVENTORY(category)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_location ON INVENTORY(current_location) WHERE deleted_at IS NULL`
+      `CREATE INDEX idx_inventory_location ON INVENTORY(current_location)`
     );
 
-    // 검색 성능 인덱스 (활성 레코드만)
+    // 검색 성능 인덱스
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_serial_search ON INVENTORY(serial_number) WHERE deleted_at IS NULL`
+      `CREATE INDEX idx_inventory_serial_search ON INVENTORY(serial_number)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_model_search ON INVENTORY(model) WHERE deleted_at IS NULL`
+      `CREATE INDEX idx_inventory_model_search ON INVENTORY(model)`
     );
 
     // 감사 및 정렬 인덱스
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_created_at ON INVENTORY(created_at) WHERE deleted_at IS NULL`
+      `CREATE INDEX idx_inventory_created_at ON INVENTORY(created_at)`
     );
     await queryRunner.query(
       `CREATE INDEX idx_inventory_deleted_at ON INVENTORY(deleted_at)`
