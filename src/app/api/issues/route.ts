@@ -116,7 +116,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const sort_order = (searchParams.get('sort_order') || 'DESC').toUpperCase();
 
     // 3. 권한별 WHERE 절 동적 구성 (RLS)
-    // Note: ISSUE table uses unquoted column names (stored as uppercase by Oracle)
+    // Note: ISSUE table uses unquoted uppercase, EMPLOYEE table uses quoted lowercase
     const whereClauses: string[] = ['i.DELETED_AT IS NULL'];
     const params: any = {};
     let paramIndex = 0;
@@ -126,7 +126,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     } else if (userRole === 'MANAGER') {
       // MANAGER: 같은 부서 담당자의 Issue만
       whereClauses.push(
-        `i.ASSIGNED_TO_ID IS NOT NULL AND e_assigned.department_id = :departmentId${paramIndex}`
+        `i.ASSIGNED_TO_ID IS NOT NULL AND e_assigned."department_id" = :departmentId${paramIndex}`
       );
       params[`departmentId${paramIndex}`] = userDepartmentId;
       paramIndex++;
@@ -135,7 +135,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       whereClauses.push(
         `(i.CREATED_BY_ID = :userId${paramIndex}
          OR i.ASSIGNED_TO_ID = :userId${paramIndex + 1}
-         OR (i.IS_PUBLIC = 1 AND e_assigned.department_id = :departmentId${paramIndex + 2}))`
+         OR (i.IS_PUBLIC = 1 AND e_assigned."department_id" = :departmentId${paramIndex + 2}))`
       );
       params[`userId${paramIndex}`] = userId;
       params[`userId${paramIndex + 1}`] = userId;
