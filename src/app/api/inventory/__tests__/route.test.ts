@@ -4,8 +4,79 @@ import { GET, POST } from '../route';
 import { NextRequest } from 'next/server';
 import { mockInventoryList, mockInventory } from '@/__tests__/fixtures/inventory';
 
+// ============= Mock Setup =============
+
+// Mock next/server
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn(),
+  NextResponse: {
+    json: (body: any, init?: { status?: number }) => ({
+      status: init?.status || 200,
+      json: () => Promise.resolve(body),
+    }),
+  },
+}));
+
+// Mock next-auth
+const mockGetServerSession = jest.fn();
+jest.mock('next-auth', () => ({
+  getServerSession: (...args: any[]) => mockGetServerSession(...args),
+}));
+
+// Mock database (raw SQL용)
+const mockQuery = jest.fn();
+const mockRelease = jest.fn();
+const mockStartTransaction = jest.fn();
+const mockCommitTransaction = jest.fn();
+const mockRollbackTransaction = jest.fn();
+const mockCreateQueryRunner = jest.fn(() => ({
+  query: mockQuery,
+  release: mockRelease,
+  startTransaction: mockStartTransaction,
+  commitTransaction: mockCommitTransaction,
+  rollbackTransaction: mockRollbackTransaction,
+}));
+
+jest.mock('@/lib/db', () => ({
+  getDataSource: jest.fn(() =>
+    Promise.resolve({
+      createQueryRunner: mockCreateQueryRunner,
+      isInitialized: true
+    })
+  ),
+}));
+
+jest.mock('@/lib/auth', () => ({ authOptions: {} }));
+
+jest.mock('typeorm', () => ({
+  Entity: () => () => {},
+  PrimaryGeneratedColumn: () => () => {},
+  Column: () => () => {},
+  CreateDateColumn: () => () => {},
+  UpdateDateColumn: () => () => {},
+  DeleteDateColumn: () => () => {},
+  Index: () => () => {},
+  Check: () => () => {},
+}));
+
+jest.mock('reflect-metadata', () => ({}));
+
+// ============= Tests =============
+
 describe('GET /api/inventory', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // 기본: 인증된 사용자
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 1, name: 'Test User', role: 'ADMIN' }
+    });
+  });
   test('should return paginated inventory list', async () => {
+    mockQuery
+      .mockResolvedValueOnce(mockInventoryList)  // SELECT query
+      .mockResolvedValueOnce([{ TOTAL: mockInventoryList.length }]);  // COUNT query
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory'));
     const response = await GET(req);
     const data = await response.json();
@@ -17,6 +88,10 @@ describe('GET /api/inventory', () => {
   });
 
   test('should return pagination metadata', async () => {
+    mockQuery
+      .mockResolvedValueOnce(mockInventoryList.slice(0, 10))  // SELECT query
+      .mockResolvedValueOnce([{ TOTAL: mockInventoryList.length }]);  // COUNT query
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory?page=1&pageSize=10'));
     const response = await GET(req);
     const data = await response.json();
@@ -39,6 +114,11 @@ describe('GET /api/inventory', () => {
   });
 
   test('should apply category filter', async () => {
+    const filtered = mockInventoryList.filter(item => item.category === '모니터');
+    mockQuery
+      .mockResolvedValueOnce(filtered)  // SELECT query
+      .mockResolvedValueOnce([{ TOTAL: filtered.length }]);  // COUNT query
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory?categories=모니터'));
     const response = await GET(req);
     const data = await response.json();
@@ -53,6 +133,11 @@ describe('GET /api/inventory', () => {
   });
 
   test('should apply multiple status filters', async () => {
+    const filtered = mockInventoryList.filter(item => ['재고', '출고'].includes(item.current_status));
+    mockQuery
+      .mockResolvedValueOnce(filtered)  // SELECT query
+      .mockResolvedValueOnce([{ TOTAL: filtered.length }]);  // COUNT query
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory?statuses=재고,출고'));
     const response = await GET(req);
     const data = await response.json();
@@ -64,6 +149,11 @@ describe('GET /api/inventory', () => {
   });
 
   test('should apply location search filter', async () => {
+    const filtered = mockInventoryList.filter(item => item.current_location.toLowerCase().includes('창고'));
+    mockQuery
+      .mockResolvedValueOnce(filtered)  // SELECT query
+      .mockResolvedValueOnce([{ TOTAL: filtered.length }]);  // COUNT query
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory?location=창고'));
     const response = await GET(req);
     const data = await response.json();
@@ -75,6 +165,11 @@ describe('GET /api/inventory', () => {
   });
 
   test('should support sorting', async () => {
+    const sorted = [...mockInventoryList].sort((a, b) => a.category.localeCompare(b.category));
+    mockQuery
+      .mockResolvedValueOnce(sorted)  // SELECT query
+      .mockResolvedValueOnce([{ TOTAL: sorted.length }]);  // COUNT query
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory?sortBy=category&order=asc'));
     const response = await GET(req);
     const data = await response.json();
@@ -87,6 +182,10 @@ describe('GET /api/inventory', () => {
   });
 
   test('should include HATEOAS links', async () => {
+    mockQuery
+      .mockResolvedValueOnce(mockInventoryList.slice(0, 5))  // SELECT query
+      .mockResolvedValueOnce([{ TOTAL: mockInventoryList.length }]);  // COUNT query
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory?page=1&pageSize=5'));
     const response = await GET(req);
     const data = await response.json();
@@ -109,6 +208,13 @@ describe('GET /api/inventory', () => {
 });
 
 describe('POST /api/inventory (Create)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 1, name: 'Test User', role: 'ADMIN' }
+    });
+  });
+
   test('should create inventory with valid data', async () => {
     const body = {
       category: '모니터',
@@ -119,6 +225,21 @@ describe('POST /api/inventory (Create)', () => {
       current_location: '창고 A-1',
       notes: 'Test item',
     };
+
+    // Mock: Check duplicate serial number (SELECT)
+    mockQuery.mockResolvedValueOnce([]);
+    // Mock: INSERT new inventory
+    mockQuery.mockResolvedValueOnce({
+      identifiers: [{ id: 100 }],
+      generatedMaps: [{
+        id: 100,
+        ...body,
+        current_status: '재고',
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: null,
+      }],
+    });
 
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory'), {
       method: 'POST',
@@ -163,6 +284,16 @@ describe('POST /api/inventory (Create)', () => {
       current_location: '창고 A-1',
     };
 
+    // Mock: Check duplicate serial number (SELECT - found existing)
+    mockQuery.mockResolvedValueOnce([
+      {
+        id: 1,
+        serial_number: 'SN001',
+        model: 'Existing Monitor',
+        category: '모니터',
+      }
+    ]);
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory'), {
       method: 'POST',
       body: JSON.stringify(body),
@@ -184,6 +315,21 @@ describe('POST /api/inventory (Create)', () => {
       purchase_from: 'Test Store',
       current_location: '창고 A-1',
     };
+
+    // Mock: Check duplicate serial number (SELECT - no result)
+    mockQuery.mockResolvedValueOnce([]);
+    // Mock: INSERT new inventory
+    mockQuery.mockResolvedValueOnce({
+      identifiers: [{ id: 101 }],
+      generatedMaps: [{
+        id: 101,
+        ...body,
+        current_status: '재고',
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: null,
+      }],
+    });
 
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory'), {
       method: 'POST',

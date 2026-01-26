@@ -4,8 +4,78 @@ import { GET, PUT, DELETE } from '../[id]/route';
 import { NextRequest } from 'next/server';
 import { mockInventoryList, mockInventory } from '@/__tests__/fixtures/inventory';
 
+// ============= Mock Setup =============
+
+// Mock next/server
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn(),
+  NextResponse: {
+    json: (body: any, init?: { status?: number }) => ({
+      status: init?.status || 200,
+      json: () => Promise.resolve(body),
+    }),
+  },
+}));
+
+// Mock next-auth
+const mockGetServerSession = jest.fn();
+jest.mock('next-auth', () => ({
+  getServerSession: (...args: any[]) => mockGetServerSession(...args),
+}));
+
+// Mock database (raw SQL용)
+const mockQuery = jest.fn();
+const mockRelease = jest.fn();
+const mockStartTransaction = jest.fn();
+const mockCommitTransaction = jest.fn();
+const mockRollbackTransaction = jest.fn();
+const mockCreateQueryRunner = jest.fn(() => ({
+  query: mockQuery,
+  release: mockRelease,
+  startTransaction: mockStartTransaction,
+  commitTransaction: mockCommitTransaction,
+  rollbackTransaction: mockRollbackTransaction,
+}));
+
+jest.mock('@/lib/db', () => ({
+  getDataSource: jest.fn(() =>
+    Promise.resolve({
+      createQueryRunner: mockCreateQueryRunner,
+      isInitialized: true
+    })
+  ),
+}));
+
+jest.mock('@/lib/auth', () => ({ authOptions: {} }));
+
+jest.mock('typeorm', () => ({
+  Entity: () => () => {},
+  PrimaryGeneratedColumn: () => () => {},
+  Column: () => () => {},
+  CreateDateColumn: () => () => {},
+  UpdateDateColumn: () => () => {},
+  DeleteDateColumn: () => () => {},
+  Index: () => () => {},
+  Check: () => () => {},
+}));
+
+jest.mock('reflect-metadata', () => ({}));
+
 describe('GET /api/inventory/[id]', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 1, name: 'Test User', role: 'ADMIN' }
+    });
+  });
+
   test('should return inventory detail with history', async () => {
+    // Mock: SELECT inventory + joins with history
+    mockQuery
+      .mockResolvedValueOnce([mockInventory])  // Main inventory query
+      .mockResolvedValueOnce([
+        { id: 1, change_type: 'CREATE', changed_at: new Date(), reason: null }
+      ]);  // History query
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory/1'));
     const response = await GET(req, { params: { id: '1' } });
     const data = await response.json();
@@ -20,6 +90,16 @@ describe('GET /api/inventory/[id]', () => {
   });
 
   test('should calculate overdue status for checked out items', async () => {
+    // Mock: Checked out item with old checkout date
+    mockQuery
+      .mockResolvedValueOnce([{
+        ...mockInventory,
+        id: 2,
+        current_status: '출고',
+        checkout_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      }])
+      .mockResolvedValueOnce([]); // History
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory/2'));
     const response = await GET(req, { params: { id: '2' } });
     const data = await response.json();
@@ -30,6 +110,9 @@ describe('GET /api/inventory/[id]', () => {
   });
 
   test('should return 404 for non-existent inventory', async () => {
+    // Mock: No inventory found
+    mockQuery.mockResolvedValueOnce([]);
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory/999'));
     const response = await GET(req, { params: { id: '999' } });
     const data = await response.json();
@@ -79,11 +162,23 @@ describe('GET /api/inventory/[id]', () => {
 });
 
 describe('PUT /api/inventory/[id]', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 1, name: 'Test User', role: 'ADMIN' }
+    });
+  });
+
   test('should update inventory basic info', async () => {
     const body = {
       model: 'Updated Model',
       notes: 'Updated notes',
     };
+
+    // Mock: SELECT inventory + UPDATE query
+    mockQuery
+      .mockResolvedValueOnce([mockInventory])  // SELECT to check exists and not disposed
+      .mockResolvedValueOnce({ affected: 1 });  // UPDATE query
 
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory/1'), {
       method: 'PUT',
@@ -199,7 +294,19 @@ describe('PUT /api/inventory/[id]', () => {
 });
 
 describe('DELETE /api/inventory/[id]', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 1, name: 'Test User', role: 'ADMIN' }
+    });
+  });
+
   test('should soft delete inventory by setting deleted_at', async () => {
+    // Mock: SELECT to verify exists, then UPDATE (soft delete)
+    mockQuery
+      .mockResolvedValueOnce([mockInventory])  // SELECT
+      .mockResolvedValueOnce({ affected: 1 });  // UPDATE deleted_at
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory/5'), {
       method: 'DELETE',
     });

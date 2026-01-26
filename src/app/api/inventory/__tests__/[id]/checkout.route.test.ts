@@ -4,8 +4,74 @@ import { POST } from '../../[id]/checkout/route';
 import { NextRequest } from 'next/server';
 import { mockInventory } from '@/__tests__/fixtures/inventory';
 
+// ============= Mock Setup =============
+
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn(),
+  NextResponse: {
+    json: (body: any, init?: { status?: number }) => ({
+      status: init?.status || 200,
+      json: () => Promise.resolve(body),
+    }),
+  },
+}));
+
+const mockGetServerSession = jest.fn();
+jest.mock('next-auth', () => ({
+  getServerSession: (...args: any[]) => mockGetServerSession(...args),
+}));
+
+const mockQuery = jest.fn();
+const mockStartTransaction = jest.fn();
+const mockCommitTransaction = jest.fn();
+const mockRollbackTransaction = jest.fn();
+const mockRelease = jest.fn();
+const mockCreateQueryRunner = jest.fn(() => ({
+  query: mockQuery,
+  release: mockRelease,
+  startTransaction: mockStartTransaction,
+  commitTransaction: mockCommitTransaction,
+  rollbackTransaction: mockRollbackTransaction,
+}));
+
+jest.mock('@/lib/db', () => ({
+  getDataSource: jest.fn(() =>
+    Promise.resolve({
+      createQueryRunner: mockCreateQueryRunner,
+      isInitialized: true
+    })
+  ),
+}));
+
+jest.mock('@/lib/auth', () => ({ authOptions: {} }));
+
+jest.mock('typeorm', () => ({
+  Entity: () => () => {},
+  PrimaryGeneratedColumn: () => () => {},
+  Column: () => () => {},
+  CreateDateColumn: () => () => {},
+  UpdateDateColumn: () => () => {},
+  DeleteDateColumn: () => () => {},
+  Index: () => () => {},
+  Check: () => () => {},
+}));
+
+jest.mock('reflect-metadata', () => ({}));
+
 describe('POST /api/inventory/[id]/checkout', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 1, name: 'Test User', role: 'ADMIN' }
+    });
+  });
+
   test('should checkout inventory from 재고 status', async () => {
+    // Mock: SELECT inventory (status=재고), UPDATE, INSERT history
+    mockQuery
+      .mockResolvedValueOnce([{ ...mockInventory, id: 1, current_status: '재고' }])  // SELECT
+      .mockResolvedValueOnce({ affected: 1 })  // UPDATE to 출고
+      .mockResolvedValueOnce({ identifiers: [{ id: 1 }] });  // INSERT history
     const body = {
       checkout_location: '사무실 A',
       expected_checkin_date: '2026-02-26',
@@ -41,6 +107,9 @@ describe('POST /api/inventory/[id]/checkout', () => {
   });
 
   test('should reject checkout from non-재고 status', async () => {
+    // Mock: SELECT inventory with status 출고 (not 재고)
+    mockQuery.mockResolvedValueOnce([{ ...mockInventory, id: 2, current_status: '출고' }]);
+
     const body = {
       checkout_location: '사무실 B',
       expected_checkin_date: '2026-03-01',
@@ -111,6 +180,9 @@ describe('POST /api/inventory/[id]/checkout', () => {
   });
 
   test('should return 404 for non-existent inventory', async () => {
+    // Mock: SELECT returns no inventory
+    mockQuery.mockResolvedValueOnce([]);
+
     const body = {
       checkout_location: '사무실 D',
       expected_checkin_date: '2026-02-26',

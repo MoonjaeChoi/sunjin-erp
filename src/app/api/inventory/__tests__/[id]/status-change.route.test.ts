@@ -3,8 +3,74 @@
 import { POST } from '../../[id]/status-change/route';
 import { NextRequest } from 'next/server';
 
+// ============= Mock Setup =============
+
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn(),
+  NextResponse: {
+    json: (body: any, init?: { status?: number }) => ({
+      status: init?.status || 200,
+      json: () => Promise.resolve(body),
+    }),
+  },
+}));
+
+const mockGetServerSession = jest.fn();
+jest.mock('next-auth', () => ({
+  getServerSession: (...args: any[]) => mockGetServerSession(...args),
+}));
+
+const mockQuery = jest.fn();
+const mockStartTransaction = jest.fn();
+const mockCommitTransaction = jest.fn();
+const mockRollbackTransaction = jest.fn();
+const mockRelease = jest.fn();
+const mockCreateQueryRunner = jest.fn(() => ({
+  query: mockQuery,
+  release: mockRelease,
+  startTransaction: mockStartTransaction,
+  commitTransaction: mockCommitTransaction,
+  rollbackTransaction: mockRollbackTransaction,
+}));
+
+jest.mock('@/lib/db', () => ({
+  getDataSource: jest.fn(() =>
+    Promise.resolve({
+      createQueryRunner: mockCreateQueryRunner,
+      isInitialized: true
+    })
+  ),
+}));
+
+jest.mock('@/lib/auth', () => ({ authOptions: {} }));
+
+jest.mock('typeorm', () => ({
+  Entity: () => () => {},
+  PrimaryGeneratedColumn: () => () => {},
+  Column: () => () => {},
+  CreateDateColumn: () => () => {},
+  UpdateDateColumn: () => () => {},
+  DeleteDateColumn: () => () => {},
+  Index: () => () => {},
+  Check: () => () => {},
+}));
+
+jest.mock('reflect-metadata', () => ({}));
+
 describe('POST /api/inventory/[id]/status-change', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 1, name: 'Test User', role: 'ADMIN' }
+    });
+  });
+
   test('should change status from 재고 to 출고', async () => {
+    // Mock: SELECT inventory, UPDATE status, INSERT history
+    mockQuery
+      .mockResolvedValueOnce([{ id: 1, current_status: '재고' }])
+      .mockResolvedValueOnce({ affected: 1 })
+      .mockResolvedValueOnce({ identifiers: [{ id: 1 }] });
     const body = {
       current_status: '출고',
     };
@@ -172,6 +238,9 @@ describe('POST /api/inventory/[id]/status-change', () => {
   });
 
   test('should return 404 for non-existent inventory', async () => {
+    // Mock: SELECT returns no inventory
+    mockQuery.mockResolvedValueOnce([]);
+
     const body = {
       current_status: '고장',
     };

@@ -3,8 +3,79 @@
 import { GET } from '../stats/route';
 import { NextRequest } from 'next/server';
 
+// ============= Mock Setup =============
+
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn(),
+  NextResponse: {
+    json: (body: any, init?: { status?: number }) => ({
+      status: init?.status || 200,
+      json: () => Promise.resolve(body),
+    }),
+  },
+}));
+
+const mockGetServerSession = jest.fn();
+jest.mock('next-auth', () => ({
+  getServerSession: (...args: any[]) => mockGetServerSession(...args),
+}));
+
+const mockQuery = jest.fn();
+const mockRelease = jest.fn();
+const mockCreateQueryRunner = jest.fn(() => ({
+  query: mockQuery,
+  release: mockRelease,
+}));
+
+jest.mock('@/lib/db', () => ({
+  getDataSource: jest.fn(() =>
+    Promise.resolve({
+      createQueryRunner: mockCreateQueryRunner,
+      isInitialized: true
+    })
+  ),
+}));
+
+jest.mock('@/lib/auth', () => ({ authOptions: {} }));
+
+jest.mock('typeorm', () => ({
+  Entity: () => () => {},
+  PrimaryGeneratedColumn: () => () => {},
+  Column: () => () => {},
+  CreateDateColumn: () => () => {},
+  UpdateDateColumn: () => () => {},
+  DeleteDateColumn: () => () => {},
+  Index: () => () => {},
+  Check: () => () => {},
+}));
+
+jest.mock('reflect-metadata', () => ({}));
+
 describe('GET /api/inventory/stats', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 1, name: 'Test User', role: 'ADMIN' }
+    });
+  });
+
   test('should return inventory statistics', async () => {
+    // Mock: 4 parallel queries (total, byStatus, byCategory, overdue)
+    mockQuery
+      .mockResolvedValueOnce([{ total: 4 }])  // Total count
+      .mockResolvedValueOnce([
+        { status: '재고', count: 2 },
+        { status: '출고', count: 1 },
+        { status: '고장', count: 1 },
+        { status: '폐기', count: 0 },
+      ])  // By status
+      .mockResolvedValueOnce([
+        { category: '모니터', count: 2 },
+        { category: '키보드', count: 1 },
+        { category: '마우스', count: 1 },
+      ])  // By category
+      .mockResolvedValueOnce([{ overdue_count: 1 }]);  // Overdue count
+
     const req = new NextRequest(new URL('http://localhost:3000/api/inventory/stats'));
     const response = await GET(req);
     const data = await response.json();
