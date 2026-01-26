@@ -167,20 +167,40 @@ npm run test -- -u
 - [x] Zero/positive count validation
 - [x] Status sum equals total count
 
-### 3. Hook Layer (src/hooks/__tests__/)
+### 3. Hook Layer (src/hooks/__tests__/inventory.test.ts)
 
-**Tests**: 10+ cases (planned)
+**Tests**: 25+ cases
 
-- useInventoryListQuery()
-- useInventoryDetailQuery()
-- useInventoryStatsQuery()
-- useCreateInventoryMutation()
-- useCheckoutInventoryMutation()
-- useCheckinInventoryMutation()
-- useRelocateInventoryMutation()
-- useStatusChangeInventoryMutation()
-- useUpdateInventoryMutation()
-- useDeleteInventoryMutation()
+**Query Key Factory (6 cases)**
+- [x] inventoryKeys.all()
+- [x] inventoryKeys.lists()
+- [x] inventoryKeys.list(params)
+- [x] inventoryKeys.details()
+- [x] inventoryKeys.detail(id)
+- [x] inventoryKeys.stats()
+
+**Query Hooks (6 cases)**
+- [x] useInventoryListQuery() with params
+- [x] useInventoryDetailQuery() with id/null handling
+- [x] useInventoryStatsQuery() with shorter stale time
+- [x] Query enable/disable logic
+- [x] Query parameter passing
+- [x] Stale time configuration (5min/2min)
+
+**Mutation Hooks (13 cases)**
+- [x] useCreateInventoryMutation() with cache invalidation
+- [x] useCheckoutInventoryMutation() - invalidates detail/list/stats
+- [x] useCheckinInventoryMutation() - invalidates detail/list/stats
+- [x] useRelocateInventoryMutation() - invalidates detail/list only
+- [x] useStatusChangeInventoryMutation() - invalidates all
+- [x] useUpdateInventoryMutation() - invalidates detail/list
+- [x] useDeleteInventoryMutation() - removes detail, invalidates list/stats
+- [x] Error handling for all mutations
+- [x] Mutation pending/success states
+- [x] Cache invalidation strategies
+- [x] QueryClient integration
+- [x] onSuccess callback execution
+- [x] Data transformation
 
 ### 4. Component Layer (src/components/features/inventory/__tests__/)
 
@@ -343,12 +363,22 @@ GitHub Actions workflow runs tests on every push/PR:
 ---
 
 **Last Updated**: 2026-01-26
-**Phase 1 (Infrastructure)**: ✅ COMPLETE
-  - Jest config, MSW setup, fixtures, service tests, component pattern
-**Phase 2 (API Handlers)**: ✅ COMPLETE
-  - 72+ test cases across 7 API endpoint groups
-**Phase 3 (Hooks)**: Planned (10+ test cases)
-**Phase 4 (Components)**: Planned (50+ test cases)
 
-**Current Test Count**: 102+ cases (Phases 1-2 complete)
-**Coverage**: 80%+ target
+**Implementation Status**:
+- **Phase 1 (Infrastructure)**: ✅ COMPLETE
+  - Jest config, MSW setup, fixtures, service tests, component pattern
+- **Phase 2 (API Handlers)**: ✅ COMPLETE
+  - 72+ test cases across 7 API endpoint groups (13+10+8+8+10+13+10)
+- **Phase 3 (Hooks)**: ✅ COMPLETE
+  - 25+ test cases: Query keys, 3 queries, 7 mutations with cache invalidation
+- **Phase 4 (Components)**: Planned (50+ test cases)
+  - InventoryFilters ✅, InventoryDataTable, Stats, DetailDialog, History, 5 Forms
+
+**Test Distribution**:
+- Service Layer: 30+ cases
+- API Handlers: 72+ cases
+- Hooks: 25+ cases
+- Components: 20+ cases (InventoryFilters pattern established)
+- **Total (Phases 1-3): 147+ cases**
+
+**Coverage Target**: 80%+ lines, 75%+ branches
