@@ -19,33 +19,33 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Use database directly via DataSource
-          const { getDataSource } = await import('@/lib/db');
+          // Use oracledb directly to bypass TypeORM DataSource initialization issues
+          const oracledb = await import('oracledb');
 
-          const ds = await getDataSource();
-          if (!ds.isInitialized) {
-            return null;
-          }
-
-          // Use raw SQL to query employee (avoids ORM metadata issues)
-          const queryRunner = ds.createQueryRunner();
+          let connection;
           try {
-            const result = await queryRunner.query(
+            connection = await oracledb.default.getConnection({
+              user: process.env.ORACLE_USERNAME || 'sunjin_admin',
+              password: process.env.ORACLE_PASSWORD || '',
+              connectionString: `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'XEPDB1'}`,
+            });
+
+            const result = await connection.execute(
               `SELECT id, name, username, password_hash, role, department_id
                FROM EMPLOYEE
                WHERE username = :username AND deleted_at IS NULL`,
-              [credentials.username]
+              { username: credentials.username }
             );
 
-            if (!result || result.length === 0) {
+            if (!result.rows || result.rows.length === 0) {
               return null;
             }
 
-            const employee = result[0];
+            const [id, name, username, password_hash, role, department_id] = result.rows[0];
 
             const isValid = await bcrypt.compare(
               credentials.password,
-              employee.password_hash
+              password_hash
             );
 
             if (!isValid) {
@@ -53,13 +53,19 @@ export const authOptions: NextAuthOptions = {
             }
 
             return {
-              id: String(employee.id),
-              name: employee.name,
-              role: employee.role,
-              department: employee.department_id,
+              id: String(id),
+              name: name,
+              role: role,
+              department: department_id,
             };
           } finally {
-            await queryRunner.release();
+            if (connection) {
+              try {
+                await connection.close();
+              } catch (err) {
+                // Ignore close errors
+              }
+            }
           }
         } catch (error) {
           console.error('[Auth] Error during authorization:', error);
