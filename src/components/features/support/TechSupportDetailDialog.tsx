@@ -177,10 +177,10 @@ export function TechSupportDetailDialog({ supportId, onClose }: TechSupportDetai
 
   return (
     <Dialog open={supportId !== null} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="tech-support-detail-description">
         <DialogHeader>
           <DialogTitle>기술지원 상세</DialogTitle>
-          <DialogDescription>기술지원 건의 상세 내용을 확인합니다.</DialogDescription>
+          <DialogDescription id="tech-support-detail-description">기술지원 건의 상세 내용을 확인합니다.</DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
@@ -275,14 +275,15 @@ export function TechSupportDetailDialog({ supportId, onClose }: TechSupportDetai
             <div className="space-y-1">
               <label className="text-sm font-medium">지원 유형</label>
               <Select
-                value={form.support_type || ''}
-                onValueChange={(v) => setForm({ ...form, support_type: v as SupportType })}
+                value={form.support_type || '__placeholder__'}
+                onValueChange={(v) => v !== '__placeholder__' && setForm({ ...form, support_type: v as SupportType })}
                 disabled={!canEdit}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__placeholder__" disabled hidden>선택하세요</SelectItem>
                   {Object.entries(SupportTypeLabel).map(([value, label]) => (
                     <SelectItem key={value} value={value}>{label}</SelectItem>
                   ))}
@@ -388,10 +389,10 @@ export function TechSupportDetailDialog({ supportId, onClose }: TechSupportDetai
 
         {/* 삭제 확인 Dialog */}
         <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-          <DialogContent>
+          <DialogContent aria-describedby="tech-support-delete-description">
             <DialogHeader>
               <DialogTitle>기술지원 삭제</DialogTitle>
-              <DialogDescription>이 기술지원 건을 삭제합니다. 이 작업은 취소할 수 없습니다.</DialogDescription>
+              <DialogDescription id="tech-support-delete-description">이 기술지원 건을 삭제합니다. 이 작업은 취소할 수 없습니다.</DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDeleteOpen(false)}>취소</Button>
