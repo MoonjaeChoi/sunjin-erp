@@ -18,7 +18,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src/migrations ./src/migrations
 COPY --from=builder /app/src/entities ./src/entities
+COPY --from=builder /app/src/lib ./src/lib
 COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/ormconfig.ts ./ormconfig.ts
 COPY docker-entrypoint.sh ./
 RUN chmod +x /app/docker-entrypoint.sh
 EXPOSE 3000
