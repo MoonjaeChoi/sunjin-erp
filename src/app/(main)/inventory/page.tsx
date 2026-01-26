@@ -1,14 +1,23 @@
+// Generated: 2026-01-26 15:00:00 KST
+
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import InventoryListPageClient from './page.client';
+
 export const dynamic = 'force-dynamic';
 
-// Generated: 2026-01-25 02:00:00 KST
+export const metadata = {
+  title: '재고 관리',
+  description: '장비 재고를 관리합니다.',
+};
 
-export default function InventoryPage() {
-  return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold text-gray-700 mb-2">재고 관리</h1>
-        <p className="text-sm text-gray-400">준비 중입니다.</p>
-      </div>
-    </div>
-  );
+export default async function InventoryListPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  return <InventoryListPageClient />;
 }
