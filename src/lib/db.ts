@@ -1,88 +1,78 @@
-// Generated: 2026-01-27 15:45:00 KST
+// Generated: 2026-01-27 16:00:00 KST
 
 // CRITICAL: Load reflect-metadata immediately when this module is imported
-// This must be before any TypeORM entity is imported or evaluated
 require('reflect-metadata');
 
-// Only import entities at runtime to avoid build-time circular dependencies
 import { DataSource } from 'typeorm';
 
 let dataSource: any = null;
-let entitiesLoaded = false;
-let cachedEntities: any[] = [];
 
-async function ensureEntitiesLoaded(): Promise<any[]> {
-  if (entitiesLoaded && cachedEntities.length > 0) {
-    return cachedEntities;
+// Entity list as plain objects - avoid circular imports at module load time
+// by using lazy imports only when getDataSource is called
+const ENTITY_PATHS = [
+  '@/entities/Task',
+  '@/entities/Employee',
+  '@/entities/Customer',
+  '@/entities/TechSupport',
+  '@/entities/Project',
+  '@/entities/ProjectAttachment',
+  '@/entities/Issue',
+  '@/entities/IssueAttachment',
+  '@/entities/IssueHistory',
+  '@/entities/Inventory',
+  '@/entities/InventoryHistory',
+  '@/entities/MaintenanceContract',
+  '@/entities/MaintenanceContractAttachment',
+  '@/entities/MaintenanceContractHistory',
+];
+
+async function loadEntitiesWithRetry(maxRetries = 3): Promise<any[]> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const entities: any[] = [];
+
+      // Load entities sequentially to avoid parallel decorator evaluation issues
+      for (const path of ENTITY_PATHS) {
+        try {
+          const mod = await import(path);
+          const entityName = path.split('/').pop();
+          // Find the export - it's usually the capitalized entity name
+          const entityConstructor = mod[entityName!] || Object.values(mod)[0];
+          if (entityConstructor) {
+            entities.push(entityConstructor as any);
+          }
+        } catch (moduleError) {
+          console.warn(`[DB] Failed to load module ${path}:`, moduleError instanceof Error ? moduleError.message : String(moduleError));
+          // Continue with other modules rather than failing completely
+        }
+      }
+
+      if (entities.length > 0) {
+        console.log(`[DB] Loaded ${entities.length} entities successfully`);
+        return entities;
+      } else if (attempt < maxRetries) {
+        console.log(`[DB] No entities loaded on attempt ${attempt}/${maxRetries}, retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    } catch (error) {
+      console.error(`[DB] Attempt ${attempt}/${maxRetries} failed:`, error instanceof Error ? error.message : String(error));
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
   }
 
-  try {
-    // Delay entity import until runtime to avoid build-time circular dependencies
-    // This ensures reflect-metadata is fully loaded before decorators are evaluated
-    const [
-      { Task },
-      { Employee },
-      { Customer },
-      { TechSupport },
-      { Project },
-      { ProjectAttachment },
-      { Issue },
-      { IssueAttachment },
-      { IssueHistory },
-      { Inventory },
-      { InventoryHistory },
-      { MaintenanceContract },
-      { MaintenanceContractAttachment },
-      { MaintenanceContractHistory },
-    ] = await Promise.all([
-      import('@/entities/Task'),
-      import('@/entities/Employee'),
-      import('@/entities/Customer'),
-      import('@/entities/TechSupport'),
-      import('@/entities/Project'),
-      import('@/entities/ProjectAttachment'),
-      import('@/entities/Issue'),
-      import('@/entities/IssueAttachment'),
-      import('@/entities/IssueHistory'),
-      import('@/entities/Inventory'),
-      import('@/entities/InventoryHistory'),
-      import('@/entities/MaintenanceContract'),
-      import('@/entities/MaintenanceContractAttachment'),
-      import('@/entities/MaintenanceContractHistory'),
-    ]);
-
-    cachedEntities = [
-      Task,
-      Employee,
-      Customer,
-      TechSupport,
-      Project,
-      ProjectAttachment,
-      Issue,
-      IssueAttachment,
-      IssueHistory,
-      Inventory,
-      InventoryHistory,
-      MaintenanceContract,
-      MaintenanceContractAttachment,
-      MaintenanceContractHistory,
-    ];
-
-    entitiesLoaded = true;
-    return cachedEntities;
-  } catch (error) {
-    console.error('[DB] Failed to load entities:', error instanceof Error ? error.message : String(error));
-    throw error;
-  }
+  throw new Error('Failed to load entities after multiple retries');
 }
 
 export async function getDataSource(): Promise<any> {
-  if (dataSource && dataSource.isInitialized) {
+  // Return cached instance if available
+  if (dataSource?.isInitialized) {
     return dataSource;
   }
 
   try {
-    const entities = await ensureEntitiesLoaded();
+    const entities = await loadEntitiesWithRetry();
 
     dataSource = new DataSource({
       type: 'oracle',
@@ -105,14 +95,18 @@ export async function getDataSource(): Promise<any> {
 
     await dataSource.initialize();
     console.log('[DB] TypeORM DataSource initialized successfully');
+    return dataSource;
   } catch (error) {
     console.error('[DB] Error during initialization:', error instanceof Error ? error.message : String(error));
-    // If initialization fails (e.g., during build), create minimal datasource
-    // to prevent module loading errors
-    if (!dataSource) {
-      dataSource = { isInitialized: false };
-    }
-  }
 
-  return dataSource;
+    // Return a graceful fallback to prevent application crashes
+    // The API handlers will detect !isInitialized and return appropriate errors
+    dataSource = {
+      isInitialized: false,
+      initialize: async () => { throw new Error('Not initialized'); },
+      createQueryRunner: () => { throw new Error('Not initialized'); },
+    };
+
+    return dataSource;
+  }
 }
