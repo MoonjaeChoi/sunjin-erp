@@ -39,13 +39,14 @@ src/components/features/inventory/__tests__/
 └── StatusChangeForm.test.tsx        # Status change form tests
 
 src/app/api/inventory/__tests__/
-├── route.test.ts                    # GET/POST /api/inventory
-├── [id].route.test.ts               # GET/PUT/DELETE /api/inventory/[id]
-├── [id]/checkout.route.test.ts      # POST /api/inventory/[id]/checkout
-├── [id]/checkin.route.test.ts       # POST /api/inventory/[id]/checkin
-├── [id]/relocate.route.test.ts      # POST /api/inventory/[id]/relocate
-├── [id]/status-change.route.test.ts # POST /api/inventory/[id]/status-change
-└── stats.route.test.ts              # GET /api/inventory/stats
+├── route.test.ts                     # GET/POST /api/inventory (13 test cases)
+├── [id].route.test.ts                # GET/PUT/DELETE /api/inventory/[id] (10 test cases)
+├── [id]/
+│   ├── checkout.route.test.ts        # POST /api/inventory/[id]/checkout (8 test cases)
+│   ├── checkin.route.test.ts         # POST /api/inventory/[id]/checkin (8 test cases)
+│   ├── relocate.route.test.ts        # POST /api/inventory/[id]/relocate (10 test cases)
+│   └── status-change.route.test.ts   # POST /api/inventory/[id]/status-change (13 test cases)
+└── stats.route.test.ts               # GET /api/inventory/stats (10 test cases)
 ```
 
 ---
@@ -107,7 +108,7 @@ npm run test -- -u
 
 **Tests**: 56+ cases across 10 endpoints
 
-#### GET /api/inventory
+#### GET /api/inventory (8 test cases)
 - [x] Pagination (page, pageSize)
 - [x] Filters (categories, statuses, location, search)
 - [x] Sorting (sortBy, order)
@@ -115,7 +116,7 @@ npm run test -- -u
 - [x] Soft delete filtering
 - [x] Error handling (pageSize > 100)
 
-#### POST /api/inventory
+#### POST /api/inventory (5 test cases)
 - [x] Create with valid data → 201
 - [x] Set initial status to '재고'
 - [x] Serial number uniqueness → 409
@@ -162,6 +163,9 @@ npm run test -- -u
 - [x] Aggregation by status
 - [x] Overdue percentage
 - [x] Category distribution
+- [x] Exclude soft-deleted items
+- [x] Zero/positive count validation
+- [x] Status sum equals total count
 
 ### 3. Hook Layer (src/hooks/__tests__/)
 
@@ -339,5 +343,12 @@ GitHub Actions workflow runs tests on every push/PR:
 ---
 
 **Last Updated**: 2026-01-26
-**Test Count**: 89+ cases
+**Phase 1 (Infrastructure)**: ✅ COMPLETE
+  - Jest config, MSW setup, fixtures, service tests, component pattern
+**Phase 2 (API Handlers)**: ✅ COMPLETE
+  - 72+ test cases across 7 API endpoint groups
+**Phase 3 (Hooks)**: Planned (10+ test cases)
+**Phase 4 (Components)**: Planned (50+ test cases)
+
+**Current Test Count**: 102+ cases (Phases 1-2 complete)
 **Coverage**: 80%+ target
