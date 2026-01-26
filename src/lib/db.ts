@@ -57,8 +57,8 @@ export async function getDataSource(): Promise<any> {
       synchronize: false,
       logging: process.env.NODE_ENV === 'development',
       extra: {
-        charset: 'UTF8',
-        fetchAsString: ['CLOB'],
+        charset: 'AL32UTF8',
+        fetchAsString: ['CLOB', 'VARCHAR', 'VARCHAR2', 'CHAR'],
         fetchAsBuffer: ['BLOB'],
         preFetchRowCount: 100,
       },
