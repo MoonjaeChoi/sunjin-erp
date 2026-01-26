@@ -44,7 +44,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const keyword = searchParams.get('keyword');
 
     // 3. Build WHERE clause (RLS + filters)
-    const whereClauses: string[] = ['"i"."DELETED_AT" IS NULL'];
+    const whereClauses: string[] = ['"i"."deleted_at" IS NULL'];
     const params: any = {};
     let paramIndex = 0;
 
@@ -53,16 +53,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     } else if (userRole === 'MANAGER') {
       // MANAGER: same department assignee issues
       whereClauses.push(
-        `"i"."ASSIGNED_TO_ID" IS NOT NULL AND "e_assigned"."DEPARTMENT_ID" = :departmentId${paramIndex}`
+        `"i"."assigned_to_id" IS NOT NULL AND "e_assigned"."department_id" = :departmentId${paramIndex}`
       );
       params[`departmentId${paramIndex}`] = userDepartmentId;
       paramIndex++;
     } else if (userRole === 'USER') {
       // USER: created by me + assigned to me + same dept public
       whereClauses.push(
-        `("i"."CREATED_BY_ID" = :userId${paramIndex}
-         OR "i"."ASSIGNED_TO_ID" = :userId${paramIndex + 1}
-         OR ("i"."IS_PUBLIC" = 1 AND "e_assigned"."DEPARTMENT_ID" = :departmentId${paramIndex + 2}))`
+        `("i"."created_by_id" = :userId${paramIndex}
+         OR "i"."assigned_to_id" = :userId${paramIndex + 1}
+         OR ("i"."is_public" = 1 AND "e_assigned"."department_id" = :departmentId${paramIndex + 2}))`
       );
       params[`userId${paramIndex}`] = userId;
       params[`userId${paramIndex + 1}`] = userId;
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // 4. Apply filters (AND combination)
     if (customer_id) {
-      whereClauses.push(`"i"."CUSTOMER_ID" = :customerId${paramIndex}`);
+      whereClauses.push(`"i"."customer_id" = :customerId${paramIndex}`);
       params[`customerId${paramIndex}`] = customer_id;
       paramIndex++;
     }
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const statusPlaceholders = status
         .map((_, i) => `:status${paramIndex + i}`)
         .join(',');
-      whereClauses.push(`"i"."STATUS" IN (${statusPlaceholders})`);
+      whereClauses.push(`"i"."status" IN (${statusPlaceholders})`);
       status.forEach((s, i) => {
         params[`status${paramIndex + i}`] = s;
       });
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       const severityPlaceholders = severity
         .map((_, i) => `:severity${paramIndex + i}`)
         .join(',');
-      whereClauses.push(`"i"."SEVERITY" IN (${severityPlaceholders})`);
+      whereClauses.push(`"i"."severity" IN (${severityPlaceholders})`);
       severity.forEach((s, i) => {
         params[`severity${paramIndex + i}`] = s;
       });
@@ -100,20 +100,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     if (assignee_id) {
-      whereClauses.push(`"i"."ASSIGNED_TO_ID" = :assigneeId${paramIndex}`);
+      whereClauses.push(`"i"."assigned_to_id" = :assigneeId${paramIndex}`);
       params[`assigneeId${paramIndex}`] = assignee_id;
       paramIndex++;
     }
 
     if (created_by_id) {
-      whereClauses.push(`"i"."CREATED_BY_ID" = :createdById${paramIndex}`);
+      whereClauses.push(`"i"."created_by_id" = :createdById${paramIndex}`);
       params[`createdById${paramIndex}`] = created_by_id;
       paramIndex++;
     }
 
     if (date_from) {
       whereClauses.push(
-        `TRUNC("i"."CREATED_AT") >= TRUNC(TO_DATE(:dateFrom${paramIndex}, 'YYYY-MM-DD'))`
+        `TRUNC("i"."created_at") >= TRUNC(TO_DATE(:dateFrom${paramIndex}, 'YYYY-MM-DD'))`
       );
       params[`dateFrom${paramIndex}`] = date_from;
       paramIndex++;
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (date_to) {
       whereClauses.push(
-        `TRUNC("i"."CREATED_AT") <= TRUNC(TO_DATE(:dateTo${paramIndex}, 'YYYY-MM-DD'))`
+        `TRUNC("i"."created_at") <= TRUNC(TO_DATE(:dateTo${paramIndex}, 'YYYY-MM-DD'))`
       );
       params[`dateTo${paramIndex}`] = date_to;
       paramIndex++;
@@ -129,8 +129,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     if (keyword) {
       whereClauses.push(
-        `(LOWER("i"."TITLE") LIKE LOWER(:keyword${paramIndex})
-         OR LOWER(DBMS_LOB.SUBSTR("i"."DESCRIPTION", 4000, 1)) LIKE LOWER(:keyword${paramIndex}))`
+        `(LOWER("i"."title") LIKE LOWER(:keyword${paramIndex})
+         OR LOWER(DBMS_LOB.SUBSTR("i"."description", 4000, 1)) LIKE LOWER(:keyword${paramIndex}))`
       );
       params[`keyword${paramIndex}`] = `%${keyword}%`;
       paramIndex++;
@@ -143,12 +143,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     try {
       const query = `
         SELECT
-          "i"."STATUS",
+          "i"."status",
           COUNT(*) as count
         FROM ISSUE "i"
-        LEFT JOIN EMPLOYEE "e_assigned" ON "i"."ASSIGNED_TO_ID" = "e_assigned"."ID"
+        LEFT JOIN EMPLOYEE "e_assigned" ON "i"."assigned_to_id" = "e_assigned"."id"
         WHERE ${whereClauses.join(' AND ')}
-        GROUP BY "i"."STATUS"
+        GROUP BY "i"."status"
       `;
 
       const results = await queryRunner.query(query, params);
@@ -161,9 +161,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       };
 
       results.forEach((r: any) => {
-        const status = r.status || r.STATUS;
+        const status = r.status;
         if (status in statusCounts) {
-          statusCounts[status] = parseInt(r.count || r.COUNT, 10);
+          statusCounts[status] = parseInt(r.count, 10);
         }
       });
 
