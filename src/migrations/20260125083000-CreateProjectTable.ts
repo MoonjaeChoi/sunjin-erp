@@ -2,7 +2,7 @@
 
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateProjectTable implements MigrationInterface {
+export class CreateProjectTable20260125083000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 1. Sequences
     await queryRunner.query(`CREATE SEQUENCE PROJECT_ID_SEQ START WITH 1 INCREMENT BY 1`);
