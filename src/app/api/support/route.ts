@@ -312,7 +312,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // 2. INSERT with RETURNING
+      // 2. INSERT
       const insertSql = `
         INSERT INTO TECH_SUPPORT (
           "title", "description", "support_date", "start_time", "end_time",
@@ -323,10 +323,11 @@ export async function POST(request: NextRequest) {
           :supportType, :supportMethod, :status, :employeeId, :customerId,
           :createdAt, :updatedAt, :deletedAt
         )
-        RETURNING "id", "created_at"
       `;
 
-      const result = await queryRunner.query(insertSql, {
+      console.log('INSERT SQL:', insertSql);
+
+      await queryRunner.query(insertSql, {
         title: sanitizedTitle,
         description: body.description || null,
         supportDate: new Date(body.support_date),
@@ -342,7 +343,13 @@ export async function POST(request: NextRequest) {
         deletedAt: null,
       });
 
-      const supportId = result[0]?.id;
+      // 3. Get the last inserted ID (since we can't use RETURNING in all Oracle versions)
+      const idResult = await queryRunner.query(
+        `SELECT MAX("id") as id FROM TECH_SUPPORT WHERE "employee_id" = :empId AND "customer_id" = :custId AND "title" = :title`,
+        { empId: user.id, custId: body.customer_id, title: sanitizedTitle }
+      );
+
+      const supportId = idResult[0]?.id;
 
       return NextResponse.json(
         { message: 'Created successfully', id: supportId },
