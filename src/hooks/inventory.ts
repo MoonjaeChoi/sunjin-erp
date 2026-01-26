@@ -97,7 +97,7 @@ export function useInventoryListQuery(
   params: Partial<InventoryQueryParams> = {},
   options?: any
 ) {
-  return useQuery({
+  return useQuery<InventoryListResponse>({
     queryKey: inventoryKeys.list(params),
     queryFn: () => fetchInventoryList(params),
     staleTime: 1000 * 60 * 5, // 5분
@@ -107,7 +107,7 @@ export function useInventoryListQuery(
 }
 
 export function useInventoryDetailQuery(id: number | null, options?: any) {
-  return useQuery({
+  return useQuery<InventoryDetail>({
     queryKey: inventoryKeys.detail(id || 0),
     queryFn: () => fetchInventoryDetail(id!),
     staleTime: 1000 * 60 * 5, // 5분
@@ -118,7 +118,7 @@ export function useInventoryDetailQuery(id: number | null, options?: any) {
 }
 
 export function useInventoryStatsQuery(options?: any) {
-  return useQuery({
+  return useQuery<InventoryStats>({
     queryKey: inventoryKeys.stats(),
     queryFn: () => fetchInventoryStats(),
     staleTime: 1000 * 60 * 2, // 2분 (자주 변함)
