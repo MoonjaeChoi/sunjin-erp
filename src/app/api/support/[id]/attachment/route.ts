@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { IsNull } from 'typeorm';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { TechSupport } from '@/entities/TechSupport';
+import { TechSupport } from '../../../../../entities/TechSupport';
 import { validateFile, sanitizeFilename, getMimeType, getExtension } from '@/lib/file-utils';
 import { randomUUID } from 'crypto';
 import { mkdir, writeFile, unlink, readFile, chmod } from 'fs/promises';

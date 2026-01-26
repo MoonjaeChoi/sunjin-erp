@@ -1,9 +1,9 @@
-// Generated: 2026-01-26 22:45:00 KST
+// Generated: 2026-01-27 16:15:00 KST
 
 import { DataSource, Repository, IsNull } from 'typeorm';
-import { MaintenanceContract } from '@/entities/MaintenanceContract';
-import { MaintenanceContractAttachment } from '@/entities/MaintenanceContractAttachment';
-import { MaintenanceContractHistory } from '@/entities/MaintenanceContractHistory';
+import { MaintenanceContract } from '../entities/MaintenanceContract';
+import { MaintenanceContractAttachment } from '../entities/MaintenanceContractAttachment';
+import { MaintenanceContractHistory } from '../entities/MaintenanceContractHistory';
 
 /**
  * Maintenance Contract Repository

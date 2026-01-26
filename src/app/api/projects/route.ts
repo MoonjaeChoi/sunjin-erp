@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { Project } from '@/entities/Project';
-import { Customer } from '@/entities/Customer';
-import { Employee } from '@/entities/Employee';
+import { Project } from '../../../entities/Project';
+import { Customer } from '../../../entities/Customer';
+import { Employee } from '../../../entities/Employee';
 import { IsNull } from 'typeorm';
 
 export const dynamic = 'force-dynamic';

@@ -2,9 +2,9 @@
 
 import { DataSource } from 'typeorm';
 import { MaintenanceContractRepository } from './maintenance-repository';
-import { MaintenanceContract } from '@/entities/MaintenanceContract';
-import { MaintenanceContractAttachment } from '@/entities/MaintenanceContractAttachment';
-import { MaintenanceContractHistory } from '@/entities/MaintenanceContractHistory';
+import { MaintenanceContract } from '../entities/MaintenanceContract';
+import { MaintenanceContractAttachment } from '../entities/MaintenanceContractAttachment';
+import { MaintenanceContractHistory } from '../entities/MaintenanceContractHistory';
 import { CONTRACT_STATUS, CHANGE_TYPE } from './maintenance-constants';
 
 /**

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { TechSupport, SupportType, SupportMethod } from '@/entities/TechSupport';
+import { TechSupport, SupportType, SupportMethod } from '../../../entities/TechSupport';
 
 export const dynamic = 'force-dynamic';
 

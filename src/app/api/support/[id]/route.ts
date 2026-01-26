@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { IsNull } from 'typeorm';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { TechSupport, SupportType, SupportMethod, SupportStatus } from '@/entities/TechSupport';
+import { TechSupport, SupportType, SupportMethod, SupportStatus } from '../../../../entities/TechSupport';
 import { unlink } from 'fs/promises';
 import path from 'path';
 

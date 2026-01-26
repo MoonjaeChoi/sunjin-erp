@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { IsNull } from 'typeorm';
 import { authOptions } from '@/lib/auth';
 import { getDataSource } from '@/lib/db';
-import { Task } from '@/entities/Task';
+import { Task } from '../../../../entities/Task';
 import { TaskType, WorkType, TaskStatus } from '@/types/task';
 
 export const dynamic = 'force-dynamic';
