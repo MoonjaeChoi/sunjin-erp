@@ -11,7 +11,6 @@ import {
   DeleteDateColumn,
   Index,
 } from 'typeorm';
-import { MaintenanceContract } from './MaintenanceContract';
 import { Employee } from './Employee';
 
 /**
@@ -84,14 +83,14 @@ export class MaintenanceContractAttachment {
   deleted_at!: Date | null;
 
   // Relations
-  @ManyToOne(() => MaintenanceContract, {
+  @ManyToOne('MaintenanceContract', {
     onDelete: 'RESTRICT',
     eager: false,
   })
   @JoinColumn({
     name: 'maintenance_contract_id',
   })
-  contract!: MaintenanceContract;
+  contract: any; // Type info unavailable due to lazy loading
 
   @ManyToOne(() => Employee, {
     onDelete: 'RESTRICT',

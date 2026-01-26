@@ -10,7 +10,6 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Issue } from './Issue';
 import { Employee } from './Employee';
 
 export type IssueHistoryChangeType =
@@ -81,9 +80,9 @@ export class IssueHistory {
   remark!: string | null;
 
   // Relations
-  @ManyToOne(() => Issue)
+  @ManyToOne('Issue')
   @JoinColumn({ name: 'issue_id' })
-  issue!: Issue;
+  issue: any; // Type info unavailable due to lazy loading
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'changed_by_id' })

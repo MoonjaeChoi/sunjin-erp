@@ -11,7 +11,6 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Issue } from './Issue';
 import { Employee } from './Employee';
 
 @Entity('ISSUE_ATTACHMENT')
@@ -71,11 +70,11 @@ export class IssueAttachment {
   deleted_at!: Date | null;
 
   // Relations
-  @ManyToOne(() => Issue, {
+  @ManyToOne('Issue', {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'issue_id' })
-  issue!: Issue;
+  issue: any; // Type info unavailable due to lazy loading
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'uploaded_by_id' })
