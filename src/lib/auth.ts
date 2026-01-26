@@ -31,10 +31,10 @@ export const authOptions: NextAuthOptions = {
           const queryRunner = ds.createQueryRunner();
           try {
             const result = await queryRunner.query(
-              `SELECT "id", "name", "username", "password_hash", "role", "department_id"
+              `SELECT id, name, username, password_hash, role, department_id
                FROM EMPLOYEE
-               WHERE "username" = :username AND "deleted_at" IS NULL`,
-              { username: credentials.username }
+               WHERE username = :username AND deleted_at IS NULL`,
+              [credentials.username]
             );
 
             if (!result || result.length === 0) {
