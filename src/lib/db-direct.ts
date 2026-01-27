@@ -42,6 +42,11 @@ function toPlainObject(row: any): any {
     if (obj instanceof Date) return obj;
     if (typeof obj !== 'object') return obj;
 
+    // Skip Stream objects (LOBs from oracledb)
+    if (obj.readable || obj._readableState || obj._writableState) {
+      return null; // LOBs are returned as null or could be read separately
+    }
+
     seen.add(obj);
 
     if (Array.isArray(obj)) {
@@ -61,6 +66,11 @@ function toPlainObject(row: any): any {
         } else if (value instanceof Date) {
           clean[key] = value;
         } else if (typeof value === 'object') {
+          // Check if it's a Stream/LOB object
+          if (value.readable || value._readableState || value._writableState) {
+            clean[key] = null;
+            continue;
+          }
           if (seen.has(value)) continue;
           clean[key] = stripCircular(value, depth + 1, new Set(seen));
         } else {
