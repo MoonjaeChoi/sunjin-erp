@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, ControllerRenderProps } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -134,10 +134,10 @@ export default function NoticeForm({ mode, notice }: NoticeFormProps) {
             <FormField
               control={form.control}
               name="type"
-              render={({ field }: { field: ControllerRenderProps<FormValues, 'type'> }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>게시판 유형</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="유형 선택" />
@@ -160,7 +160,7 @@ export default function NoticeForm({ mode, notice }: NoticeFormProps) {
             <FormField
               control={form.control}
               name="title"
-              render={({ field }: { field: ControllerRenderProps<FormValues, 'title'> }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>제목</FormLabel>
                   <FormControl>
@@ -175,7 +175,7 @@ export default function NoticeForm({ mode, notice }: NoticeFormProps) {
             <FormField
               control={form.control}
               name="content"
-              render={({ field }: { field: ControllerRenderProps<FormValues, 'content'> }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>내용</FormLabel>
                   <FormControl>
@@ -186,7 +186,7 @@ export default function NoticeForm({ mode, notice }: NoticeFormProps) {
                     />
                   </FormControl>
                   <div className="text-xs text-muted-foreground text-right">
-                    {field.value.length} / 10,000
+                    {(field.value || '').length} / 10,000
                   </div>
                   <FormMessage />
                 </FormItem>

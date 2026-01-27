@@ -1,0 +1,29 @@
+-- Notice Comments Test Data (with correct NOTICE_IDs: 17-24)
+SET FEEDBACK ON
+
+-- 공지사항 17번(경영방침)에 댓글
+INSERT INTO NOTICE_COMMENT (NOTICE_ID, CONTENT, AUTHOR_ID, PARENT_COMMENT_ID, "created_at", "updated_at")
+VALUES (17, '좋은 방침 안내 감사합니다. 올해도 열심히 하겠습니다!', 5, NULL, SYSTIMESTAMP - INTERVAL '6' DAY, SYSTIMESTAMP - INTERVAL '6' DAY);
+
+INSERT INTO NOTICE_COMMENT (NOTICE_ID, CONTENT, AUTHOR_ID, PARENT_COMMENT_ID, "created_at", "updated_at")
+VALUES (17, '신기술 도입 관련 세부 일정이 있을까요?', 6, NULL, SYSTIMESTAMP - INTERVAL '5' DAY, SYSTIMESTAMP - INTERVAL '5' DAY);
+
+COMMIT;
+
+-- 답글을 위해 방금 생성된 댓글 ID 확인 후 답글 추가
+-- 공지사항 19번(프로젝트 현황)에 댓글
+INSERT INTO NOTICE_COMMENT (NOTICE_ID, CONTENT, AUTHOR_ID, PARENT_COMMENT_ID, "created_at", "updated_at")
+VALUES (19, 'A 프로젝트 일정이 타이트하네요. 추가 인력 지원 가능할까요?', 7, NULL, SYSTIMESTAMP - INTERVAL '2' DAY, SYSTIMESTAMP - INTERVAL '2' DAY);
+
+-- 공지사항 23번(등산동호회)에 댓글
+INSERT INTO NOTICE_COMMENT (NOTICE_ID, CONTENT, AUTHOR_ID, PARENT_COMMENT_ID, "created_at", "updated_at")
+VALUES (23, '저도 참여하고 싶습니다! 어디로 연락드리면 될까요?', 10, NULL, SYSTIMESTAMP - INTERVAL '5' DAY, SYSTIMESTAMP - INTERVAL '5' DAY);
+
+INSERT INTO NOTICE_COMMENT (NOTICE_ID, CONTENT, AUTHOR_ID, PARENT_COMMENT_ID, "created_at", "updated_at")
+VALUES (23, '초보자도 괜찮다니 관심 있습니다.', 11, NULL, SYSTIMESTAMP - INTERVAL '4' DAY, SYSTIMESTAMP - INTERVAL '4' DAY);
+
+-- 공지사항 24번(모니터 나눔)에 댓글
+INSERT INTO NOTICE_COMMENT (NOTICE_ID, CONTENT, AUTHOR_ID, PARENT_COMMENT_ID, "created_at", "updated_at")
+VALUES (24, '혹시 아직 있나요? 필요합니다!', 12, NULL, SYSTIMESTAMP - INTERVAL '1' HOUR, SYSTIMESTAMP - INTERVAL '1' HOUR);
+
+COMMIT;
