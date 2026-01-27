@@ -36,6 +36,9 @@ export async function getConnection(options?: ConnectionOptions) {
     connectionString,
   });
 
+  // Set outFormat to return objects instead of arrays
+  connection.outFormat = oracledb.OUT_FORMAT_OBJECT;
+
   return connection;
 }
 
