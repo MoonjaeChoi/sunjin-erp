@@ -249,7 +249,7 @@ export async function GET(request: NextRequest) {
       executeQuery(countSql, countParams),
     ]);
 
-    const total = parseInt(countResult[0]?.total || '0', 10);
+    const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
     return NextResponse.json({ supports, total, page, page_size: pageSize });
   } catch (error) {
@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
       { customerId: body.customer_id }
     );
 
-    if (customerResult.length === 0) {
+    if (customerResult.rows.length === 0) {
       return NextResponse.json(
         { error: 'Customer not found' },
         { status: 404 }
@@ -305,7 +305,7 @@ export async function POST(request: NextRequest) {
     const seqResult = await executeQuery(
       `SELECT TECH_SUPPORT_ID_SEQ.NEXTVAL as "id" FROM DUAL`
     );
-    const supportId = seqResult[0]?.id;
+    const supportId = seqResult.rows[0]?.id;
 
     if (!supportId) {
       return NextResponse.json(
