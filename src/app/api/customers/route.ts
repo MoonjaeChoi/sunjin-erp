@@ -368,7 +368,6 @@ export async function POST(request: NextRequest) {
       changeType: 'CREATE',
       changedFields: JSON.stringify(changedFieldsJson),
       userId: user.id,
-      now,
     });
 
     // 10. 응답 반환 (201 Created)
