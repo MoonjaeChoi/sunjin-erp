@@ -32,18 +32,18 @@ export async function GET(request: NextRequest) {
     // 3. 상태별 계약 수 조회
     const statusStatsResult = await executeQuery(`
       SELECT
-        "contract_status",
+        mc."contract_status",
         COUNT(*) as COUNT
-      FROM "MAINTENANCE_CONTRACTS"
-      WHERE "deleted_at" IS NULL
-      GROUP BY "contract_status"
+      FROM "MAINTENANCE_CONTRACTS" mc
+      WHERE mc."deleted_at" IS NULL
+      GROUP BY mc."contract_status"
     `);
 
     const byStatus: Record<string, number> = {};
     let total = 0;
 
     for (const row of statusStatsResult.rows) {
-      const status = (row as any)?.contract_status;
+      const status = (row as any)?._contract_status || (row as any)?.contract_status;
       const count = parseInt((row as any)?.COUNT || '0');
       byStatus[status] = count;
       total += count;
@@ -56,13 +56,13 @@ export async function GET(request: NextRequest) {
 
     const expiringContractsResult = await executeQuery(`
       SELECT
-        "id",
-        "end_date"
-      FROM "MAINTENANCE_CONTRACTS"
-      WHERE "deleted_at" IS NULL
-      AND "contract_status" = '활성'
-      AND "end_date" <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
-      AND "end_date" >= TO_DATE(:today, 'YYYY-MM-DD')
+        mc."id",
+        mc."end_date"
+      FROM "MAINTENANCE_CONTRACTS" mc
+      WHERE mc."deleted_at" IS NULL
+      AND mc."contract_status" = '활성'
+      AND mc."end_date" <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
+      AND mc."end_date" >= TO_DATE(:today, 'YYYY-MM-DD')
     `, {
       today: today.toISOString().split('T')[0],
       sixtyDaysLater: sixtyDaysLater.toISOString().split('T')[0],
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     let expiringIn60Days = 0;
 
     for (const contract of expiringContractsResult.rows) {
-      const endDate = new Date((contract as any)?.end_date);
+      const endDate = new Date((contract as any)?._end_date || (contract as any)?.end_date);
 
       if (endDate <= thirtyDaysLater && endDate >= today) {
         expiringIn30Days++;
