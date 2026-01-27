@@ -36,9 +36,6 @@ export async function getConnection(options?: ConnectionOptions) {
     connectionString,
   });
 
-  // Set outFormat to return objects instead of arrays
-  connection.outFormat = oracledb.OUT_FORMAT_OBJECT;
-
   return connection;
 }
 
@@ -54,7 +51,11 @@ export async function executeQuery<T = any>(
 
   try {
     connection = await getConnection(options);
-    const result = await connection.execute(query, params);
+    // @ts-ignore - oracledb doesn't have complete type definitions
+    const oracledb = await import('oracledb');
+    const result = await connection.execute(query, params, {
+      outFormat: oracledb.OUT_FORMAT_OBJECT,
+    });
 
     return {
       rows: result.rows as T[],
@@ -95,7 +96,12 @@ export async function executeUpdate(
 
   try {
     connection = await getConnection(options);
-    const result = await connection.execute(query, params, { autoCommit: true });
+    // @ts-ignore - oracledb doesn't have complete type definitions
+    const oracledb = await import('oracledb');
+    const result = await connection.execute(query, params, {
+      autoCommit: true,
+      outFormat: oracledb.OUT_FORMAT_OBJECT,
+    });
 
     return {
       rowsAffected: result.rowsAffected || 0,
@@ -125,10 +131,14 @@ export async function executeTransaction(
 
   try {
     connection = await getConnection(options);
+    // @ts-ignore - oracledb doesn't have complete type definitions
+    const oracledb = await import('oracledb');
     const results: Array<QueryResult<any>> = [];
 
     for (const op of operations) {
-      const result = await connection.execute(op.query, op.params);
+      const result = await connection.execute(op.query, op.params, {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+      });
       results.push({
         rows: result.rows || [],
         rowCount: result.rowsAffected || 0,
