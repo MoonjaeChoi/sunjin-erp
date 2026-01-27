@@ -51,46 +51,46 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
     // 4. Raw SQL 쿼리 구성
-    let whereClause = 'WHERE mc."deleted_at" IS NULL';
+    let whereClause = 'WHERE "mc"."deleted_at" IS NULL';
     const params: any = {};
 
     if (status) {
-      whereClause += ' AND mc."contract_status" = :status';
+      whereClause += ' AND "mc"."contract_status" = :status';
       params.status = status;
     }
 
     if (customerId) {
-      whereClause += ' AND mc."customer_id" = :customerId';
+      whereClause += ' AND "mc"."customer_id" = :customerId';
       params.customerId = customerId;
     }
 
     if (assignedEmployeeId) {
-      whereClause += ' AND mc."assigned_employee_id" = :assignedEmployeeId';
+      whereClause += ' AND "mc"."assigned_employee_id" = :assignedEmployeeId';
       params.assignedEmployeeId = assignedEmployeeId;
     }
 
     if (contractNameSearch) {
-      whereClause += ' AND LOWER(mc."contract_name") LIKE LOWER(:contractNameSearch)';
+      whereClause += ' AND LOWER("mc"."contract_name") LIKE LOWER(:contractNameSearch)';
       params.contractNameSearch = `%${contractNameSearch}%`;
     }
 
     if (startDateFrom) {
-      whereClause += ' AND mc."start_date" >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND "mc"."start_date" >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
       params.startDateFrom = startDateFrom;
     }
 
     if (startDateTo) {
-      whereClause += ' AND mc."start_date" <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND "mc"."start_date" <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
       params.startDateTo = startDateTo;
     }
 
     if (endDateFrom) {
-      whereClause += ' AND mc."end_date" >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND "mc"."end_date" >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
       params.endDateFrom = endDateFrom;
     }
 
     if (endDateTo) {
-      whereClause += ' AND mc."end_date" <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND "mc"."end_date" <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
       params.endDateTo = endDateTo;
     }
 
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
 
     // 5. 총 개수 조회
     const countResult = await executeQuery(
-      `SELECT COUNT(*) as TOTAL FROM "MAINTENANCE_CONTRACTS" mc ${whereClause}`,
+      `SELECT COUNT(*) as TOTAL FROM "MAINTENANCE_CONTRACTS" "mc" ${whereClause}`,
       params
     );
     const total = parseInt(countResult.rows[0]?.TOTAL || '0');
@@ -106,21 +106,21 @@ export async function GET(request: NextRequest) {
     // 6. 목록 조회
     const sql = `
       SELECT
-        mc."id",
-        mc."customer_id",
-        mc."contract_name",
-        mc."contract_type",
-        mc."start_date",
-        mc."end_date",
-        mc."assigned_employee_id",
-        mc."contract_amount",
-        mc."contract_status",
-        mc."notes",
-        mc."created_at",
-        mc."updated_at",
-        mc."created_by_id",
-        mc."updated_by_id"
-      FROM "MAINTENANCE_CONTRACTS" mc
+        "mc"."id",
+        "mc"."customer_id",
+        "mc"."contract_name",
+        "mc"."contract_type",
+        "mc"."start_date",
+        "mc"."end_date",
+        "mc"."assigned_employee_id",
+        "mc"."contract_amount",
+        "mc"."contract_status",
+        "mc"."notes",
+        "mc"."created_at",
+        "mc"."updated_at",
+        "mc"."created_by_id",
+        "mc"."updated_by_id"
+      FROM "MAINTENANCE_CONTRACTS" "mc"
       ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
