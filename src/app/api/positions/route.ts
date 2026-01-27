@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 
 // ============================================================
 // GET /api/positions - 직급 목록 조회
+// 권한: 모든 인증 사용자 (USER, MANAGER, ADMIN)
 // ============================================================
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -20,13 +21,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. ADMIN 권한 검증
-    const user = session.user as any;
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-
-    // 3. 쿼리 파라미터
+    // 2. 쿼리 파라미터
     const searchParams = req.nextUrl.searchParams;
     const includeDeleted = searchParams.get('includeDeleted') === 'true';
 
