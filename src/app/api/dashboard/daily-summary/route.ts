@@ -50,16 +50,17 @@ export async function GET(request: NextRequest) {
     const result = await executeQuery(sql, params);
 
     // 4. 응답 구성
+    // Note: TASK 테이블은 소문자 따옴표 컬럼 사용 → Oracle이 소문자로 반환
     return NextResponse.json({
       date,
       tasks: result.rows.map((task: any) => ({
-        id: task.ID,
-        title: task.TITLE,
-        task_type: task.TASK_TYPE,
-        work_type: task.WORK_TYPE,
-        status: task.STATUS,
-        start_time: task.START_TIME,
-        end_time: task.END_TIME,
+        id: task.id,
+        title: task.title,
+        task_type: task.task_type,
+        work_type: task.work_type,
+        status: task.status,
+        start_time: task.start_time,
+        end_time: task.end_time,
         customer_name: null, // Phase 1 완료 후 JOIN
       })),
       techSupports: [], // Phase 3 전까지 빈 배열
