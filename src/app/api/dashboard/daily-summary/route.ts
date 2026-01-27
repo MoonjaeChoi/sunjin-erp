@@ -31,10 +31,10 @@ export async function GET(request: NextRequest) {
 
     // Build SQL query with RBAC filtering
     let sql = `
-      SELECT ID, TITLE, TASK_TYPE, WORK_TYPE, STATUS, START_TIME, END_TIME, EMPLOYEE_ID
+      SELECT id, title, task_type, work_type, status, start_time, end_time, employee_id, task_date
       FROM TASK
-      WHERE TRUNC(TASK_DATE) = TO_DATE(:dateParam, 'YYYY-MM-DD')
-        AND DELETED_AT IS NULL
+      WHERE TRUNC(task_date) = TO_DATE(:dateParam, 'YYYY-MM-DD')
+        AND deleted_at IS NULL
     `;
     const params: any = { dateParam: date };
 
