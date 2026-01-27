@@ -1,9 +1,9 @@
-// Generated: 2026-01-25 06:00:00 KST
+// Generated: 2026-01-27 23:58:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeUpdate } from '@/lib/db-direct';
 import { TechSupport, SupportType, SupportMethod } from '../../../entities/TechSupport';
 
 export const dynamic = 'force-dynamic';
@@ -181,84 +181,77 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const user = session.user as any;
 
-    try {
-      const user = session.user as any;
+    // 동적 WHERE 절 구성
+    let whereClauses: string[] = ['"ts"."deleted_at" IS NULL', '"ts"."support_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')'];
+    const params: any = { dateFrom, dateTo };
+    let paramIndex = 0;
 
-      // 동적 WHERE 절 구성
-      let whereClauses: string[] = ['"ts"."deleted_at" IS NULL', '"ts"."support_date" BETWEEN TO_DATE(:dateFrom, \'YYYY-MM-DD\') AND TO_DATE(:dateTo, \'YYYY-MM-DD\')'];
-      const params: any = { dateFrom, dateTo };
-      let paramIndex = 0;
-
-      if (user.role !== 'ADMIN') {
-        whereClauses.push(`"ts"."employee_id" = :userId${paramIndex}`);
-        params[`userId${paramIndex}`] = user.id;
-        paramIndex++;
-      }
-
-      if (customerId) {
-        whereClauses.push(`"ts"."customer_id" = :customerId${paramIndex}`);
-        params[`customerId${paramIndex}`] = Number(customerId);
-        paramIndex++;
-      }
-
-      if (supportType) {
-        whereClauses.push(`"ts"."support_type" = :supportType${paramIndex}`);
-        params[`supportType${paramIndex}`] = supportType;
-        paramIndex++;
-      }
-
-      if (supportMethod) {
-        whereClauses.push(`"ts"."support_method" = :supportMethod${paramIndex}`);
-        params[`supportMethod${paramIndex}`] = supportMethod;
-        paramIndex++;
-      }
-
-      if (status) {
-        whereClauses.push(`"ts"."status" = :status${paramIndex}`);
-        params[`status${paramIndex}`] = status;
-        paramIndex++;
-      }
-
-      if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
-        whereClauses.push(`"ts"."title" LIKE :keyword${paramIndex}`);
-        params[`keyword${paramIndex}`] = `%${keyword}%`;
-        paramIndex++;
-      }
-
-      const sortBy = (sortByParam || 'support_date') as typeof VALID_SORT_BY[number];
-      const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
-
-      // Raw SQL 쿼리
-      const sql = `SELECT "ts".*, "c"."name" AS customer_name
-                   FROM TECH_SUPPORT "ts"
-                   LEFT JOIN CUSTOMER "c" ON "c"."id" = "ts"."customer_id" AND "c"."deleted_at" IS NULL
-                   WHERE ${whereClauses.join(' AND ')}
-                   ORDER BY "ts"."${sortBy}" ${sortOrder}
-                   OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
-
-      // Total count 쿼리
-      const countSql = `SELECT COUNT(*) as total
-                        FROM TECH_SUPPORT "ts"
-                        WHERE ${whereClauses.join(' AND ')}`;
-
-      // Separate params for count query (no offset/pageSize) and data query
-      const countParams = { ...params };
-      const dataParams = { ...params, offset: (page - 1) * pageSize, pageSize };
-
-      const [supports, countResult] = await Promise.all([
-        queryRunner.query(sql, dataParams),
-        queryRunner.query(countSql, countParams),
-      ]);
-
-      const total = parseInt(countResult[0]?.total || '0', 10);
-
-      return NextResponse.json({ supports, total, page, page_size: pageSize });
-    } finally {
-      await queryRunner.release();
+    if (user.role !== 'ADMIN') {
+      whereClauses.push(`"ts"."employee_id" = :userId${paramIndex}`);
+      params[`userId${paramIndex}`] = user.id;
+      paramIndex++;
     }
+
+    if (customerId) {
+      whereClauses.push(`"ts"."customer_id" = :customerId${paramIndex}`);
+      params[`customerId${paramIndex}`] = Number(customerId);
+      paramIndex++;
+    }
+
+    if (supportType) {
+      whereClauses.push(`"ts"."support_type" = :supportType${paramIndex}`);
+      params[`supportType${paramIndex}`] = supportType;
+      paramIndex++;
+    }
+
+    if (supportMethod) {
+      whereClauses.push(`"ts"."support_method" = :supportMethod${paramIndex}`);
+      params[`supportMethod${paramIndex}`] = supportMethod;
+      paramIndex++;
+    }
+
+    if (status) {
+      whereClauses.push(`"ts"."status" = :status${paramIndex}`);
+      params[`status${paramIndex}`] = status;
+      paramIndex++;
+    }
+
+    if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
+      whereClauses.push(`"ts"."title" LIKE :keyword${paramIndex}`);
+      params[`keyword${paramIndex}`] = `%${keyword}%`;
+      paramIndex++;
+    }
+
+    const sortBy = (sortByParam || 'support_date') as typeof VALID_SORT_BY[number];
+    const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
+
+    // Raw SQL 쿼리
+    const sql = `SELECT "ts".*, "c"."name" AS customer_name
+                 FROM TECH_SUPPORT "ts"
+                 LEFT JOIN CUSTOMER "c" ON "c"."id" = "ts"."customer_id" AND "c"."deleted_at" IS NULL
+                 WHERE ${whereClauses.join(' AND ')}
+                 ORDER BY "ts"."${sortBy}" ${sortOrder}
+                 OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
+
+    // Total count 쿼리
+    const countSql = `SELECT COUNT(*) as total
+                      FROM TECH_SUPPORT "ts"
+                      WHERE ${whereClauses.join(' AND ')}`;
+
+    // Separate params for count query (no offset/pageSize) and data query
+    const countParams = { ...params };
+    const dataParams = { ...params, offset: (page - 1) * pageSize, pageSize };
+
+    const [supports, countResult] = await Promise.all([
+      executeQuery(sql, dataParams),
+      executeQuery(countSql, countParams),
+    ]);
+
+    const total = parseInt(countResult[0]?.total || '0', 10);
+
+    return NextResponse.json({ supports, total, page, page_size: pageSize });
   } catch (error) {
     console.error('GET /api/support error:', error);
     return NextResponse.json(
@@ -292,76 +285,69 @@ export async function POST(request: NextRequest) {
   const sanitizedTitle = sanitizeHtml(body.title.trim());
 
   try {
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const user = session.user as any;
+    const now = new Date();
 
-    try {
-      const user = session.user as any;
-      const now = new Date();
+    // 1. Customer 존재 확인
+    const customerResult = await executeQuery(
+      `SELECT "id" FROM CUSTOMER WHERE "id" = :customerId AND "deleted_at" IS NULL`,
+      { customerId: body.customer_id }
+    );
 
-      // 1. Customer 존재 확인
-      const customerResult = await queryRunner.query(
-        `SELECT "id" FROM CUSTOMER WHERE "id" = :customerId AND "deleted_at" IS NULL`,
-        { customerId: body.customer_id }
-      );
-
-      if (customerResult.length === 0) {
-        return NextResponse.json(
-          { error: 'Customer not found' },
-          { status: 404 }
-        );
-      }
-
-      // 2. Get next ID from sequence
-      const seqResult = await queryRunner.query(
-        `SELECT TECH_SUPPORT_ID_SEQ.NEXTVAL as "id" FROM DUAL`
-      );
-      const supportId = seqResult[0]?.id;
-
-      if (!supportId) {
-        return NextResponse.json(
-          { error: 'Failed to generate ID' },
-          { status: 500 }
-        );
-      }
-
-      // 3. INSERT with explicit ID
-      const insertSql = `
-        INSERT INTO TECH_SUPPORT (
-          "id", "title", "description", "support_date", "start_time", "end_time",
-          "support_type", "support_method", "status", "employee_id", "customer_id",
-          "created_at", "updated_at", "deleted_at"
-        ) VALUES (
-          :id, :title, :description, :supportDate, :startTime, :endTime,
-          :supportType, :supportMethod, :status, :employeeId, :customerId,
-          :createdAt, :updatedAt, :deletedAt
-        )
-      `;
-
-      await queryRunner.query(insertSql, {
-        id: supportId,
-        title: sanitizedTitle,
-        description: body.description || null,
-        supportDate: new Date(body.support_date),
-        startTime: body.start_time ?? null,
-        endTime: body.end_time ?? null,
-        supportType: body.support_type,
-        supportMethod: body.support_method ?? null,
-        status: 'RECEIVED',
-        employeeId: user.id,
-        customerId: body.customer_id,
-        createdAt: now,
-        updatedAt: now,
-        deletedAt: null,
-      });
-
+    if (customerResult.length === 0) {
       return NextResponse.json(
-        { message: 'Created successfully', id: supportId },
-        { status: 201 }
+        { error: 'Customer not found' },
+        { status: 404 }
       );
-    } finally {
-      await queryRunner.release();
     }
+
+    // 2. Get next ID from sequence
+    const seqResult = await executeQuery(
+      `SELECT TECH_SUPPORT_ID_SEQ.NEXTVAL as "id" FROM DUAL`
+    );
+    const supportId = seqResult[0]?.id;
+
+    if (!supportId) {
+      return NextResponse.json(
+        { error: 'Failed to generate ID' },
+        { status: 500 }
+      );
+    }
+
+    // 3. INSERT with explicit ID
+    const insertSql = `
+      INSERT INTO TECH_SUPPORT (
+        "id", "title", "description", "support_date", "start_time", "end_time",
+        "support_type", "support_method", "status", "employee_id", "customer_id",
+        "created_at", "updated_at", "deleted_at"
+      ) VALUES (
+        :id, :title, :description, :supportDate, :startTime, :endTime,
+        :supportType, :supportMethod, :status, :employeeId, :customerId,
+        :createdAt, :updatedAt, :deletedAt
+      )
+    `;
+
+    await executeUpdate(insertSql, {
+      id: supportId,
+      title: sanitizedTitle,
+      description: body.description || null,
+      supportDate: new Date(body.support_date),
+      startTime: body.start_time ?? null,
+      endTime: body.end_time ?? null,
+      supportType: body.support_type,
+      supportMethod: body.support_method ?? null,
+      status: 'RECEIVED',
+      employeeId: user.id,
+      customerId: body.customer_id,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    });
+
+    return NextResponse.json(
+      { message: 'Created successfully', id: supportId },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('POST /api/support error:', error);
     return NextResponse.json(
