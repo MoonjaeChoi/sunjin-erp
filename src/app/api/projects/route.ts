@@ -94,17 +94,17 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
     const user = session.user as any;
 
     // 동적 WHERE 절 구성
-    let whereClauses: string[] = ['p.deleted_at IS NULL'];
+    let whereClauses: string[] = ['"p"."deleted_at" IS NULL'];
     const params: any = {};
     let paramIndex = 0;
 
     // RBAC 조건 적용
     if (user.role === 'MANAGER') {
-      whereClauses.push(`e.department_id = :departmentId${paramIndex}`);
+      whereClauses.push(`"e"."department_id" = :departmentId${paramIndex}`);
       params[`departmentId${paramIndex}`] = user.department;
       paramIndex++;
     } else if (user.role === 'USER') {
-      whereClauses.push(`p.employee_id = :userId${paramIndex}`);
+      whereClauses.push(`"p"."employee_id" = :userId${paramIndex}`);
       params[`userId${paramIndex}`] = user.id;
       paramIndex++;
     }
@@ -112,44 +112,44 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
 
     // 필터 조건 적용
     if (customerId) {
-      whereClauses.push(`p.customer_id = :customerId${paramIndex}`);
+      whereClauses.push(`"p"."customer_id" = :customerId${paramIndex}`);
       params[`customerId${paramIndex}`] = customerId;
       paramIndex++;
     }
 
     if (status) {
-      whereClauses.push(`p.status = :status${paramIndex}`);
+      whereClauses.push(`"p"."status" = :status${paramIndex}`);
       params[`status${paramIndex}`] = status;
       paramIndex++;
     }
 
     if (employeeId) {
-      whereClauses.push(`p.employee_id = :employeeId${paramIndex}`);
+      whereClauses.push(`"p"."employee_id" = :employeeId${paramIndex}`);
       params[`employeeId${paramIndex}`] = employeeId;
       paramIndex++;
     }
 
     // 키워드 검색
     if (keyword && keyword.length >= 2) {
-      whereClauses.push(`(p.project_name LIKE :keyword${paramIndex} OR p.project_code LIKE :keyword${paramIndex})`);
+      whereClauses.push(`("p"."project_name" LIKE :keyword${paramIndex} OR "p"."project_code" LIKE :keyword${paramIndex})`);
       params[`keyword${paramIndex}`] = `%${keyword}%`;
       paramIndex++;
     }
 
     // Raw SQL 쿼리
-    const sql = `SELECT p.id, p.project_code, p.project_name, p.customer_id,
-                        c.name AS customer_name, p.employee_id, e.name AS employee_name,
-                        p.status, p.start_date, p.end_date, p.contract_amount, p.created_at
-                 FROM PROJECT p
-                 LEFT JOIN CUSTOMER c ON c.id = p.customer_id AND c.deleted_at IS NULL
-                 LEFT JOIN EMPLOYEE e ON e.id = p.employee_id AND e.deleted_at IS NULL
+    const sql = `SELECT "p"."id", "p"."project_code", "p"."project_name", "p"."customer_id",
+                        "c"."name" AS customer_name, "p"."employee_id", "e"."name" AS employee_name,
+                        "p"."status", "p"."start_date", "p"."end_date", "p"."contract_amount", "p"."created_at"
+                 FROM "PROJECT" p
+                 LEFT JOIN "CUSTOMER" c ON "c"."id" = "p"."customer_id" AND "c"."deleted_at" IS NULL
+                 LEFT JOIN "EMPLOYEE" e ON "e"."id" = "p"."employee_id" AND "e"."deleted_at" IS NULL
                  WHERE ${whereClauses.join(' AND ')}
-                 ORDER BY p.${sortBy} ${sortOrder}
+                 ORDER BY "p"."${sortBy}" ${sortOrder}
                  OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
 
     const countSql = `SELECT COUNT(*) as total
-                      FROM PROJECT p
-                      LEFT JOIN EMPLOYEE e ON e.id = p.employee_id
+                      FROM "PROJECT" p
+                      LEFT JOIN "EMPLOYEE" e ON "e"."id" = "p"."employee_id"
                       WHERE ${whereClauses.join(' AND ')}`;
 
     // Separate params for count query (no offset/pageSize) and data query
@@ -262,11 +262,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
     // ============================================================================
     const [customerResult, employeeResult] = await Promise.all([
       executeQuerySingle(
-        'SELECT id FROM CUSTOMER WHERE id = :id AND deleted_at IS NULL',
+        'SELECT "id" FROM "CUSTOMER" WHERE "id" = :id AND "deleted_at" IS NULL',
         { id: body.customer_id }
       ),
       executeQuerySingle(
-        'SELECT id FROM EMPLOYEE WHERE id = :id AND deleted_at IS NULL',
+        'SELECT "id" FROM "EMPLOYEE" WHERE "id" = :id AND "deleted_at" IS NULL',
         { id: body.employee_id }
       ),
     ]);
@@ -290,7 +290,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
     // ============================================================================
     if (body.project_code) {
       const existingCode = await executeQuerySingle(
-        'SELECT id FROM PROJECT WHERE project_code = :code',
+        'SELECT "id" FROM "PROJECT" WHERE "project_code" = :code',
         { code: body.project_code }
       );
 
@@ -307,9 +307,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
     // ============================================================================
     const now = new Date();
     const insertSql = `
-      INSERT INTO PROJECT (
-        project_name, customer_id, employee_id, project_code, start_date,
-        end_date, contract_amount, description, status, created_at
+      INSERT INTO "PROJECT" (
+        "project_name", "customer_id", "employee_id", "project_code", "start_date",
+        "end_date", "contract_amount", "description", "status", "created_at"
       ) VALUES (
         :projectName, :customerId, :employeeId, :projectCode, :startDate,
         :endDate, :contractAmount, :description, :status, :now
@@ -317,7 +317,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
     `;
 
     const insertResult = await executeQuery(
-      insertSql + ' RETURNING id',
+      insertSql + ' RETURNING "id"',
       {
         projectName: body.project_name.trim(),
         customerId: body.customer_id,
@@ -336,7 +336,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
     if (!projectId) {
       // Fallback: query the last inserted id
       const lastIdResult = await executeQuerySingle(
-        'SELECT MAX(id) as id FROM PROJECT'
+        'SELECT MAX("id") as id FROM "PROJECT"'
       );
       return NextResponse.json({ id: lastIdResult?.id }, { status: 201 });
     }
