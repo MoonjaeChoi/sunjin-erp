@@ -310,13 +310,14 @@ export async function POST(request: NextRequest) {
     const customerCode = codeResult.rows[0]?.code || 'CUST-00001';
 
     // 7. 고객 등록 (Oracle doesn't support RETURNING without INTO clause)
+    // Note: category column is required (NOT NULL), use same value as classification
     const now = new Date();
     const insertSql = `
       INSERT INTO CUSTOMER (
-        "name", CODE, CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
+        "name", CODE, CATEGORY, CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
         CREATED_BY_ID, UPDATED_BY_ID, "created_at", "updated_at"
       ) VALUES (
-        :name, :code, :classification, :address, :phone, :email, :memo,
+        :name, :code, :classification, :classification, :address, :phone, :email, :memo,
         :userId, :userId, :now, :now
       )
     `;
