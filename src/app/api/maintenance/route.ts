@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
 
     // 5. 총 개수 조회
     const countResult = await executeQuery(
-      `SELECT COUNT(*) as TOTAL FROM "MAINTENANCE_CONTRACTS" MC ${whereClause}`,
+      `SELECT COUNT(*) as TOTAL FROM "MAINTENANCE_CONTRACT" MC ${whereClause}`,
       params
     );
     const total = parseInt(countResult.rows[0]?.TOTAL || '0');
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
         MC."updated_at",
         MC."created_by_id",
         MC."updated_by_id"
-      FROM "MAINTENANCE_CONTRACTS" MC
+      FROM "MAINTENANCE_CONTRACT" MC
       ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
@@ -305,9 +305,9 @@ export async function POST(request: NextRequest) {
 
     const results = await executeTransaction([
       {
-        query: `INSERT INTO "MAINTENANCE_CONTRACTS"
+        query: `INSERT INTO "MAINTENANCE_CONTRACT"
           ("id", "customer_id", "contract_name", "contract_type", "start_date", "end_date", "assigned_employee_id", "contract_amount", "contract_status", "notes", "created_by_id", "updated_by_id", "created_at", "updated_at")
-          VALUES (SEQ_MAINTENANCE_CONTRACTS.NEXTVAL, :customer_id, :contract_name, :contract_type, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'), :assigned_employee_id, :contract_amount, '활성', :notes, :created_by_id, :updated_by_id, :created_at, :updated_at)`,
+          VALUES (SEQ_MAINTENANCE_CONTRACT.NEXTVAL, :customer_id, :contract_name, :contract_type, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'), :assigned_employee_id, :contract_amount, '활성', :notes, :created_by_id, :updated_by_id, :created_at, :updated_at)`,
         params: {
           customer_id,
           contract_name,
@@ -327,7 +327,7 @@ export async function POST(request: NextRequest) {
 
     // 9. 생성된 계약 ID 조회
     const lastIdResult = await executeQuerySingle(
-      'SELECT MAX("id") as id FROM "MAINTENANCE_CONTRACTS" WHERE "customer_id" = :customer_id',
+      'SELECT MAX("id") as id FROM "MAINTENANCE_CONTRACT" WHERE "customer_id" = :customer_id',
       { customer_id }
     );
     const contractId = (lastIdResult as any)?.id;
@@ -346,7 +346,7 @@ export async function POST(request: NextRequest) {
 
     // 11. 생성된 계약 조회 및 반환
     const contract = await executeQuerySingle(
-      'SELECT * FROM "MAINTENANCE_CONTRACTS" WHERE "id" = :id',
+      'SELECT * FROM "MAINTENANCE_CONTRACT" WHERE "id" = :id',
       { id: contractId }
     );
 

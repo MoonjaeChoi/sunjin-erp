@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       SELECT
         MC."contract_status",
         COUNT(*) as COUNT
-      FROM "MAINTENANCE_CONTRACTS" MC
+      FROM "MAINTENANCE_CONTRACT" MC
       WHERE MC."deleted_at" IS NULL
       GROUP BY MC."contract_status"
     `);
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       SELECT
         MC."id",
         MC."end_date"
-      FROM "MAINTENANCE_CONTRACTS" MC
+      FROM "MAINTENANCE_CONTRACT" MC
       WHERE MC."deleted_at" IS NULL
       AND MC."contract_status" = '활성'
       AND MC."end_date" <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')

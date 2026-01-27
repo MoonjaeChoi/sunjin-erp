@@ -43,7 +43,7 @@ export async function GET(
 
     // 4. 계약 조회
     const contractResult = await executeQuerySingle(
-      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACTS" MC
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACT" MC
        WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
@@ -198,7 +198,7 @@ export async function PUT(
 
     // 6. 기존 계약 조회
     const existingContract = await executeQuerySingle(
-      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACTS" MC
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACT" MC
        WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
@@ -327,7 +327,7 @@ export async function PUT(
 
     if (updateFields.length > 0) {
       historyOperations.push({
-        query: `UPDATE "MAINTENANCE_CONTRACTS" SET ${updateFields.join(', ')} WHERE "id" = :id`,
+        query: `UPDATE "MAINTENANCE_CONTRACT" SET ${updateFields.join(', ')} WHERE "id" = :id`,
         params: updateParams,
       });
 
@@ -362,7 +362,7 @@ export async function PUT(
 
     // 10. 수정된 계약 조회 및 반환
     const updatedContract = await executeQuerySingle(
-      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACTS" MC WHERE MC."id" = :id`,
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACT" MC WHERE MC."id" = :id`,
       { id: contractId }
     );
 
@@ -437,7 +437,7 @@ export async function DELETE(
 
     // 4. 계약 존재 여부 확인
     const existingContract = await executeQuerySingle(
-      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACTS" MC
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACT" MC
        WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
@@ -453,7 +453,7 @@ export async function DELETE(
     const now = new Date();
     await executeTransaction([
       {
-        query: `UPDATE "MAINTENANCE_CONTRACTS" SET "deleted_at" = :deleted_at WHERE "id" = :id AND "deleted_at" IS NULL`,
+        query: `UPDATE "MAINTENANCE_CONTRACT" SET "deleted_at" = :deleted_at WHERE "id" = :id AND "deleted_at" IS NULL`,
         params: { id: contractId, deleted_at: now },
       },
       {
