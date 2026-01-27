@@ -309,7 +309,7 @@ export async function POST(request: NextRequest) {
     );
     const customerCode = codeResult.rows[0]?.code || 'CUST-00001';
 
-    // 7. 고객 등록
+    // 7. 고객 등록 (Oracle doesn't support RETURNING without INTO clause)
     const now = new Date();
     const insertSql = `
       INSERT INTO CUSTOMER (
@@ -319,11 +319,9 @@ export async function POST(request: NextRequest) {
         :name, :code, :classification, :address, :phone, :email, :memo,
         :userId, :userId, :now, :now
       )
-      RETURNING "id", "name", CODE, CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
-                CREATED_BY_ID as managerId, "created_at" as createdAt, "updated_at" as updatedAt
     `;
 
-    const result = await executeQuery(insertSql, {
+    await executeUpdate(insertSql, {
       name: sanitizedName,
       code: customerCode,
       classification: body.classification,
@@ -335,9 +333,17 @@ export async function POST(request: NextRequest) {
       now,
     });
 
-    const newCustomer = result.rows[0] || result.rows;
+    // 8. 새로 생성된 고객 조회 (code로 조회 - unique)
+    const selectSql = `
+      SELECT "id", "name", CODE, CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
+             CREATED_BY_ID as MANAGERID, "created_at" as CREATEDAT, "updated_at" as UPDATEDAT
+      FROM CUSTOMER
+      WHERE CODE = :code AND "deleted_at" IS NULL
+    `;
+    const selectResult = await executeQuery(selectSql, { code: customerCode });
+    const newCustomer = selectResult.rows[0];
 
-    // 8. 이력 기록 (CREATE)
+    // 9. 이력 기록 (CREATE)
     const changedFieldsJson = {
       name: { before: null, after: sanitizedName },
       classification: { before: null, after: body.classification },
@@ -356,14 +362,14 @@ export async function POST(request: NextRequest) {
     `;
 
     await executeUpdate(historyInsertSql, {
-      customerId: newCustomer.id,
+      customerId: newCustomer.id,  // "id" is quoted in SELECT, so lowercase
       changeType: 'CREATE',
       changedFields: JSON.stringify(changedFieldsJson),
       userId: user.id,
       now,
     });
 
-    // 9. 응답 반환 (201 Created)
+    // 10. 응답 반환 (201 Created)
     // Oracle returns UPPERCASE column names for unquoted columns/aliases
     return NextResponse.json(
       {
