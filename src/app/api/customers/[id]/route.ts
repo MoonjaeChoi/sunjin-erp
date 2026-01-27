@@ -15,21 +15,27 @@ interface UpdateCustomerRequest {
   classification?: 'RESELLER' | 'END_USER' | 'MAINTENANCE' | 'GENERAL';
 }
 
+interface EmployeeRef {
+  id: number;
+  name: string;
+}
+
 interface CustomerDetailResponse {
   id: number;
   name: string;
   code: string;
   classification: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  memo?: string;
-  managerId: number;
-  managerName: string;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  memo?: string | null;
   createdAt: string;
+  createdById: number | null;
   updatedAt: string;
-  createdByName?: string;
-  updatedByName?: string;
+  updatedById: number | null;
+  deletedAt: string | null;
+  createdBy?: EmployeeRef;
+  updatedBy?: EmployeeRef;
 }
 
 function sanitizeHtml(input: string): string {
@@ -93,11 +99,10 @@ export async function GET(
     const sql = `
       SELECT
         c."id" as ID, c."name" as NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
-        c.CREATED_BY_ID as MANAGERID, e."name" as MANAGERNAME,
+        c.CREATED_BY_ID as CREATEDBYID, c.UPDATED_BY_ID as UPDATEDBYID,
         cb."name" as CREATEDBYNAME, ub."name" as UPDATEDBYNAME,
         c."created_at" as CREATEDAT, c."updated_at" as UPDATEDAT
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE e ON c.CREATED_BY_ID = e."id"
       LEFT JOIN EMPLOYEE cb ON c.CREATED_BY_ID = cb."id"
       LEFT JOIN EMPLOYEE ub ON c.UPDATED_BY_ID = ub."id"
       WHERE c."id" = :id AND c."deleted_at" IS NULL
@@ -124,12 +129,13 @@ export async function GET(
       phone: customer.PHONE,
       email: customer.EMAIL,
       memo: customer.MEMO,
-      managerId: customer.MANAGERID || null,
-      managerName: customer.MANAGERNAME || 'Unknown',
       createdAt: customer.CREATEDAT,
+      createdById: customer.CREATEDBYID || null,
       updatedAt: customer.UPDATEDAT,
-      createdByName: customer.CREATEDBYNAME || 'Unknown',
-      updatedByName: customer.UPDATEDBYNAME || 'Unknown',
+      updatedById: customer.UPDATEDBYID || null,
+      deletedAt: null,
+      createdBy: customer.CREATEDBYID ? { id: customer.CREATEDBYID, name: customer.CREATEDBYNAME || 'Unknown' } : undefined,
+      updatedBy: customer.UPDATEDBYID ? { id: customer.UPDATEDBYID, name: customer.UPDATEDBYNAME || 'Unknown' } : undefined,
     };
 
     return NextResponse.json({ data: response }, { status: 200 });
@@ -183,11 +189,10 @@ export async function PUT(
     const existingSql = `
       SELECT
         c."id" as ID, c."name" as NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
-        c.CREATED_BY_ID as MANAGERID, e."name" as MANAGERNAME,
+        c.CREATED_BY_ID as CREATEDBYID, c.UPDATED_BY_ID as UPDATEDBYID,
         cb."name" as CREATEDBYNAME, ub."name" as UPDATEDBYNAME,
         c."created_at" as CREATEDAT, c."updated_at" as UPDATEDAT
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE e ON c.CREATED_BY_ID = e."id"
       LEFT JOIN EMPLOYEE cb ON c.CREATED_BY_ID = cb."id"
       LEFT JOIN EMPLOYEE ub ON c.UPDATED_BY_ID = ub."id"
       WHERE c."id" = :id AND c."deleted_at" IS NULL
@@ -255,12 +260,13 @@ export async function PUT(
         phone: currentCustomer.PHONE,
         email: currentCustomer.EMAIL,
         memo: currentCustomer.MEMO,
-        managerId: currentCustomer.MANAGERID,
-        managerName: currentCustomer.MANAGERNAME,
         createdAt: currentCustomer.CREATEDAT,
+        createdById: currentCustomer.CREATEDBYID || null,
         updatedAt: currentCustomer.UPDATEDAT,
-        createdByName: currentCustomer.CREATEDBYNAME,
-        updatedByName: currentCustomer.UPDATEDBYNAME,
+        updatedById: currentCustomer.UPDATEDBYID || null,
+        deletedAt: null,
+        createdBy: currentCustomer.CREATEDBYID ? { id: currentCustomer.CREATEDBYID, name: currentCustomer.CREATEDBYNAME || 'Unknown' } : undefined,
+        updatedBy: currentCustomer.UPDATEDBYID ? { id: currentCustomer.UPDATEDBYID, name: currentCustomer.UPDATEDBYNAME || 'Unknown' } : undefined,
       };
 
       return NextResponse.json(
@@ -349,12 +355,13 @@ export async function PUT(
       phone: updatedCustomer.PHONE,
       email: updatedCustomer.EMAIL,
       memo: updatedCustomer.MEMO,
-      managerId: updatedCustomer.MANAGERID,
-      managerName: updatedCustomer.MANAGERNAME,
       createdAt: updatedCustomer.CREATEDAT,
+      createdById: updatedCustomer.CREATEDBYID || null,
       updatedAt: updatedCustomer.UPDATEDAT,
-      createdByName: updatedCustomer.CREATEDBYNAME,
-      updatedByName: updatedCustomer.UPDATEDBYNAME,
+      updatedById: updatedCustomer.UPDATEDBYID || null,
+      deletedAt: null,
+      createdBy: updatedCustomer.CREATEDBYID ? { id: updatedCustomer.CREATEDBYID, name: updatedCustomer.CREATEDBYNAME || 'Unknown' } : undefined,
+      updatedBy: updatedCustomer.UPDATEDBYID ? { id: updatedCustomer.UPDATEDBYID, name: updatedCustomer.UPDATEDBYNAME || 'Unknown' } : undefined,
     };
 
     return NextResponse.json(

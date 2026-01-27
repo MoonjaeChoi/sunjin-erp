@@ -112,7 +112,8 @@ export function useCustomer(id: number | null): UseQueryResult<CustomerDetailRes
   return useQuery({
     queryKey: customerQueryKeys.detail(id || 0),
     queryFn: async () => {
-      return fetchAPI<CustomerDetailResponse>(`/api/customers/${id}`);
+      const response = await fetchAPI<{ data: CustomerDetailResponse }>(`/api/customers/${id}`);
+      return response.data;
     },
     enabled: id !== null,
     staleTime: 10 * 60 * 1000, // 10 minutes
