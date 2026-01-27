@@ -56,18 +56,19 @@ export async function GET(
       );
     }
 
+    // Oracle returns UPPERCASE column names
     const contract = contractResult as any;
 
     // 6. 고객 정보 조회
     const customerResult = await executeQuerySingle(
       'SELECT "id", "name" FROM "CUSTOMER" WHERE "id" = :id AND "deleted_at" IS NULL',
-      { id: contract.customer_id }
+      { id: contract.CUSTOMER_ID }
     );
 
     // 7. 담당자 정보 조회
     const employeeResult = await executeQuerySingle(
       'SELECT "id", "name" FROM "EMPLOYEE" WHERE "id" = :id AND "deleted_at" IS NULL',
-      { id: contract.assigned_employee_id }
+      { id: contract.ASSIGNED_EMPLOYEE_ID }
     );
 
     // 8. 첨부파일 조회
@@ -88,38 +89,38 @@ export async function GET(
       { contract_id: contractId }
     );
 
-    // 10. 응답 구성
+    // 10. 응답 구성 (Oracle returns UPPERCASE column names)
     const response = {
-      id: contract.id,
-      customer_id: contract.customer_id,
-      customer: customerResult ? { id: (customerResult as any).id, name: (customerResult as any).name } : null,
-      contract_name: contract.contract_name,
-      contract_type: contract.contract_type,
-      start_date: contract.start_date,
-      end_date: contract.end_date,
-      assigned_employee_id: contract.assigned_employee_id,
-      assigned_employee: employeeResult ? { id: (employeeResult as any).id, name: (employeeResult as any).name } : null,
-      contract_amount: contract.contract_amount,
-      contract_status: contract.contract_status,
-      notes: contract.notes,
-      created_at: contract.created_at,
-      updated_at: contract.updated_at,
-      created_by_id: contract.created_by_id,
-      updated_by_id: contract.updated_by_id,
+      id: contract.ID,
+      customer_id: contract.CUSTOMER_ID,
+      customer: customerResult ? { id: (customerResult as any).ID, name: (customerResult as any).NAME } : null,
+      contract_name: contract.CONTRACT_NAME,
+      contract_type: contract.CONTRACT_TYPE,
+      start_date: contract.START_DATE,
+      end_date: contract.END_DATE,
+      assigned_employee_id: contract.ASSIGNED_EMPLOYEE_ID,
+      assignedEmployee: employeeResult ? { id: (employeeResult as any).ID, name: (employeeResult as any).NAME } : null,
+      contract_amount: contract.CONTRACT_AMOUNT,
+      contract_status: contract.CONTRACT_STATUS,
+      notes: contract.NOTES,
+      created_at: contract.CREATED_AT,
+      updated_at: contract.UPDATED_AT,
+      created_by_id: contract.CREATED_BY_ID,
+      updated_by_id: contract.UPDATED_BY_ID,
       attachments: attachmentsResult.rows.map((a: any) => ({
-        id: a.id,
-        file_name: a.file_name,
-        file_path: a.file_path,
-        file_size: a.file_size,
-        created_at: a.created_at,
-        uploaded_by_id: a.uploaded_by_id,
+        id: a.ID,
+        file_name: a.FILE_NAME,
+        file_path: a.FILE_PATH,
+        file_size: a.FILE_SIZE,
+        created_at: a.CREATED_AT,
+        uploaded_by_id: a.UPLOADED_BY_ID,
       })),
       histories: historiesResult.rows.map((h: any) => ({
-        id: h.id,
-        change_type: h.change_type,
-        reason: h.reason,
-        changed_by_id: h.changed_by_id,
-        changed_at: h.changed_at,
+        id: h.ID,
+        change_type: h.CHANGE_TYPE,
+        reason: h.REASON,
+        changed_by_id: h.CHANGED_BY_ID,
+        changed_at: h.CHANGED_AT,
       })),
     };
 
@@ -250,7 +251,7 @@ export async function PUT(
       }
 
       // 시작일이 종료일보다 크지 않아야 함
-      if (existing.start_date || new Date(existing.START_DATE) > endDateObj) {
+      if (existing.START_DATE && new Date(existing.START_DATE) > endDateObj) {
         return NextResponse.json(
           {
             error: 'Validation Error',
@@ -366,25 +367,26 @@ export async function PUT(
       { id: contractId }
     );
 
+    // Oracle returns UPPERCASE column names
     const updated = updatedContract as any;
 
     return NextResponse.json(
       {
         data: {
-          id: updated.id,
-          customer_id: updated.customer_id,
-          contract_name: updated.contract_name,
-          contract_type: updated.contract_type,
-          start_date: updated.start_date,
-          end_date: updated.end_date,
-          assigned_employee_id: updated.assigned_employee_id,
-          contract_amount: updated.contract_amount,
-          contract_status: updated.contract_status,
-          notes: updated.notes,
-          created_at: updated.created_at,
-          updated_at: updated.updated_at,
-          created_by_id: updated.created_by_id,
-          updated_by_id: updated.updated_by_id,
+          id: updated.ID,
+          customer_id: updated.CUSTOMER_ID,
+          contract_name: updated.CONTRACT_NAME,
+          contract_type: updated.CONTRACT_TYPE,
+          start_date: updated.START_DATE,
+          end_date: updated.END_DATE,
+          assigned_employee_id: updated.ASSIGNED_EMPLOYEE_ID,
+          contract_amount: updated.CONTRACT_AMOUNT,
+          contract_status: updated.CONTRACT_STATUS,
+          notes: updated.NOTES,
+          created_at: updated.CREATED_AT,
+          updated_at: updated.UPDATED_AT,
+          created_by_id: updated.CREATED_BY_ID,
+          updated_by_id: updated.UPDATED_BY_ID,
         },
         message: '유지보수 계약이 수정되었습니다.',
       },

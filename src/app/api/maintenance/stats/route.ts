@@ -39,14 +39,17 @@ export async function GET(request: NextRequest) {
       GROUP BY MC.contract_status
     `);
 
+    // Oracle returns UPPERCASE column names
     const byStatus: Record<string, number> = {};
     let total = 0;
 
     for (const row of statusStatsResult.rows) {
-      const status = (row as any)?._contract_status || (row as any)?.contract_status;
+      const status = (row as any)?.CONTRACT_STATUS;
       const count = parseInt((row as any)?.COUNT || '0');
-      byStatus[status] = count;
-      total += count;
+      if (status) {
+        byStatus[status] = count;
+        total += count;
+      }
     }
 
     // 4. 만료 예정 계약 조회 (30일, 60일)
@@ -72,7 +75,8 @@ export async function GET(request: NextRequest) {
     let expiringIn60Days = 0;
 
     for (const contract of expiringContractsResult.rows) {
-      const endDate = new Date((contract as any)?._end_date || (contract as any)?.end_date);
+      // Oracle returns UPPERCASE column names
+      const endDate = new Date((contract as any)?.END_DATE);
 
       if (endDate <= thirtyDaysLater && endDate >= today) {
         expiringIn30Days++;
