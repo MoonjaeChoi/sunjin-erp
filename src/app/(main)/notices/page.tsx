@@ -1,14 +1,28 @@
+// Generated: 2026-01-28 16:00:00 KST
+
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { authOptions } from '@/lib/auth';
+import NoticeListClient from './_components/NoticeListClient';
+
 export const dynamic = 'force-dynamic';
 
-// Generated: 2026-01-25 02:00:00 KST
+export const metadata = {
+  title: '공지사항 | Sunjin ERP',
+};
 
-export default function NoticesPage() {
+export default async function NoticesPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  const user = session.user as any;
+
   return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center">
-        <h1 className="text-xl font-semibold text-gray-700 mb-2">공지사항</h1>
-        <p className="text-sm text-gray-400">준비 중입니다.</p>
-      </div>
+    <div className="container mx-auto py-6">
+      <NoticeListClient userRole={user.role} />
     </div>
   );
 }
