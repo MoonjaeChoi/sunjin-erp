@@ -251,7 +251,7 @@ export async function GET(request: NextRequest) {
 
     const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
-    return NextResponse.json({ supports, total, page, page_size: pageSize });
+    return NextResponse.json({ supports: supports.rows, total, page, page_size: pageSize });
   } catch (error) {
     console.error('GET /api/support error:', error);
     return NextResponse.json(
