@@ -51,46 +51,46 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
     // 4. Raw SQL 쿼리 구성
-    let whereClause = 'WHERE MC."deleted_at" IS NULL';
+    let whereClause = 'WHERE MC.deleted_at IS NULL';
     const params: any = {};
 
     if (status) {
-      whereClause += ' AND MC."contract_status" = :status';
+      whereClause += ' AND MC.contract_status = :status';
       params.status = status;
     }
 
     if (customerId) {
-      whereClause += ' AND MC."customer_id" = :customerId';
+      whereClause += ' AND MC.customer_id = :customerId';
       params.customerId = customerId;
     }
 
     if (assignedEmployeeId) {
-      whereClause += ' AND MC."assigned_employee_id" = :assignedEmployeeId';
+      whereClause += ' AND MC.assigned_employee_id = :assignedEmployeeId';
       params.assignedEmployeeId = assignedEmployeeId;
     }
 
     if (contractNameSearch) {
-      whereClause += ' AND LOWER(MC."contract_name") LIKE LOWER(:contractNameSearch)';
+      whereClause += ' AND LOWER(MC.contract_name) LIKE LOWER(:contractNameSearch)';
       params.contractNameSearch = `%${contractNameSearch}%`;
     }
 
     if (startDateFrom) {
-      whereClause += ' AND MC."start_date" >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND MC.start_date >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
       params.startDateFrom = startDateFrom;
     }
 
     if (startDateTo) {
-      whereClause += ' AND MC."start_date" <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND MC.start_date <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
       params.startDateTo = startDateTo;
     }
 
     if (endDateFrom) {
-      whereClause += ' AND MC."end_date" >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND MC.end_date >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
       params.endDateFrom = endDateFrom;
     }
 
     if (endDateTo) {
-      whereClause += ' AND MC."end_date" <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND MC.end_date <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
       params.endDateTo = endDateTo;
     }
 
@@ -106,20 +106,20 @@ export async function GET(request: NextRequest) {
     // 6. 목록 조회
     const sql = `
       SELECT
-        MC."id",
-        MC."customer_id",
-        MC."contract_name",
-        MC."contract_type",
-        MC."start_date",
-        MC."end_date",
-        MC."assigned_employee_id",
-        MC."contract_amount",
-        MC."contract_status",
-        MC."notes",
-        MC."created_at",
-        MC."updated_at",
-        MC."created_by_id",
-        MC."updated_by_id"
+        MC.id,
+        MC.customer_id,
+        MC.contract_name,
+        MC.contract_type,
+        MC.start_date,
+        MC.end_date,
+        MC.assigned_employee_id,
+        MC.contract_amount,
+        MC.contract_status,
+        MC.notes,
+        MC.created_at,
+        MC.updated_at,
+        MC.created_by_id,
+        MC.updated_by_id
       FROM "MAINTENANCE_CONTRACT" MC
       ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
