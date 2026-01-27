@@ -43,8 +43,8 @@ export async function GET(
 
     // 4. 계약 조회
     const contractResult = await executeQuerySingle(
-      `SELECT mc."id", mc."customer_id", mc."contract_name", mc."contract_type", mc."start_date", mc."end_date", mc."assigned_employee_id", mc."contract_amount", mc."contract_status", mc."notes", mc."created_at", mc."updated_at", mc."created_by_id", mc."updated_by_id" FROM "MAINTENANCE_CONTRACTS" mc
-       WHERE mc."id" = :id AND mc."deleted_at" IS NULL`,
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACTS" MC
+       WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
 
@@ -198,8 +198,8 @@ export async function PUT(
 
     // 6. 기존 계약 조회
     const existingContract = await executeQuerySingle(
-      `SELECT mc."id", mc."customer_id", mc."contract_name", mc."contract_type", mc."start_date", mc."end_date", mc."assigned_employee_id", mc."contract_amount", mc."contract_status", mc."notes", mc."created_at", mc."updated_at", mc."created_by_id", mc."updated_by_id" FROM "MAINTENANCE_CONTRACTS" mc
-       WHERE mc."id" = :id AND mc."deleted_at" IS NULL`,
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACTS" MC
+       WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
 
@@ -250,7 +250,7 @@ export async function PUT(
       }
 
       // 시작일이 종료일보다 크지 않아야 함
-      if (existing.start_date > endDateObj) {
+      if (existing.start_date || new Date(existing.START_DATE) > endDateObj) {
         return NextResponse.json(
           {
             error: 'Validation Error',
@@ -362,7 +362,7 @@ export async function PUT(
 
     // 10. 수정된 계약 조회 및 반환
     const updatedContract = await executeQuerySingle(
-      `SELECT mc."id", mc."customer_id", mc."contract_name", mc."contract_type", mc."start_date", mc."end_date", mc."assigned_employee_id", mc."contract_amount", mc."contract_status", mc."notes", mc."created_at", mc."updated_at", mc."created_by_id", mc."updated_by_id" FROM "MAINTENANCE_CONTRACTS" mc WHERE mc."id" = :id`,
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACTS" MC WHERE MC."id" = :id`,
       { id: contractId }
     );
 
@@ -437,8 +437,8 @@ export async function DELETE(
 
     // 4. 계약 존재 여부 확인
     const existingContract = await executeQuerySingle(
-      `SELECT mc."id", mc."customer_id", mc."contract_name", mc."contract_type", mc."start_date", mc."end_date", mc."assigned_employee_id", mc."contract_amount", mc."contract_status", mc."notes", mc."created_at", mc."updated_at", mc."created_by_id", mc."updated_by_id" FROM "MAINTENANCE_CONTRACTS" mc
-       WHERE mc."id" = :id AND mc."deleted_at" IS NULL`,
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACTS" MC
+       WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
 

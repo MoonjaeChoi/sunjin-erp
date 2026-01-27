@@ -32,11 +32,11 @@ export async function GET(request: NextRequest) {
     // 3. 상태별 계약 수 조회
     const statusStatsResult = await executeQuery(`
       SELECT
-        mc."contract_status",
+        MC."contract_status",
         COUNT(*) as COUNT
-      FROM "MAINTENANCE_CONTRACTS" mc
-      WHERE mc."deleted_at" IS NULL
-      GROUP BY mc."contract_status"
+      FROM "MAINTENANCE_CONTRACTS" MC
+      WHERE MC."deleted_at" IS NULL
+      GROUP BY MC."contract_status"
     `);
 
     const byStatus: Record<string, number> = {};
@@ -56,13 +56,13 @@ export async function GET(request: NextRequest) {
 
     const expiringContractsResult = await executeQuery(`
       SELECT
-        mc."id",
-        mc."end_date"
-      FROM "MAINTENANCE_CONTRACTS" mc
-      WHERE mc."deleted_at" IS NULL
-      AND mc."contract_status" = '활성'
-      AND mc."end_date" <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
-      AND mc."end_date" >= TO_DATE(:today, 'YYYY-MM-DD')
+        MC."id",
+        MC."end_date"
+      FROM "MAINTENANCE_CONTRACTS" MC
+      WHERE MC."deleted_at" IS NULL
+      AND MC."contract_status" = '활성'
+      AND MC."end_date" <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
+      AND MC."end_date" >= TO_DATE(:today, 'YYYY-MM-DD')
     `, {
       today: today.toISOString().split('T')[0],
       sixtyDaysLater: sixtyDaysLater.toISOString().split('T')[0],
