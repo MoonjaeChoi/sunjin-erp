@@ -31,21 +31,21 @@ export async function GET(request: NextRequest) {
 
     // Build SQL query with RBAC filtering
     let sql = `
-      SELECT id, title, task_type, work_type, status, start_time, end_time, employee_id, task_date
-      FROM TASK
-      WHERE TRUNC(task_date) = TO_DATE(:dateParam, 'YYYY-MM-DD')
-        AND deleted_at IS NULL
+      SELECT "id", "title", "task_type", "work_type", "status", "start_time", "end_time", "employee_id", "task_date"
+      FROM "TASK"
+      WHERE TRUNC("task_date") = TO_DATE(:dateParam, 'YYYY-MM-DD')
+        AND "deleted_at" IS NULL
     `;
     const params: any = { dateParam: date };
 
     // RBAC filtering
     if (user.role === 'USER' || user.role === 'MANAGER') {
-      sql += ` AND employee_id = :userId`;
+      sql += ` AND "employee_id" = :userId`;
       params.userId = user.id;
     }
     // ADMIN: no additional filtering
 
-    sql += ` ORDER BY start_time ASC`;
+    sql += ` ORDER BY "start_time" ASC`;
 
     const result = await executeQuery(sql, params);
 
