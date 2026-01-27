@@ -130,13 +130,13 @@ export async function GET(request: NextRequest) {
 
     // 삭제된 항목 필터링
     if (!showDeleted) {
-      whereClauses.push('c.deleted_at IS NULL');
+      whereClauses.push('c.DELETED_AT IS NULL');
     }
 
     // 검색: name 또는 code
     if (search && search.trim().length > 0) {
       const searchTerm = `%${search.trim().toUpperCase()}%`;
-      whereClauses.push(`(UPPER(c.name) LIKE :search OR UPPER(c.code) LIKE :search)`);
+      whereClauses.push(`(UPPER(c.NAME) LIKE :search OR UPPER(c.CODE) LIKE :search)`);
     }
 
     // 분류 필터
@@ -144,14 +144,14 @@ export async function GET(request: NextRequest) {
       const classificationPlaceholders = classification
         .map((_, idx) => `:classification${idx}`)
         .join(',');
-      whereClauses.push(`c.classification IN (${classificationPlaceholders})`);
+      whereClauses.push(`c.CLASSIFICATION IN (${classificationPlaceholders})`);
     }
 
     // 담당자 필터
     if (managerId) {
       const managerIdNum = parseInt(managerId, 10);
       if (!isNaN(managerIdNum)) {
-        whereClauses.push('c.created_by_id = :managerId');
+        whereClauses.push('c.CREATED_BY_ID = :managerId');
       }
     }
 
@@ -161,10 +161,10 @@ export async function GET(request: NextRequest) {
     const VALID_SORT_BY = ['name', 'code', 'createdAt', 'updatedAt'];
     const validSortBy = VALID_SORT_BY.includes(sortBy) ? sortBy : 'name';
     const sortColumnMap: { [key: string]: string } = {
-      name: 'c.name',
-      code: 'c.code',
-      createdAt: 'c.created_at',
-      updatedAt: 'c.updated_at',
+      name: 'c.NAME',
+      code: 'c.CODE',
+      createdAt: 'c.CREATED_AT',
+      updatedAt: 'c.UPDATED_AT',
     };
     const sortColumn = sortColumnMap[validSortBy];
     const validSortOrder = ['ASC', 'DESC'].includes(sortOrder) ? sortOrder : 'ASC';
@@ -191,20 +191,20 @@ export async function GET(request: NextRequest) {
     }
 
     // 총 개수 조회
-    const countSql = `SELECT COUNT(*) as total FROM CUSTOMER c ${whereClause}`;
+    const countSql = `SELECT COUNT(*) as TOTAL FROM CUSTOMER c ${whereClause}`;
     const countResult = await executeQuery(countSql, params);
-    const total = parseInt(countResult.rows[0]?.total || '0', 10);
+    const total = parseInt(countResult.rows[0]?.TOTAL || '0', 10);
     const totalPages = Math.ceil(total / limit);
 
     // 목록 조회
     const offset = (page - 1) * limit;
     const dataSql = `
       SELECT
-        c.id, c.name, c.code, c.classification, c.address, c.phone, c.email, c.memo,
-        c.created_by_id as managerId, e.name as managerName,
-        c.created_at as createdAt, c.updated_at as updatedAt, c.deleted_at as deletedAt
+        c.ID, c.NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
+        c.CREATED_BY_ID as managerId, e.NAME as managerName,
+        c.CREATED_AT as createdAt, c.UPDATED_AT as updatedAt, c.DELETED_AT as deletedAt
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE e ON c.created_by_id = e.id
+      LEFT JOIN EMPLOYEE e ON c.CREATED_BY_ID = e.ID
       ${whereClause}
       ${orderClause}
       OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
@@ -278,8 +278,8 @@ export async function POST(request: NextRequest) {
   try {
     // 5. 고유성 검증 (name 중복 체크, soft delete 제외)
     const existingSql = `
-      SELECT id FROM CUSTOMER
-      WHERE name = :name AND deleted_at IS NULL
+      SELECT ID FROM CUSTOMER
+      WHERE NAME = :name AND DELETED_AT IS NULL
     `;
     const existing = await executeQuery(existingSql, {
       name: sanitizedName,
@@ -294,22 +294,22 @@ export async function POST(request: NextRequest) {
 
     // 6. 고객 코드 생성 (Sequence)
     const codeResult = await executeQuery(
-      `SELECT 'CUST-' || LPAD(CUST_CODE_SEQ.NEXTVAL, 5, '0') as code FROM DUAL`
+      `SELECT 'CUST-' || LPAD(CUST_CODE_SEQ.NEXTVAL, 5, '0') as CODE FROM DUAL`
     );
-    const customerCode = codeResult.rows[0]?.code || 'CUST-00001';
+    const customerCode = codeResult.rows[0]?.CODE || 'CUST-00001';
 
     // 7. 고객 등록
     const now = new Date();
     const insertSql = `
       INSERT INTO CUSTOMER (
-        name, code, classification, address, phone, email, memo,
-        created_by_id, updated_by_id, created_at, updated_at
+        NAME, CODE, CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
+        CREATED_BY_ID, UPDATED_BY_ID, CREATED_AT, UPDATED_AT
       ) VALUES (
         :name, :code, :classification, :address, :phone, :email, :memo,
         :userId, :userId, :now, :now
       )
-      RETURNING id, name, code, classification, address, phone, email, memo,
-                created_by_id as managerId, created_at as createdAt, updated_at as updatedAt
+      RETURNING ID, NAME, CODE, CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
+                CREATED_BY_ID as managerId, CREATED_AT as createdAt, UPDATED_AT as updatedAt
     `;
 
     const result = await executeQuery(insertSql, {
@@ -338,7 +338,7 @@ export async function POST(request: NextRequest) {
 
     const historyInsertSql = `
       INSERT INTO CUSTOMER_HISTORY (
-        customer_id, change_type, changed_fields, changed_by_id, changed_at
+        CUSTOMER_ID, CHANGE_TYPE, CHANGED_FIELDS, CHANGED_BY_ID, CHANGED_AT
       ) VALUES (
         :customerId, :changeType, :changedFields, :userId, :now
       )
