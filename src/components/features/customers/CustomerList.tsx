@@ -16,7 +16,7 @@ import { Plus, ArrowUpDown } from 'lucide-react';
 export function CustomerList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [classification, setClassification] = useState<string>('');
+  const [classification, setClassification] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'name' | 'createdAt'>('name');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
@@ -24,7 +24,7 @@ export function CustomerList() {
     page,
     limit: 20,
     search: search || undefined,
-    classification: classification ? [classification] : undefined,
+    classification: classification && classification !== 'ALL' ? [classification] : undefined,
     sortBy: sortBy as any,
     sortOrder,
   };
@@ -60,7 +60,7 @@ export function CustomerList() {
               <SelectValue placeholder="분류 선택" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">전체</SelectItem>
+              <SelectItem value="ALL">전체</SelectItem>
               {CLASSIFICATION_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}
