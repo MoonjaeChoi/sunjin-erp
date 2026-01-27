@@ -10,8 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CreateCustomerDialog } from './CreateCustomerDialog';
 import Link from 'next/link';
 import { Plus, ArrowUpDown } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function CustomerList() {
   const [page, setPage] = useState(1);
@@ -19,6 +21,7 @@ export function CustomerList() {
   const [classification, setClassification] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'name' | 'createdAt'>('name');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const params: CustomerListQueryParams = {
     page,
@@ -70,12 +73,10 @@ export function CustomerList() {
           </Select>
         </div>
 
-        <Link href="/customers/new">
-          <Button className="gap-2 w-full md:w-auto">
-            <Plus className="h-4 w-4" />
-            새 고객
-          </Button>
-        </Link>
+        <Button className="gap-2 w-full md:w-auto" onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4" />
+          새 고객
+        </Button>
       </div>
 
       <Card className="overflow-hidden">
@@ -155,6 +156,15 @@ export function CustomerList() {
           </div>
         </div>
       )}
+
+      {/* Create Customer Dialog */}
+      <CreateCustomerDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSuccess={() => {
+          toast.success('고객이 등록되었습니다.');
+        }}
+      />
     </div>
   );
 }
