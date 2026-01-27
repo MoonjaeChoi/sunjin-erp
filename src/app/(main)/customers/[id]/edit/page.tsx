@@ -1,9 +1,7 @@
-// Generated: 2026-01-28 02:00:00 KST
+// Generated: 2026-01-28 04:00:00 KST
 
 import { Metadata } from 'next';
-import { useRouter } from 'next/navigation';
-import { useCustomer } from '@/hooks/useCustomers';
-import { CustomerForm } from '@/components/features/customers/CustomerForm';
+import { EditCustomerContent } from '@/components/features/customers/EditCustomerContent';
 
 interface EditCustomerPageProps {
   params: Promise<{
@@ -20,24 +18,6 @@ export async function generateMetadata({
   };
 }
 
-// Client component wrapper to fetch customer data
-import { Suspense } from 'react';
-
-function EditCustomerContent({ customerId }: { customerId: number }) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">고객 정보 수정</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          고객 정보를 수정합니다.
-        </p>
-      </div>
-
-      <CustomerForm />
-    </div>
-  );
-}
-
 export default async function EditCustomerPage({
   params,
 }: EditCustomerPageProps) {
@@ -52,9 +32,5 @@ export default async function EditCustomerPage({
     );
   }
 
-  return (
-    <Suspense fallback={<div className="text-center py-8">로딩 중...</div>}>
-      <EditCustomerContent customerId={customerId} />
-    </Suspense>
-  );
+  return <EditCustomerContent customerId={customerId} />;
 }
