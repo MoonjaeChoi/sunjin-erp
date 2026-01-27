@@ -92,15 +92,15 @@ export async function GET(
   try {
     const sql = `
       SELECT
-        c.id, c.name, c.code, c.classification, c.address, c.phone, c.email, c.memo,
-        c.created_by_id as managerId, e.name as managerName,
-        cb.name as createdByName, ub.name as updatedByName,
-        c.created_at as createdAt, c.updated_at as updatedAt
+        c."id" as ID, c."name" as NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
+        c.CREATED_BY_ID as MANAGERID, e."name" as MANAGERNAME,
+        cb."name" as CREATEDBYNAME, ub."name" as UPDATEDBYNAME,
+        c."created_at" as CREATEDAT, c."updated_at" as UPDATEDAT
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE e ON c.created_by_id = e.id
-      LEFT JOIN EMPLOYEE cb ON c.created_by_id = cb.id
-      LEFT JOIN EMPLOYEE ub ON c.updated_by_id = ub.id
-      WHERE c.id = :id AND c.deleted_at IS NULL
+      LEFT JOIN EMPLOYEE e ON c.CREATED_BY_ID = e."id"
+      LEFT JOIN EMPLOYEE cb ON c.CREATED_BY_ID = cb."id"
+      LEFT JOIN EMPLOYEE ub ON c.UPDATED_BY_ID = ub."id"
+      WHERE c."id" = :id AND c."deleted_at" IS NULL
     `;
 
     const result = await executeQuery(sql, { id });
@@ -182,15 +182,15 @@ export async function PUT(
   try {
     const existingSql = `
       SELECT
-        c.id, c.name, c.code, c.classification, c.address, c.phone, c.email, c.memo,
-        c.created_by_id as managerId, e.name as managerName,
-        cb.name as createdByName, ub.name as updatedByName,
-        c.created_at as createdAt, c.updated_at as updatedAt
+        c."id" as ID, c."name" as NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
+        c.CREATED_BY_ID as MANAGERID, e."name" as MANAGERNAME,
+        cb."name" as CREATEDBYNAME, ub."name" as UPDATEDBYNAME,
+        c."created_at" as CREATEDAT, c."updated_at" as UPDATEDAT
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE e ON c.created_by_id = e.id
-      LEFT JOIN EMPLOYEE cb ON c.created_by_id = cb.id
-      LEFT JOIN EMPLOYEE ub ON c.updated_by_id = ub.id
-      WHERE c.id = :id AND c.deleted_at IS NULL
+      LEFT JOIN EMPLOYEE e ON c.CREATED_BY_ID = e."id"
+      LEFT JOIN EMPLOYEE cb ON c.CREATED_BY_ID = cb."id"
+      LEFT JOIN EMPLOYEE ub ON c.UPDATED_BY_ID = ub."id"
+      WHERE c."id" = :id AND c."deleted_at" IS NULL
     `;
 
     const customerResult = await executeQuery(existingSql, { id });
@@ -269,13 +269,13 @@ export async function PUT(
       );
     }
 
-    updateColumns.push(`updated_by_id = :userId`);
-    updateColumns.push(`updated_at = :now`);
+    updateColumns.push(`UPDATED_BY_ID = :userId`);
+    updateColumns.push(`"updated_at" = :now`);
 
     const updateSql = `
       UPDATE CUSTOMER
       SET ${updateColumns.join(', ')}
-      WHERE id = :id
+      WHERE "id" = :id
     `;
 
     await executeUpdate(updateSql, params);
@@ -321,7 +321,7 @@ export async function PUT(
     if (Object.keys(changedFieldsJson).length > 0) {
       const historyInsertSql = `
         INSERT INTO CUSTOMER_HISTORY (
-          customer_id, change_type, changed_fields, changed_by_id, changed_at
+          CUSTOMER_ID, CHANGE_TYPE, CHANGED_FIELDS, CHANGED_BY_ID, CHANGED_AT
         ) VALUES (
           :customerId, :changeType, :changedFields, :userId, :now
         )
@@ -410,9 +410,9 @@ export async function DELETE(
   try {
     // 4. 기존 고객 조회
     const existingSql = `
-      SELECT c.id, c.name, c.deleted_at
+      SELECT c."id" as ID, c."name" as NAME, c."deleted_at" as DELETED_AT
       FROM CUSTOMER c
-      WHERE c.id = :id
+      WHERE c."id" = :id
     `;
 
     const customerResult = await executeQuery(existingSql, { id });
@@ -440,7 +440,7 @@ export async function DELETE(
     const projectCountSql = `
       SELECT COUNT(*) as COUNT
       FROM PROJECT
-      WHERE customer_id = :customerId AND deleted_at IS NULL
+      WHERE CUSTOMER_ID = :customerId AND "deleted_at" IS NULL
     `;
     const projectCountResult = await executeQuery(projectCountSql, {
       customerId: id,
@@ -450,7 +450,7 @@ export async function DELETE(
     const techSupportCountSql = `
       SELECT COUNT(*) as COUNT
       FROM TECH_SUPPORT
-      WHERE customer_id = :customerId AND deleted_at IS NULL
+      WHERE CUSTOMER_ID = :customerId AND "deleted_at" IS NULL
     `;
     const techSupportCountResult = await executeQuery(techSupportCountSql, {
       customerId: id,
@@ -460,7 +460,7 @@ export async function DELETE(
     const maintenanceCountSql = `
       SELECT COUNT(*) as COUNT
       FROM MAINTENANCE_CONTRACT
-      WHERE customer_id = :customerId AND deleted_at IS NULL
+      WHERE CUSTOMER_ID = :customerId AND "deleted_at" IS NULL
     `;
     const maintenanceCountResult = await executeQuery(maintenanceCountSql, {
       customerId: id,
@@ -488,8 +488,8 @@ export async function DELETE(
     const now = new Date();
     const deleteSql = `
       UPDATE CUSTOMER
-      SET deleted_at = :now, updated_by_id = :userId, updated_at = :now
-      WHERE id = :id
+      SET "deleted_at" = :now, UPDATED_BY_ID = :userId, "updated_at" = :now
+      WHERE "id" = :id
     `;
 
     await executeUpdate(deleteSql, {
@@ -509,7 +509,7 @@ export async function DELETE(
 
     const historyInsertSql = `
       INSERT INTO CUSTOMER_HISTORY (
-        customer_id, change_type, changed_fields, changed_by_id, changed_at
+        CUSTOMER_ID, CHANGE_TYPE, CHANGED_FIELDS, CHANGED_BY_ID, CHANGED_AT
       ) VALUES (
         :customerId, :changeType, :changedFields, :userId, :now
       )
