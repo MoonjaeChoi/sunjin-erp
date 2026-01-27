@@ -114,21 +114,22 @@ export async function GET(
 
     const customer = result.rows[0];
 
+    // Oracle returns UPPERCASE column names for unquoted columns/aliases
     const response: CustomerDetailResponse = {
-      id: customer.id,
-      name: customer.name,
-      code: customer.code,
-      classification: customer.classification,
-      address: customer.address,
-      phone: customer.phone,
-      email: customer.email,
-      memo: customer.memo,
-      managerId: customer.managerId || null,
-      managerName: customer.managerName || 'Unknown',
-      createdAt: customer.createdAt,
-      updatedAt: customer.updatedAt,
-      createdByName: customer.createdByName || 'Unknown',
-      updatedByName: customer.updatedByName || 'Unknown',
+      id: customer.ID,
+      name: customer.NAME,
+      code: customer.CODE,
+      classification: customer.CLASSIFICATION,
+      address: customer.ADDRESS,
+      phone: customer.PHONE,
+      email: customer.EMAIL,
+      memo: customer.MEMO,
+      managerId: customer.MANAGERID || null,
+      managerName: customer.MANAGERNAME || 'Unknown',
+      createdAt: customer.CREATEDAT,
+      updatedAt: customer.UPDATEDAT,
+      createdByName: customer.CREATEDBYNAME || 'Unknown',
+      updatedByName: customer.UPDATEDBYNAME || 'Unknown',
     };
 
     return NextResponse.json({ data: response }, { status: 200 });
@@ -244,21 +245,22 @@ export async function PUT(
     }
 
     if (updateColumns.length === 0) {
+      // Oracle returns UPPERCASE column names for unquoted columns/aliases
       const response: CustomerDetailResponse = {
-        id: currentCustomer.id,
-        name: currentCustomer.name,
-        code: currentCustomer.code,
-        classification: currentCustomer.classification,
-        address: currentCustomer.address,
-        phone: currentCustomer.phone,
-        email: currentCustomer.email,
-        memo: currentCustomer.memo,
-        managerId: currentCustomer.managerId,
-        managerName: currentCustomer.managerName,
-        createdAt: currentCustomer.createdAt,
-        updatedAt: currentCustomer.updatedAt,
-        createdByName: currentCustomer.createdByName,
-        updatedByName: currentCustomer.updatedByName,
+        id: currentCustomer.ID,
+        name: currentCustomer.NAME,
+        code: currentCustomer.CODE,
+        classification: currentCustomer.CLASSIFICATION,
+        address: currentCustomer.ADDRESS,
+        phone: currentCustomer.PHONE,
+        email: currentCustomer.EMAIL,
+        memo: currentCustomer.MEMO,
+        managerId: currentCustomer.MANAGERID,
+        managerName: currentCustomer.MANAGERNAME,
+        createdAt: currentCustomer.CREATEDAT,
+        updatedAt: currentCustomer.UPDATEDAT,
+        createdByName: currentCustomer.CREATEDBYNAME,
+        updatedByName: currentCustomer.UPDATEDBYNAME,
       };
 
       return NextResponse.json(
@@ -278,39 +280,40 @@ export async function PUT(
 
     await executeUpdate(updateSql, params);
 
+    // Oracle returns UPPERCASE column names
     const changedFieldsJson: { [key: string]: any } = {};
 
     if (updateFields.address !== undefined) {
       changedFieldsJson.address = {
-        before: currentCustomer.address,
+        before: currentCustomer.ADDRESS,
         after: updateFields.address,
       };
     }
 
     if (updateFields.phone !== undefined) {
       changedFieldsJson.phone = {
-        before: currentCustomer.phone,
+        before: currentCustomer.PHONE,
         after: updateFields.phone,
       };
     }
 
     if (updateFields.email !== undefined) {
       changedFieldsJson.email = {
-        before: currentCustomer.email,
+        before: currentCustomer.EMAIL,
         after: updateFields.email,
       };
     }
 
     if (updateFields.memo !== undefined) {
       changedFieldsJson.memo = {
-        before: currentCustomer.memo,
+        before: currentCustomer.MEMO,
         after: updateFields.memo,
       };
     }
 
     if (updateFields.classification !== undefined) {
       changedFieldsJson.classification = {
-        before: currentCustomer.classification,
+        before: currentCustomer.CLASSIFICATION,
         after: updateFields.classification,
       };
     }
@@ -336,21 +339,22 @@ export async function PUT(
     const updatedCustomerResult = await executeQuery(existingSql, { id });
     const updatedCustomer = updatedCustomerResult.rows[0];
 
+    // Oracle returns UPPERCASE column names for unquoted columns/aliases
     const response: CustomerDetailResponse = {
-      id: updatedCustomer.id,
-      name: updatedCustomer.name,
-      code: updatedCustomer.code,
-      classification: updatedCustomer.classification,
-      address: updatedCustomer.address,
-      phone: updatedCustomer.phone,
-      email: updatedCustomer.email,
-      memo: updatedCustomer.memo,
-      managerId: updatedCustomer.managerId,
-      managerName: updatedCustomer.managerName,
-      createdAt: updatedCustomer.createdAt,
-      updatedAt: updatedCustomer.updatedAt,
-      createdByName: updatedCustomer.createdByName,
-      updatedByName: updatedCustomer.updatedByName,
+      id: updatedCustomer.ID,
+      name: updatedCustomer.NAME,
+      code: updatedCustomer.CODE,
+      classification: updatedCustomer.CLASSIFICATION,
+      address: updatedCustomer.ADDRESS,
+      phone: updatedCustomer.PHONE,
+      email: updatedCustomer.EMAIL,
+      memo: updatedCustomer.MEMO,
+      managerId: updatedCustomer.MANAGERID,
+      managerName: updatedCustomer.MANAGERNAME,
+      createdAt: updatedCustomer.CREATEDAT,
+      updatedAt: updatedCustomer.UPDATEDAT,
+      createdByName: updatedCustomer.CREATEDBYNAME,
+      updatedByName: updatedCustomer.UPDATEDBYNAME,
     };
 
     return NextResponse.json(
@@ -423,7 +427,8 @@ export async function DELETE(
     const customer = customerResult.rows[0];
 
     // 5. 이미 삭제된 고객 확인
-    if (customer.deleted_at !== null) {
+    // Oracle returns UPPERCASE column names for unquoted columns
+    if (customer.DELETED_AT !== null) {
       return NextResponse.json(
         { error: 'This customer is already deleted' },
         { status: 400 }
@@ -431,35 +436,36 @@ export async function DELETE(
     }
 
     // 6. 의존성 검증 (프로젝트, 기술지원, 유지보수 계약)
+    // Oracle returns UPPERCASE column names for unquoted aliases
     const projectCountSql = `
-      SELECT COUNT(*) as count
+      SELECT COUNT(*) as COUNT
       FROM PROJECT
       WHERE customer_id = :customerId AND deleted_at IS NULL
     `;
     const projectCountResult = await executeQuery(projectCountSql, {
       customerId: id,
     });
-    const projects = parseInt((projectCountResult.rows[0]?.count) as any || '0', 10);
+    const projects = parseInt((projectCountResult.rows[0]?.COUNT) as any || '0', 10);
 
     const techSupportCountSql = `
-      SELECT COUNT(*) as count
+      SELECT COUNT(*) as COUNT
       FROM TECH_SUPPORT
       WHERE customer_id = :customerId AND deleted_at IS NULL
     `;
     const techSupportCountResult = await executeQuery(techSupportCountSql, {
       customerId: id,
     });
-    const techSupports = parseInt((techSupportCountResult.rows[0]?.count) as any || '0', 10);
+    const techSupports = parseInt((techSupportCountResult.rows[0]?.COUNT) as any || '0', 10);
 
     const maintenanceCountSql = `
-      SELECT COUNT(*) as count
+      SELECT COUNT(*) as COUNT
       FROM MAINTENANCE_CONTRACT
       WHERE customer_id = :customerId AND deleted_at IS NULL
     `;
     const maintenanceCountResult = await executeQuery(maintenanceCountSql, {
       customerId: id,
     });
-    const maintenanceContracts = parseInt((maintenanceCountResult.rows[0]?.count) as any || '0', 10);
+    const maintenanceContracts = parseInt((maintenanceCountResult.rows[0]?.COUNT) as any || '0', 10);
 
     // 의존성이 하나라도 존재하면 삭제 불가
     if (projects > 0 || techSupports > 0 || maintenanceContracts > 0) {
@@ -518,12 +524,13 @@ export async function DELETE(
     });
 
     // 9. 응답 반환
+    // Oracle returns UPPERCASE column names for unquoted columns
     return NextResponse.json(
       {
         message: '고객이 삭제되었습니다.',
         data: {
-          id: customer.id,
-          name: customer.name,
+          id: customer.ID,
+          name: customer.NAME,
           deletedAt: now.toISOString(),
         },
       },

@@ -212,11 +212,22 @@ export async function GET(request: NextRequest) {
 
     const customerResult = await executeQuery(dataSql, params);
 
+    // Oracle returns UPPERCASE column names for unquoted columns/aliases
     const response: CustomersListResponse = {
       data: customerResult.rows.map((customer: any) => ({
-        ...customer,
-        managerId: customer.managerId || null,
-        managerName: customer.managerName || 'Unknown',
+        id: customer.id,
+        name: customer.name,
+        code: customer.CODE,
+        classification: customer.CLASSIFICATION,
+        address: customer.ADDRESS,
+        phone: customer.PHONE,
+        email: customer.EMAIL,
+        memo: customer.MEMO,
+        managerId: customer.MANAGERID || null,
+        managerName: customer.MANAGERNAME || 'Unknown',
+        createdAt: customer.CREATEDAT,
+        updatedAt: customer.UPDATEDAT,
+        deletedAt: customer.DELETEDAT,
       })),
       pagination: {
         page,
@@ -353,20 +364,21 @@ export async function POST(request: NextRequest) {
     });
 
     // 9. 응답 반환 (201 Created)
+    // Oracle returns UPPERCASE column names for unquoted columns/aliases
     return NextResponse.json(
       {
         data: {
           id: newCustomer.id,
           name: newCustomer.name,
-          code: newCustomer.code,
-          classification: newCustomer.classification,
-          address: newCustomer.address,
-          phone: newCustomer.phone,
-          email: newCustomer.email,
-          memo: newCustomer.memo,
-          managerId: newCustomer.managerId,
-          createdAt: newCustomer.createdAt,
-          updatedAt: newCustomer.updatedAt,
+          code: newCustomer.CODE,
+          classification: newCustomer.CLASSIFICATION,
+          address: newCustomer.ADDRESS,
+          phone: newCustomer.PHONE,
+          email: newCustomer.EMAIL,
+          memo: newCustomer.MEMO,
+          managerId: newCustomer.MANAGERID,
+          createdAt: newCustomer.CREATEDAT,
+          updatedAt: newCustomer.UPDATEDAT,
         },
         message: '고객이 등록되었습니다.',
       },
