@@ -14,6 +14,43 @@ export interface QueryResult<T = any> {
   rowCount: number;
 }
 
+/**
+ * Convert oracledb row objects to plain JavaScript objects
+ * Handles circular references in oracledb row metadata
+ */
+function toPlainObject(row: any): any {
+  if (row === null || row === undefined) return row;
+  if (typeof row !== 'object') return row;
+  if (row instanceof Date) return row;
+
+  // If it's an array, map over elements
+  if (Array.isArray(row)) {
+    return row.map(toPlainObject);
+  }
+
+  // Create a new plain object with only enumerable properties
+  const plain: any = {};
+  for (const key in row) {
+    if (Object.prototype.hasOwnProperty.call(row, key)) {
+      const value = row[key];
+      if (value === null || value === undefined) {
+        plain[key] = value;
+      } else if (value instanceof Date) {
+        plain[key] = value;
+      } else if (typeof value === 'object' && !Array.isArray(value)) {
+        // Skip complex objects that might have circular refs (like connection metadata)
+        // Only include if it looks like a data object
+        if (Object.keys(value).length < 50) {
+          plain[key] = toPlainObject(value);
+        }
+      } else {
+        plain[key] = value;
+      }
+    }
+  }
+  return plain;
+}
+
 export interface ConnectionOptions {
   user?: string;
   password?: string;
@@ -57,9 +94,12 @@ export async function executeQuery<T = any>(
       outFormat: oracledb.OUT_FORMAT_OBJECT,
     });
 
+    // Convert rows to plain objects to avoid circular reference issues
+    const plainRows = (result.rows || []).map(toPlainObject) as T[];
+
     return {
-      rows: result.rows as T[],
-      rowCount: result.rows?.length || 0,
+      rows: plainRows,
+      rowCount: plainRows.length,
     };
   } finally {
     if (connection) {
@@ -139,9 +179,13 @@ export async function executeTransaction(
       const result = await connection.execute(op.query, op.params, {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
       });
+
+      // Convert rows to plain objects to avoid circular reference issues
+      const plainRows = (result.rows || []).map(toPlainObject);
+
       results.push({
-        rows: result.rows || [],
-        rowCount: result.rowsAffected || 0,
+        rows: plainRows,
+        rowCount: result.rowsAffected || plainRows.length,
       });
     }
 
