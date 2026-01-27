@@ -41,9 +41,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
     const params: any = {};
     let paramIndex = 0;
 
-    // RBAC 조건 적용
+    // RBAC 조건 적용 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     if (user.role === 'MANAGER') {
-      whereClauses.push(`e."department_id" = :departmentId${paramIndex}`);
+      whereClauses.push(`E.DEPARTMENT_ID = :departmentId${paramIndex}`);
       params[`departmentId${paramIndex}`] = user.department;
       paramIndex++;
     } else if (user.role === 'USER') {
@@ -66,6 +66,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
       paramIndex++;
     }
 
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     const sql = `
       SELECT
         COUNT(CASE WHEN p."status" = 'PREPARING' THEN 1 END) AS preparing,
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
         COUNT(CASE WHEN p."status" = 'COMPLETED' THEN 1 END) AS completed,
         COUNT(CASE WHEN p."status" = 'ON_HOLD' THEN 1 END) AS on_hold
       FROM "PROJECT" p
-      LEFT JOIN "EMPLOYEE" e ON e."id" = p."employee_id"
+      LEFT JOIN EMPLOYEE E ON E.ID = p."employee_id"
       WHERE ${whereClauses.join(' AND ')}
     `;
 

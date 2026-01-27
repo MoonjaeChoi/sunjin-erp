@@ -24,7 +24,7 @@ export async function GET(
     }
 
     try {
-      // Fetch inventory details
+      // Fetch inventory details (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
       const inventory = await executeQuerySingle(
         `
           SELECT
@@ -41,13 +41,13 @@ export async function GET(
             i.UPDATED_AT,
             i.CREATED_BY_ID,
             i.UPDATED_BY_ID,
-            ec."name" as created_by_name,
-            eu."name" as updated_by_name,
-            ec."department_id" as created_by_department,
-            eu."department_id" as updated_by_department
+            EC.NAME as created_by_name,
+            EU.NAME as updated_by_name,
+            EC.DEPARTMENT_ID as created_by_department,
+            EU.DEPARTMENT_ID as updated_by_department
           FROM INVENTORY i
-          LEFT JOIN EMPLOYEE ec ON ec."id" = i.CREATED_BY_ID AND ec."deleted_at" IS NULL
-          LEFT JOIN EMPLOYEE eu ON eu."id" = i.UPDATED_BY_ID AND eu."deleted_at" IS NULL
+          LEFT JOIN EMPLOYEE EC ON EC.ID = i.CREATED_BY_ID AND EC.DELETED_AT IS NULL
+          LEFT JOIN EMPLOYEE EU ON EU.ID = i.UPDATED_BY_ID AND EU.DELETED_AT IS NULL
           WHERE i.ID = :id AND i.DELETED_AT IS NULL
         `,
         { id: inventoryId }
@@ -64,7 +64,7 @@ export async function GET(
       }
       inventory.CURRENT_STATUS = currentStatus;
 
-      // Fetch history records
+      // Fetch history records (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
       const historiesResult = await executeQuery(
         `
           SELECT
@@ -80,9 +80,9 @@ export async function GET(
             h.REASON,
             h.CHANGED_BY_ID,
             h.CHANGED_AT,
-            e."name" as changed_by_name
+            E.NAME as changed_by_name
           FROM INVENTORY_HISTORY h
-          LEFT JOIN EMPLOYEE e ON e."id" = h.CHANGED_BY_ID AND e."deleted_at" IS NULL
+          LEFT JOIN EMPLOYEE E ON E.ID = h.CHANGED_BY_ID AND E.DELETED_AT IS NULL
           WHERE h.INVENTORY_ID = :id
           ORDER BY h.CHANGED_AT DESC
         `,

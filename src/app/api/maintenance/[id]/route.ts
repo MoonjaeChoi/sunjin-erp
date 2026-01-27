@@ -65,9 +65,9 @@ export async function GET(
       { id: contract.CUSTOMER_ID }
     );
 
-    // 7. 담당자 정보 조회
+    // 7. 담당자 정보 조회 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     const employeeResult = await executeQuerySingle(
-      'SELECT "id", "name" FROM "EMPLOYEE" WHERE "id" = :id AND "deleted_at" IS NULL',
+      'SELECT ID, NAME FROM EMPLOYEE WHERE ID = :id AND DELETED_AT IS NULL',
       { id: contract.ASSIGNED_EMPLOYEE_ID }
     );
 
@@ -89,11 +89,11 @@ export async function GET(
       { contract_id: contractId }
     );
 
-    // 10. 응답 구성 (Oracle returns UPPERCASE column names)
+    // 10. 응답 구성 (Oracle returns UPPERCASE column names, CUSTOMER는 quoted lowercase, EMPLOYEE는 UPPERCASE)
     const response = {
       id: contract.ID,
       customer_id: contract.CUSTOMER_ID,
-      customer: customerResult ? { id: (customerResult as any).ID, name: (customerResult as any).NAME } : null,
+      customer: customerResult ? { id: (customerResult as any).id, name: (customerResult as any).name } : null,
       contract_name: contract.CONTRACT_NAME,
       contract_type: contract.CONTRACT_TYPE,
       start_date: contract.START_DATE,
@@ -262,10 +262,10 @@ export async function PUT(
       }
     }
 
-    // 8. 담당자 존재 여부 확인 (변경시)
+    // 8. 담당자 존재 여부 확인 (변경시, EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     if (assigned_employee_id !== undefined && assigned_employee_id !== null) {
       const employeeExists = await executeQuerySingle(
-        'SELECT "id" FROM "EMPLOYEE" WHERE "id" = :id AND "deleted_at" IS NULL',
+        'SELECT ID FROM EMPLOYEE WHERE ID = :id AND DELETED_AT IS NULL',
         { id: assigned_employee_id }
       );
 

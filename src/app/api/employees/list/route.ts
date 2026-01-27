@@ -37,30 +37,31 @@ export async function GET(): Promise<NextResponse<EmployeeListResponse | { error
     const user = session.user as any;
 
     // RBAC 조건에 따른 Raw SQL 쿼리 작성
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용 (2091 직원관리 모듈)
     let sql = `
-      SELECT e."id", e."name", d."name" AS department_name
-      FROM "EMPLOYEE" e
-      LEFT JOIN "DEPARTMENT" d ON d."id" = e."department_id"
-      WHERE e."deleted_at" IS NULL
+      SELECT E.ID, E.NAME, D.NAME AS DEPARTMENT_NAME
+      FROM EMPLOYEE E
+      LEFT JOIN DEPARTMENT D ON D.ID = E.DEPARTMENT_ID
+      WHERE E.DELETED_AT IS NULL
     `;
     const params: any = {};
 
     if (user.role === 'MANAGER' && user.department) {
-      sql += ' AND e."department_id" = :departmentId';
+      sql += ' AND E.DEPARTMENT_ID = :departmentId';
       params.departmentId = user.department;
     }
     // ADMIN과 USER는 전체 직원 목록 조회 가능
 
-    sql += ' ORDER BY e."name" ASC';
+    sql += ' ORDER BY E.NAME ASC';
 
     // Raw SQL 쿼리 실행
     const result = await executeQuery(sql, params);
 
-    // 응답 형태 변환
+    // 응답 형태 변환 (Oracle은 대문자 컬럼명 반환)
     const employees: EmployeeListItem[] = result.rows.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      department_name: row.department_name || null,
+      id: row.ID || row.id,
+      name: row.NAME || row.name,
+      department_name: row.DEPARTMENT_NAME || row.department_name || null,
     }));
 
     return NextResponse.json({ employees });

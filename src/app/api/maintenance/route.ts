@@ -282,8 +282,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     const employeeCheck = await executeQuerySingle(
-      'SELECT "id" FROM "EMPLOYEE" WHERE "id" = :assigned_employee_id AND "deleted_at" IS NULL',
+      'SELECT ID FROM EMPLOYEE WHERE ID = :assigned_employee_id AND DELETED_AT IS NULL',
       { assigned_employee_id }
     );
 

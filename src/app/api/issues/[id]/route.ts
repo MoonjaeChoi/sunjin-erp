@@ -93,7 +93,7 @@ export async function GET(
       );
     }
 
-    // 3. Issue 조회
+    // 3. Issue 조회 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     const issue = await executeQuerySingle<any>(
       `SELECT
         i.ID,
@@ -113,15 +113,15 @@ export async function GET(
         i.UPDATED_AT,
         c."id" AS customer_id,
         c."name" AS customer_name,
-        ec."id" AS created_by_id,
-        ec."name" AS created_by_name,
-        ea."id" AS assigned_to_id,
-        ea."name" AS assigned_to_name,
-        ea."department_id" AS assigned_to_department_id
+        EC.ID AS created_by_id,
+        EC.NAME AS created_by_name,
+        EA.ID AS assigned_to_id,
+        EA.NAME AS assigned_to_name,
+        EA.DEPARTMENT_ID AS assigned_to_department_id
        FROM ISSUE i
        LEFT JOIN CUSTOMER c ON c."id" = i.CUSTOMER_ID AND c."deleted_at" IS NULL
-       LEFT JOIN EMPLOYEE ec ON ec."id" = i.CREATED_BY_ID AND ec."deleted_at" IS NULL
-       LEFT JOIN EMPLOYEE ea ON ea."id" = i.ASSIGNED_TO_ID AND ea."deleted_at" IS NULL
+       LEFT JOIN EMPLOYEE EC ON EC.ID = i.CREATED_BY_ID AND EC.DELETED_AT IS NULL
+       LEFT JOIN EMPLOYEE EA ON EA.ID = i.ASSIGNED_TO_ID AND EA.DELETED_AT IS NULL
        WHERE i.ID = :issueId AND i.DELETED_AT IS NULL`,
       { issueId }
     );
@@ -163,7 +163,7 @@ export async function GET(
       );
     }
 
-    // 5. 첨부파일 조회
+    // 5. 첨부파일 조회 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     const attachmentsResult = await executeQuery<any>(
       `SELECT
         ia.ID,
@@ -171,10 +171,10 @@ export async function GET(
         ia.FILE_PATH,
         ia.FILE_SIZE,
         ia.UPLOADED_BY_ID,
-        e."name" AS uploaded_by_name,
+        E.NAME AS uploaded_by_name,
         ia.CREATED_AT
        FROM ISSUE_ATTACHMENT ia
-       LEFT JOIN EMPLOYEE e ON e."id" = ia.UPLOADED_BY_ID AND e."deleted_at" IS NULL
+       LEFT JOIN EMPLOYEE E ON E.ID = ia.UPLOADED_BY_ID AND E.DELETED_AT IS NULL
        WHERE ia.ISSUE_ID = :issueId AND ia.DELETED_AT IS NULL`,
       { issueId }
     );
@@ -196,11 +196,11 @@ export async function GET(
       { issueId }
     );
 
-    // 7. 변경 기록자의 이름 조회
+    // 7. 변경 기록자의 이름 조회 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     const historyWithNames = await Promise.all(
       historiesResult.rows.map(async (h: any) => {
         const changerResult = await executeQuerySingle<any>(
-          `SELECT "name" FROM EMPLOYEE WHERE "id" = :id AND "deleted_at" IS NULL`,
+          `SELECT NAME FROM EMPLOYEE WHERE ID = :id AND DELETED_AT IS NULL`,
           { id: h.CHANGED_BY_ID }
         );
         return {
@@ -209,7 +209,7 @@ export async function GET(
           old_value: h.OLD_VALUE,
           new_value: h.NEW_VALUE,
           changed_by_id: h.CHANGED_BY_ID,
-          changed_by_name: changerResult?.name || null,
+          changed_by_name: changerResult?.NAME || null,
           changed_at: h.CHANGED_AT,
           remark: h.REMARK,
         };
@@ -333,14 +333,14 @@ export async function PUT(
       );
     }
 
-    // 4. Get assigned employee's department
+    // 4. Get assigned employee's department (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     let assignedToDepartmentId = null;
     if (issue.ASSIGNED_TO_ID) {
       const assignedEmp = await executeQuerySingle<any>(
-        `SELECT "department_id" FROM EMPLOYEE WHERE "id" = :id AND "deleted_at" IS NULL`,
+        `SELECT DEPARTMENT_ID FROM EMPLOYEE WHERE ID = :id AND DELETED_AT IS NULL`,
         { id: issue.ASSIGNED_TO_ID }
       );
-      assignedToDepartmentId = assignedEmp?.department_id;
+      assignedToDepartmentId = assignedEmp?.DEPARTMENT_ID;
     }
 
     // 5. 수정 권한 검증
@@ -448,7 +448,7 @@ export async function PUT(
 
       if (assigned_to_id !== null) {
         const newAssignee = await executeQuerySingle<any>(
-          `SELECT "id", "department_id" FROM EMPLOYEE WHERE "id" = :assigneeId AND "deleted_at" IS NULL`,
+          `SELECT ID, DEPARTMENT_ID FROM EMPLOYEE WHERE ID = :assigneeId AND DELETED_AT IS NULL`,
           { assigneeId: assigned_to_id }
         );
 
@@ -462,7 +462,7 @@ export async function PUT(
         // MANAGER 부서 제약
         if (
           userRole === 'MANAGER' &&
-          newAssignee.department_id !== userDepartmentId
+          newAssignee.DEPARTMENT_ID !== userDepartmentId
         ) {
           return NextResponse.json(
             {

@@ -198,13 +198,14 @@ export async function GET(request: NextRequest) {
 
     // 목록 조회
     const offset = (page - 1) * limit;
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     const dataSql = `
       SELECT
         c."id", c."name", c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
-        c.CREATED_BY_ID as managerId, e."name" as managerName,
+        c.CREATED_BY_ID as managerId, E.NAME as managerName,
         c."created_at" as createdAt, c."updated_at" as updatedAt, c."deleted_at" as deletedAt
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE e ON c.CREATED_BY_ID = e."id"
+      LEFT JOIN EMPLOYEE E ON c.CREATED_BY_ID = E.ID
       ${whereClause}
       ${orderClause}
       OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY

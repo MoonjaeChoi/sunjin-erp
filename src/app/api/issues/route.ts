@@ -121,12 +121,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const params: any = {};
     let paramIndex = 0;
 
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     if (userRole === 'ADMIN') {
       // ADMIN: 모든 행 반환
     } else if (userRole === 'MANAGER') {
       // MANAGER: 같은 부서 담당자의 Issue만
       whereClauses.push(
-        `i.ASSIGNED_TO_ID IS NOT NULL AND e_assigned."department_id" = :departmentId${paramIndex}`
+        `i.ASSIGNED_TO_ID IS NOT NULL AND E_ASSIGNED.DEPARTMENT_ID = :departmentId${paramIndex}`
       );
       params[`departmentId${paramIndex}`] = userDepartmentId;
       paramIndex++;
@@ -135,7 +136,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       whereClauses.push(
         `(i.CREATED_BY_ID = :userId${paramIndex}
          OR i.ASSIGNED_TO_ID = :userId${paramIndex + 1}
-         OR (i.IS_PUBLIC = 1 AND e_assigned."department_id" = :departmentId${paramIndex + 2}))`
+         OR (i.IS_PUBLIC = 1 AND E_ASSIGNED.DEPARTMENT_ID = :departmentId${paramIndex + 2}))`
       );
       params[`userId${paramIndex}`] = userId;
       params[`userId${paramIndex + 1}`] = userId;
@@ -220,6 +221,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     params.offset = offset;
     params.pageSize = page_size;
 
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     const query = `
       SELECT
         i.ID,
@@ -239,12 +241,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         i.UPDATED_AT,
         i.DELETED_AT,
         c."name" AS customer_name,
-        e_created."name" AS created_by_name,
-        e_assigned."name" AS assigned_to_name
+        E_CREATED.NAME AS created_by_name,
+        E_ASSIGNED.NAME AS assigned_to_name
       FROM ISSUE i
       LEFT JOIN CUSTOMER c ON c."id" = i.CUSTOMER_ID AND c."deleted_at" IS NULL
-      LEFT JOIN EMPLOYEE e_created ON e_created."id" = i.CREATED_BY_ID AND e_created."deleted_at" IS NULL
-      LEFT JOIN EMPLOYEE e_assigned ON e_assigned."id" = i.ASSIGNED_TO_ID AND e_assigned."deleted_at" IS NULL
+      LEFT JOIN EMPLOYEE E_CREATED ON E_CREATED.ID = i.CREATED_BY_ID AND E_CREATED.DELETED_AT IS NULL
+      LEFT JOIN EMPLOYEE E_ASSIGNED ON E_ASSIGNED.ID = i.ASSIGNED_TO_ID AND E_ASSIGNED.DELETED_AT IS NULL
       WHERE ${whereClauses.join(' AND ')}
       ORDER BY i.${finalSortBy.toUpperCase()} ${finalSortOrder}
       OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
@@ -253,7 +255,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const countQuery = `
       SELECT COUNT(*) as total
       FROM ISSUE i
-      LEFT JOIN EMPLOYEE e_assigned ON e_assigned."id" = i.ASSIGNED_TO_ID
+      LEFT JOIN EMPLOYEE E_ASSIGNED ON E_ASSIGNED.ID = i.ASSIGNED_TO_ID
       WHERE ${whereClauses.join(' AND ')}
     `;
 
@@ -421,11 +423,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // 5. 담당자 존재 확인 및 MANAGER 부서 제약 검증
+    // 5. 담당자 존재 확인 및 MANAGER 부서 제약 검증 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     let assignee = null;
     if (assigned_to_id) {
       assignee = await executeQuerySingle<any>(
-        `SELECT "id", "department_id" FROM EMPLOYEE WHERE "id" = :assigneeId AND "deleted_at" IS NULL`,
+        `SELECT ID, DEPARTMENT_ID FROM EMPLOYEE WHERE ID = :assigneeId AND DELETED_AT IS NULL`,
         { assigneeId: assigned_to_id }
       );
       if (!assignee) {
@@ -436,7 +438,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
 
       // MANAGER는 다른 부서 직원에게 할당 불가
-      if (userRole === 'MANAGER' && assignee.department_id !== userDepartmentId) {
+      if (userRole === 'MANAGER' && assignee.DEPARTMENT_ID !== userDepartmentId) {
         return NextResponse.json(
           {
             message:

@@ -48,12 +48,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const params: any = {};
     let paramIndex = 0;
 
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     if (userRole === 'ADMIN') {
       // ADMIN: all issues
     } else if (userRole === 'MANAGER') {
       // MANAGER: same department assignee issues
       whereClauses.push(
-        `i.ASSIGNED_TO_ID IS NOT NULL AND e_assigned."department_id" = :departmentId${paramIndex}`
+        `i.ASSIGNED_TO_ID IS NOT NULL AND E_ASSIGNED.DEPARTMENT_ID = :departmentId${paramIndex}`
       );
       params[`departmentId${paramIndex}`] = userDepartmentId;
       paramIndex++;
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       whereClauses.push(
         `(i.CREATED_BY_ID = :userId${paramIndex}
          OR i.ASSIGNED_TO_ID = :userId${paramIndex + 1}
-         OR (i.IS_PUBLIC = 1 AND e_assigned."department_id" = :departmentId${paramIndex + 2}))`
+         OR (i.IS_PUBLIC = 1 AND E_ASSIGNED.DEPARTMENT_ID = :departmentId${paramIndex + 2}))`
       );
       params[`userId${paramIndex}`] = userId;
       params[`userId${paramIndex + 1}`] = userId;
@@ -136,13 +137,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       paramIndex++;
     }
 
-    // 5. Execute count query per status
+    // 5. Execute count query per status (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     const query = `
       SELECT
         i.STATUS,
         COUNT(*) as count
       FROM ISSUE i
-      LEFT JOIN EMPLOYEE e_assigned ON i.ASSIGNED_TO_ID = e_assigned."id"
+      LEFT JOIN EMPLOYEE E_ASSIGNED ON i.ASSIGNED_TO_ID = E_ASSIGNED.ID
       WHERE ${whereClauses.join(' AND ')}
       GROUP BY i.STATUS
     `;

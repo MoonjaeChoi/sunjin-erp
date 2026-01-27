@@ -96,15 +96,16 @@ export async function GET(
   }
 
   try {
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     const sql = `
       SELECT
         c."id" as ID, c."name" as NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
         c.CREATED_BY_ID as CREATEDBYID, c.UPDATED_BY_ID as UPDATEDBYID,
-        cb."name" as CREATEDBYNAME, ub."name" as UPDATEDBYNAME,
+        CB.NAME as CREATEDBYNAME, UB.NAME as UPDATEDBYNAME,
         c."created_at" as CREATEDAT, c."updated_at" as UPDATEDAT
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE cb ON c.CREATED_BY_ID = cb."id"
-      LEFT JOIN EMPLOYEE ub ON c.UPDATED_BY_ID = ub."id"
+      LEFT JOIN EMPLOYEE CB ON c.CREATED_BY_ID = CB.ID
+      LEFT JOIN EMPLOYEE UB ON c.UPDATED_BY_ID = UB.ID
       WHERE c."id" = :id AND c."deleted_at" IS NULL
     `;
 
@@ -186,15 +187,16 @@ export async function PUT(
   }
 
   try {
+    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     const existingSql = `
       SELECT
         c."id" as ID, c."name" as NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
         c.CREATED_BY_ID as CREATEDBYID, c.UPDATED_BY_ID as UPDATEDBYID,
-        cb."name" as CREATEDBYNAME, ub."name" as UPDATEDBYNAME,
+        CB.NAME as CREATEDBYNAME, UB.NAME as UPDATEDBYNAME,
         c."created_at" as CREATEDAT, c."updated_at" as UPDATEDAT
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE cb ON c.CREATED_BY_ID = cb."id"
-      LEFT JOIN EMPLOYEE ub ON c.UPDATED_BY_ID = ub."id"
+      LEFT JOIN EMPLOYEE CB ON c.CREATED_BY_ID = CB.ID
+      LEFT JOIN EMPLOYEE UB ON c.UPDATED_BY_ID = UB.ID
       WHERE c."id" = :id AND c."deleted_at" IS NULL
     `;
 

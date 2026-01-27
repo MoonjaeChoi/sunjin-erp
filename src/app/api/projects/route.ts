@@ -98,9 +98,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
     const params: any = {};
     let paramIndex = 0;
 
-    // RBAC 조건 적용
+    // RBAC 조건 적용 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     if (user.role === 'MANAGER') {
-      whereClauses.push(`e."department_id" = :departmentId${paramIndex}`);
+      whereClauses.push(`E.DEPARTMENT_ID = :departmentId${paramIndex}`);
       params[`departmentId${paramIndex}`] = user.department;
       paramIndex++;
     } else if (user.role === 'USER') {
@@ -136,20 +136,20 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
       paramIndex++;
     }
 
-    // Raw SQL 쿼리
+    // Raw SQL 쿼리 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     const sql = `SELECT p."id", p."project_code", p."project_name", p."customer_id",
-                        c."name" AS customer_name, p."employee_id", e."name" AS employee_name,
+                        c."name" AS customer_name, p."employee_id", E.NAME AS employee_name,
                         p."status", p."start_date", p."end_date", p."contract_amount", p."created_at"
                  FROM "PROJECT" p
                  LEFT JOIN "CUSTOMER" c ON c."id" = p."customer_id" AND c."deleted_at" IS NULL
-                 LEFT JOIN "EMPLOYEE" e ON e."id" = p."employee_id" AND e."deleted_at" IS NULL
+                 LEFT JOIN EMPLOYEE E ON E.ID = p."employee_id" AND E.DELETED_AT IS NULL
                  WHERE ${whereClauses.join(' AND ')}
                  ORDER BY p."${sortBy}" ${sortOrder}
                  OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
 
     const countSql = `SELECT COUNT(*) as total
                       FROM "PROJECT" p
-                      LEFT JOIN "EMPLOYEE" e ON e."id" = p."employee_id"
+                      LEFT JOIN EMPLOYEE E ON E.ID = p."employee_id"
                       WHERE ${whereClauses.join(' AND ')}`;
 
     // Separate params for count query (no offset/pageSize) and data query
@@ -266,7 +266,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
         { id: body.customer_id }
       ),
       executeQuerySingle(
-        'SELECT "id" FROM "EMPLOYEE" WHERE "id" = :id AND "deleted_at" IS NULL',
+        'SELECT ID FROM EMPLOYEE WHERE ID = :id AND DELETED_AT IS NULL',
         { id: body.employee_id }
       ),
     ]);
