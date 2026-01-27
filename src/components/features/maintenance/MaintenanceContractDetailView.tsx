@@ -147,7 +147,7 @@ export default function MaintenanceContractDetailView({
           {/* Row 3 */}
           <div>
             <label className="text-sm font-medium text-gray-500">시작일</label>
-            <p className="text-base text-gray-900 mt-1">
+            <p className="text-base text-gray-900 mt-1" suppressHydrationWarning>
               {contract.start_date
                 ? new Date(contract.start_date).toLocaleDateString('ko-KR')
                 : '-'}
@@ -163,6 +163,7 @@ export default function MaintenanceContractDetailView({
                     : 'text-yellow-600 font-semibold'
                   : 'text-gray-900'
               }`}
+              suppressHydrationWarning
             >
               {contract.end_date
                 ? new Date(contract.end_date).toLocaleDateString('ko-KR')
@@ -203,7 +204,7 @@ export default function MaintenanceContractDetailView({
           </div>
           <div>
             <label className="text-gray-500 font-medium">생성일</label>
-            <p className="text-gray-900 mt-1">
+            <p className="text-gray-900 mt-1" suppressHydrationWarning>
               {contract.created_at
                 ? new Date(contract.created_at).toLocaleString('ko-KR')
                 : '-'}
@@ -217,7 +218,7 @@ export default function MaintenanceContractDetailView({
               </div>
               <div>
                 <label className="text-gray-500 font-medium">수정일</label>
-                <p className="text-gray-900 mt-1">
+                <p className="text-gray-900 mt-1" suppressHydrationWarning>
                   {contract.updated_at
                     ? new Date(contract.updated_at).toLocaleString('ko-KR')
                     : '-'}

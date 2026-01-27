@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useMemo, useCallback, useState, ReactNode } from 'react';
+import { useMemo, useCallback, useState, useEffect, ReactNode } from 'react';
 import { ContractStatus, ChangeType, ContractStatsResponse, StatusBadgeProps, ExpiryWarningProps } from '@/types/maintenance';
 import { VALID_STATUS_TRANSITIONS } from '../lib/maintenance-constants';
 import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
@@ -47,9 +47,12 @@ export function useStatusBadge(status: ContractStatus): Omit<StatusBadgeProps, '
 
 /**
  * 계약 만료일 기준 경고 레벨 계산
+ * Note: Uses useEffect to avoid hydration mismatch (new Date() differs server/client)
  */
-export function useExpiryWarning(endDate: Date | string): ExpiryWarningProps {
-  return useMemo(() => {
+export function useExpiryWarning(endDate: Date | string): ExpiryWarningProps | null {
+  const [expiryWarning, setExpiryWarning] = useState<ExpiryWarningProps | null>(null);
+
+  useEffect(() => {
     const end = new Date(endDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -77,13 +80,15 @@ export function useExpiryWarning(endDate: Date | string): ExpiryWarningProps {
       message = '안전함';
     }
 
-    return {
+    setExpiryWarning({
       endDate,
       daysUntilExpiry,
       level,
       message,
-    };
+    });
   }, [endDate]);
+
+  return expiryWarning;
 }
 
 // ============================================================================
@@ -349,14 +354,19 @@ export function useChangeTypeIcon(changeType: ChangeType) {
 
 /**
  * 만료까지 남은 일수 계산
+ * Note: Uses useEffect to avoid hydration mismatch (new Date() differs server/client)
  */
-export function useDaysUntilExpiry(endDate: Date | string) {
-  return useMemo(() => {
+export function useDaysUntilExpiry(endDate: Date | string): number | null {
+  const [daysUntilExpiry, setDaysUntilExpiry] = useState<number | null>(null);
+
+  useEffect(() => {
     const end = new Date(endDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
 
-    return Math.floor((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    setDaysUntilExpiry(Math.floor((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
   }, [endDate]);
+
+  return daysUntilExpiry;
 }

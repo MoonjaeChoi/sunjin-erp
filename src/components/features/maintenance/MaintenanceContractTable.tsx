@@ -285,7 +285,7 @@ function MaintenanceContractTableRow({
       </td>
       <td className="px-6 py-4 hidden md:table-cell">
         <div className="text-sm">
-          <div className="text-gray-900">
+          <div className="text-gray-900" suppressHydrationWarning>
             {contract.end_date
               ? new Date(contract.end_date).toLocaleDateString('ko-KR')
               : '-'}
