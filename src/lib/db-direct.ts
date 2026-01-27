@@ -16,33 +16,55 @@ export interface QueryResult<T = any> {
 
 /**
  * Convert oracledb row objects to plain JavaScript objects
- * Handles circular references in oracledb row metadata
+ * Handles circular references in oracledb row metadata by stripping known problematic properties
  */
-function toPlainObject(row: any): any {
+function toPlainObject(row: any, visited = new WeakSet()): any {
   if (row === null || row === undefined) return row;
   if (typeof row !== 'object') return row;
   if (row instanceof Date) return row;
 
+  // Handle circular references
+  if (visited.has(row)) {
+    return undefined;
+  }
+  visited.add(row);
+
   // If it's an array, map over elements
   if (Array.isArray(row)) {
-    return row.map(toPlainObject);
+    return row.map((item) => toPlainObject(item, visited));
   }
 
   // Create a new plain object with only enumerable properties
   const plain: any = {};
+  const knownProblematicProps = new Set([
+    'parent', 'connection', '_connection', 'client', '_client',
+    '_owner', 'metadata', '_metadata', 'socket', '_socket',
+    'pool', '_pool', 'parentRow', 'stmt', 'resultSet'
+  ]);
+
   for (const key in row) {
     if (Object.prototype.hasOwnProperty.call(row, key)) {
+      // Skip known problematic properties
+      if (knownProblematicProps.has(key)) {
+        continue;
+      }
+
       const value = row[key];
       if (value === null || value === undefined) {
         plain[key] = value;
       } else if (value instanceof Date) {
         plain[key] = value;
+      } else if (typeof value === 'function') {
+        // Skip functions
+        continue;
       } else if (typeof value === 'object' && !Array.isArray(value)) {
-        // Skip complex objects that might have circular refs (like connection metadata)
-        // Only include if it looks like a data object
-        if (Object.keys(value).length < 50) {
-          plain[key] = toPlainObject(value);
+        // For nested objects, only include if they look like data
+        const valueKeys = Object.keys(value);
+        if (valueKeys.length === 0 || valueKeys.length > 100) {
+          // Skip empty objects or very large objects (likely connection objects)
+          continue;
         }
+        plain[key] = toPlainObject(value, visited);
       } else {
         plain[key] = value;
       }
