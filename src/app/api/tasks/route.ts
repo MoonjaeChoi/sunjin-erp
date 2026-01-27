@@ -1,9 +1,9 @@
-// Generated: 2026-01-24 23:30:00 KST
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeUpdate } from '@/lib/db-direct';
 import { TaskType, WorkType, TaskStatus } from '@/types/task';
 
 export const dynamic = 'force-dynamic';
@@ -189,101 +189,94 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 4. DB 연결 및 쿼리 빌드 (Raw SQL)
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    // 4. RBAC 필터링을 위한 사용자 정보
+    const user = session.user as any;
 
-    try {
-      // 5. RBAC 필터링을 위한 사용자 정보
-      const user = session.user as any;
+    // 5. 동적 쿼리 빌드
+    let whereClauses: string[] = ['"deleted_at" IS NULL'];
+    whereClauses.push(`"task_date" BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')`);
 
-      // 6. 동적 쿼리 빌드
-      let whereClauses: string[] = ['"deleted_at" IS NULL'];
-      whereClauses.push(`"task_date" BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')`);
-
-      // RBAC 필터링
-      if (user.role === 'USER' || user.role === 'MANAGER') {
-        whereClauses.push(`"employee_id" = :userId`);
-      }
-      // ADMIN: no additional filtering
-
-      // 선택 필터
-      if (employeeId) {
-        whereClauses.push(`"employee_id" = :employeeId`);
-      }
-      if (type) {
-        whereClauses.push(`"task_type" = :type`);
-      }
-      if (status) {
-        whereClauses.push(`"status" = :status`);
-      }
-      if (workType) {
-        whereClauses.push(`"work_type" = :workType`);
-      }
-      if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
-        whereClauses.push(`"title" LIKE :keyword`);
-      }
-
-      const whereClause = whereClauses.join(' AND ');
-
-      // 정렬
-      let orderClause = '';
-      if (isPaginationMode) {
-        const sortBy = (sortByParam || 'task_date') as typeof VALID_SORT_BY[number];
-        const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
-        orderClause = ` ORDER BY "${sortBy}" ${sortOrder}`;
-      } else {
-        orderClause = ' ORDER BY "task_date" ASC, "start_time" ASC';
-      }
-
-      // 쿼리 매개변수
-      const params: any = {
-        dateFrom,
-        dateTo,
-      };
-
-      if (user.role === 'USER' || user.role === 'MANAGER') {
-        params.userId = user.id;
-      }
-      if (employeeId) {
-        params.employeeId = Number(employeeId);
-      }
-      if (type) {
-        params.type = type;
-      }
-      if (status) {
-        params.status = status;
-      }
-      if (workType) {
-        params.workType = workType;
-      }
-      if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
-        params.keyword = `%${keyword}%`;
-      }
-
-      // 전체 개수 쿼리
-      const countSql = `SELECT COUNT(*) as total FROM TASK WHERE ${whereClause}`;
-      const countResult = await queryRunner.query(countSql, params);
-      const total = parseInt(countResult[0].total || '0', 10);
-
-      // 데이터 쿼리
-      let dataSql = `SELECT * FROM TASK WHERE ${whereClause}${orderClause}`;
-
-      if (isPaginationMode) {
-        const offset = (page - 1) * pageSize;
-        dataSql += ` OFFSET ${offset} ROWS FETCH NEXT ${pageSize} ROWS ONLY`;
-      }
-
-      const tasks = await queryRunner.query(dataSql, params);
-
-      // 응답 분기
-      if (isPaginationMode) {
-        return NextResponse.json({ tasks, total, page, page_size: pageSize });
-      }
-      return NextResponse.json({ tasks, total });
-    } finally {
-      await queryRunner.release();
+    // RBAC 필터링
+    if (user.role === 'USER' || user.role === 'MANAGER') {
+      whereClauses.push(`"employee_id" = :userId`);
     }
+    // ADMIN: no additional filtering
+
+    // 선택 필터
+    if (employeeId) {
+      whereClauses.push(`"employee_id" = :employeeId`);
+    }
+    if (type) {
+      whereClauses.push(`"task_type" = :type`);
+    }
+    if (status) {
+      whereClauses.push(`"status" = :status`);
+    }
+    if (workType) {
+      whereClauses.push(`"work_type" = :workType`);
+    }
+    if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
+      whereClauses.push(`"title" LIKE :keyword`);
+    }
+
+    const whereClause = whereClauses.join(' AND ');
+
+    // 정렬
+    let orderClause = '';
+    if (isPaginationMode) {
+      const sortBy = (sortByParam || 'task_date') as typeof VALID_SORT_BY[number];
+      const sortOrder = (sortOrderParam?.toUpperCase() || 'DESC') as 'ASC' | 'DESC';
+      orderClause = ` ORDER BY "${sortBy}" ${sortOrder}`;
+    } else {
+      orderClause = ' ORDER BY "task_date" ASC, "start_time" ASC';
+    }
+
+    // 쿼리 매개변수
+    const params: any = {
+      dateFrom,
+      dateTo,
+    };
+
+    if (user.role === 'USER' || user.role === 'MANAGER') {
+      params.userId = user.id;
+    }
+    if (employeeId) {
+      params.employeeId = Number(employeeId);
+    }
+    if (type) {
+      params.type = type;
+    }
+    if (status) {
+      params.status = status;
+    }
+    if (workType) {
+      params.workType = workType;
+    }
+    if (keyword && keyword.length >= KEYWORD_MIN_LENGTH) {
+      params.keyword = `%${keyword}%`;
+    }
+
+    // 전체 개수 쿼리
+    const countSql = `SELECT COUNT(*) as "total" FROM TASK WHERE ${whereClause}`;
+    const countResult = await executeQuery(countSql, params);
+    const total = parseInt(countResult.rows[0]?.total || '0', 10);
+
+    // 데이터 쿼리
+    let dataSql = `SELECT * FROM TASK WHERE ${whereClause}${orderClause}`;
+
+    if (isPaginationMode) {
+      const offset = (page - 1) * pageSize;
+      dataSql += ` OFFSET ${offset} ROWS FETCH NEXT ${pageSize} ROWS ONLY`;
+    }
+
+    const tasksResult = await executeQuery(dataSql, params);
+    const tasks = tasksResult.rows;
+
+    // 응답 분기
+    if (isPaginationMode) {
+      return NextResponse.json({ tasks, total, page, page_size: pageSize });
+    }
+    return NextResponse.json({ tasks, total });
   } catch (error) {
     console.error('GET /api/tasks error:', error);
     return NextResponse.json(
@@ -324,49 +317,42 @@ export async function POST(request: NextRequest) {
 
   try {
     // 4. DB 저장 (Raw SQL)
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const user = session.user as any;
+    const taskDate = new Date(body.task_date);
+    const completedAt = body.status === TaskStatus.DONE ? new Date() : null;
+    const now = new Date();
 
-    try {
-      const user = session.user as any;
-      const taskDate = new Date(body.task_date);
-      const completedAt = body.status === TaskStatus.DONE ? new Date() : null;
-      const now = new Date();
+    const sql = `
+      INSERT INTO TASK (
+        "title", "description", "task_date", "start_time", "end_time",
+        "task_type", "work_type", "status", "employee_id", "customer_id",
+        "completed_at", "created_at", "updated_at"
+      ) VALUES (
+        :title, :description, :taskDate, :startTime, :endTime,
+        :taskType, :workType, :status, :employeeId, :customerId,
+        :completedAt, :createdAt, :updatedAt
+      )
+      RETURNING *
+    `;
 
-      const sql = `
-        INSERT INTO TASK (
-          "title", "description", "task_date", "start_time", "end_time",
-          "task_type", "work_type", "status", "employee_id", "customer_id",
-          "completed_at", "created_at", "updated_at"
-        ) VALUES (
-          :title, :description, :taskDate, :startTime, :endTime,
-          :taskType, :workType, :status, :employeeId, :customerId,
-          :completedAt, :createdAt, :updatedAt
-        )
-        RETURNING *
-      `;
+    const result = await executeQuery(sql, {
+      title: sanitizedTitle,
+      description: body.description || null,
+      taskDate,
+      startTime: body.start_time ?? null,
+      endTime: body.end_time ?? null,
+      taskType: body.task_type,
+      workType: body.work_type,
+      status: body.status || TaskStatus.READY,
+      employeeId: user.id,
+      customerId: body.customer_id ?? null,
+      completedAt,
+      createdAt: now,
+      updatedAt: now,
+    });
 
-      const result = await queryRunner.query(sql, {
-        title: sanitizedTitle,
-        description: body.description || null,
-        taskDate,
-        startTime: body.start_time ?? null,
-        endTime: body.end_time ?? null,
-        taskType: body.task_type,
-        workType: body.work_type,
-        status: body.status || TaskStatus.READY,
-        employeeId: user.id,
-        customerId: body.customer_id ?? null,
-        completedAt,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      const saved = result[0] || result;
-      return NextResponse.json(saved, { status: 201 });
-    } finally {
-      await queryRunner.release();
-    }
+    const saved = result.rows[0] || result.rows;
+    return NextResponse.json(saved, { status: 201 });
   } catch (error) {
     console.error('POST /api/tasks error:', error);
     return NextResponse.json(
