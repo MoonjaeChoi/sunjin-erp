@@ -43,8 +43,8 @@ export async function GET(
 
     // 4. 계약 조회
     const contractResult = await executeQuerySingle(
-      `SELECT MC.* FROM MAINTENANCE_CONTRACTS MC
-       WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
+      `SELECT mc.* FROM "MAINTENANCE_CONTRACTS" mc
+       WHERE mc."id" = :id AND mc."deleted_at" IS NULL`,
       { id: contractId }
     );
 
@@ -60,66 +60,66 @@ export async function GET(
 
     // 6. 고객 정보 조회
     const customerResult = await executeQuerySingle(
-      'SELECT ID, NAME FROM CUSTOMER WHERE ID = :id AND DELETED_AT IS NULL',
-      { id: contract.CUSTOMER_ID }
+      'SELECT "id", "name" FROM "CUSTOMER" WHERE "id" = :id AND "deleted_at" IS NULL',
+      { id: contract.customer_id }
     );
 
     // 7. 담당자 정보 조회
     const employeeResult = await executeQuerySingle(
-      'SELECT ID, NAME FROM EMPLOYEE WHERE ID = :id AND DELETED_AT IS NULL',
-      { id: contract.ASSIGNED_EMPLOYEE_ID }
+      'SELECT "id", "name" FROM "EMPLOYEE" WHERE "id" = :id AND "deleted_at" IS NULL',
+      { id: contract.assigned_employee_id }
     );
 
     // 8. 첨부파일 조회
     const attachmentsResult = await executeQuery(
-      `SELECT ID, FILE_NAME, FILE_PATH, FILE_SIZE, CREATED_AT, UPLOADED_BY_ID
-       FROM MAINTENANCE_CONTRACT_ATTACHMENTS
-       WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL
-       ORDER BY CREATED_AT DESC`,
+      `SELECT "id", "file_name", "file_path", "file_size", "created_at", "uploaded_by_id"
+       FROM "MAINTENANCE_CONTRACT_ATTACHMENTS"
+       WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL
+       ORDER BY "created_at" DESC`,
       { contract_id: contractId }
     );
 
     // 9. 이력 조회
     const historiesResult = await executeQuery(
-      `SELECT ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT
-       FROM MAINTENANCE_CONTRACT_HISTORIES
-       WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL
-       ORDER BY CHANGED_AT DESC`,
+      `SELECT "id", "change_type", "reason", "changed_by_id", "changed_at"
+       FROM "MAINTENANCE_CONTRACT_HISTORIES"
+       WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL
+       ORDER BY "changed_at" DESC`,
       { contract_id: contractId }
     );
 
     // 10. 응답 구성
     const response = {
-      id: contract.ID,
-      customer_id: contract.CUSTOMER_ID,
-      customer: customerResult ? { id: (customerResult as any).ID, name: (customerResult as any).NAME } : null,
-      contract_name: contract.CONTRACT_NAME,
-      contract_type: contract.CONTRACT_TYPE,
-      start_date: contract.START_DATE,
-      end_date: contract.END_DATE,
-      assigned_employee_id: contract.ASSIGNED_EMPLOYEE_ID,
-      assigned_employee: employeeResult ? { id: (employeeResult as any).ID, name: (employeeResult as any).NAME } : null,
-      contract_amount: contract.CONTRACT_AMOUNT,
-      contract_status: contract.CONTRACT_STATUS,
-      notes: contract.NOTES,
-      created_at: contract.CREATED_AT,
-      updated_at: contract.UPDATED_AT,
-      created_by_id: contract.CREATED_BY_ID,
-      updated_by_id: contract.UPDATED_BY_ID,
+      id: contract.id,
+      customer_id: contract.customer_id,
+      customer: customerResult ? { id: (customerResult as any).id, name: (customerResult as any).name } : null,
+      contract_name: contract.contract_name,
+      contract_type: contract.contract_type,
+      start_date: contract.start_date,
+      end_date: contract.end_date,
+      assigned_employee_id: contract.assigned_employee_id,
+      assigned_employee: employeeResult ? { id: (employeeResult as any).id, name: (employeeResult as any).name } : null,
+      contract_amount: contract.contract_amount,
+      contract_status: contract.contract_status,
+      notes: contract.notes,
+      created_at: contract.created_at,
+      updated_at: contract.updated_at,
+      created_by_id: contract.created_by_id,
+      updated_by_id: contract.updated_by_id,
       attachments: attachmentsResult.rows.map((a: any) => ({
-        id: a.ID,
-        file_name: a.FILE_NAME,
-        file_path: a.FILE_PATH,
-        file_size: a.FILE_SIZE,
-        created_at: a.CREATED_AT,
-        uploaded_by_id: a.UPLOADED_BY_ID,
+        id: a.id,
+        file_name: a.file_name,
+        file_path: a.file_path,
+        file_size: a.file_size,
+        created_at: a.created_at,
+        uploaded_by_id: a.uploaded_by_id,
       })),
       histories: historiesResult.rows.map((h: any) => ({
-        id: h.ID,
-        change_type: h.CHANGE_TYPE,
-        reason: h.REASON,
-        changed_by_id: h.CHANGED_BY_ID,
-        changed_at: h.CHANGED_AT,
+        id: h.id,
+        change_type: h.change_type,
+        reason: h.reason,
+        changed_by_id: h.changed_by_id,
+        changed_at: h.changed_at,
       })),
     };
 
@@ -198,8 +198,8 @@ export async function PUT(
 
     // 6. 기존 계약 조회
     const existingContract = await executeQuerySingle(
-      `SELECT MC.* FROM MAINTENANCE_CONTRACTS MC
-       WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
+      `SELECT mc.* FROM "MAINTENANCE_CONTRACTS" mc
+       WHERE mc."id" = :id AND mc."deleted_at" IS NULL`,
       { id: contractId }
     );
 
@@ -250,7 +250,7 @@ export async function PUT(
       }
 
       // 시작일이 종료일보다 크지 않아야 함
-      if (existing.START_DATE > endDateObj) {
+      if (existing.start_date > endDateObj) {
         return NextResponse.json(
           {
             error: 'Validation Error',
@@ -264,7 +264,7 @@ export async function PUT(
     // 8. 담당자 존재 여부 확인 (변경시)
     if (assigned_employee_id !== undefined && assigned_employee_id !== null) {
       const employeeExists = await executeQuerySingle(
-        'SELECT ID FROM EMPLOYEE WHERE ID = :id AND DELETED_AT IS NULL',
+        'SELECT "id" FROM "EMPLOYEE" WHERE "id" = :id AND "deleted_at" IS NULL',
         { id: assigned_employee_id }
       );
 
@@ -288,37 +288,37 @@ export async function PUT(
     const updateParams: any = { id: contractId };
 
     if (contract_name !== undefined) {
-      updateFields.push('CONTRACT_NAME = :contract_name');
+      updateFields.push('"contract_name" = :contract_name');
       updateParams.contract_name = contract_name;
     }
 
     if (end_date !== undefined) {
-      updateFields.push('END_DATE = TO_DATE(:end_date, \'YYYY-MM-DD\')');
+      updateFields.push('"end_date" = TO_DATE(:end_date, \'YYYY-MM-DD\')');
       updateParams.end_date = new Date(end_date).toISOString().split('T')[0];
     }
 
     if (contract_amount !== undefined) {
-      updateFields.push('CONTRACT_AMOUNT = :contract_amount');
+      updateFields.push('"contract_amount" = :contract_amount');
       updateParams.contract_amount = contract_amount;
     }
 
     if (assigned_employee_id !== undefined) {
-      updateFields.push('ASSIGNED_EMPLOYEE_ID = :assigned_employee_id');
+      updateFields.push('"assigned_employee_id" = :assigned_employee_id');
       updateParams.assigned_employee_id = assigned_employee_id;
     }
 
     if (contract_status !== undefined) {
-      updateFields.push('CONTRACT_STATUS = :contract_status');
+      updateFields.push('"contract_status" = :contract_status');
       updateParams.contract_status = contract_status;
     }
 
     if (notes !== undefined) {
-      updateFields.push('NOTES = :notes');
+      updateFields.push('"notes" = :notes');
       updateParams.notes = notes;
     }
 
-    updateFields.push('UPDATED_AT = :updated_at');
-    updateFields.push('UPDATED_BY_ID = :updated_by_id');
+    updateFields.push('"updated_at" = :updated_at');
+    updateFields.push('"updated_by_id" = :updated_by_id');
     updateParams.updated_at = now;
     updateParams.updated_by_id = userId;
 
@@ -327,7 +327,7 @@ export async function PUT(
 
     if (updateFields.length > 0) {
       historyOperations.push({
-        query: `UPDATE MAINTENANCE_CONTRACTS SET ${updateFields.join(', ')} WHERE ID = :id`,
+        query: `UPDATE "MAINTENANCE_CONTRACTS" SET ${updateFields.join(', ')} WHERE "id" = :id`,
         params: updateParams,
       });
 
@@ -343,8 +343,8 @@ export async function PUT(
         }
 
         historyOperations.push({
-          query: `INSERT INTO MAINTENANCE_CONTRACT_HISTORIES
-            (ID, MAINTENANCE_CONTRACT_ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT, DELETED_AT)
+          query: `INSERT INTO "MAINTENANCE_CONTRACT_HISTORIES"
+            ("id", "maintenance_contract_id", "change_type", "reason", "changed_by_id", "changed_at", "deleted_at")
             VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORIES.NEXTVAL, :contract_id, '정보수정', :reason, :changed_by_id, :changed_at, NULL)`,
           params: {
             contract_id: contractId,
@@ -362,7 +362,7 @@ export async function PUT(
 
     // 10. 수정된 계약 조회 및 반환
     const updatedContract = await executeQuerySingle(
-      `SELECT MC.* FROM MAINTENANCE_CONTRACTS MC WHERE MC.ID = :id`,
+      `SELECT mc.* FROM "MAINTENANCE_CONTRACTS" mc WHERE mc."id" = :id`,
       { id: contractId }
     );
 
@@ -371,20 +371,20 @@ export async function PUT(
     return NextResponse.json(
       {
         data: {
-          id: updated.ID,
-          customer_id: updated.CUSTOMER_ID,
-          contract_name: updated.CONTRACT_NAME,
-          contract_type: updated.CONTRACT_TYPE,
-          start_date: updated.START_DATE,
-          end_date: updated.END_DATE,
-          assigned_employee_id: updated.ASSIGNED_EMPLOYEE_ID,
-          contract_amount: updated.CONTRACT_AMOUNT,
-          contract_status: updated.CONTRACT_STATUS,
-          notes: updated.NOTES,
-          created_at: updated.CREATED_AT,
-          updated_at: updated.UPDATED_AT,
-          created_by_id: updated.CREATED_BY_ID,
-          updated_by_id: updated.UPDATED_BY_ID,
+          id: updated.id,
+          customer_id: updated.customer_id,
+          contract_name: updated.contract_name,
+          contract_type: updated.contract_type,
+          start_date: updated.start_date,
+          end_date: updated.end_date,
+          assigned_employee_id: updated.assigned_employee_id,
+          contract_amount: updated.contract_amount,
+          contract_status: updated.contract_status,
+          notes: updated.notes,
+          created_at: updated.created_at,
+          updated_at: updated.updated_at,
+          created_by_id: updated.created_by_id,
+          updated_by_id: updated.updated_by_id,
         },
         message: '유지보수 계약이 수정되었습니다.',
       },
@@ -437,8 +437,8 @@ export async function DELETE(
 
     // 4. 계약 존재 여부 확인
     const existingContract = await executeQuerySingle(
-      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
-       WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
+      `SELECT mc."id" FROM "MAINTENANCE_CONTRACTS" mc
+       WHERE mc."id" = :id AND mc."deleted_at" IS NULL`,
       { id: contractId }
     );
 
@@ -453,15 +453,15 @@ export async function DELETE(
     const now = new Date();
     await executeTransaction([
       {
-        query: `UPDATE MAINTENANCE_CONTRACTS SET DELETED_AT = :deleted_at WHERE ID = :id AND DELETED_AT IS NULL`,
+        query: `UPDATE "MAINTENANCE_CONTRACTS" SET "deleted_at" = :deleted_at WHERE "id" = :id AND "deleted_at" IS NULL`,
         params: { id: contractId, deleted_at: now },
       },
       {
-        query: `UPDATE MAINTENANCE_CONTRACT_ATTACHMENTS SET DELETED_AT = :deleted_at WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
+        query: `UPDATE "MAINTENANCE_CONTRACT_ATTACHMENTS" SET "deleted_at" = :deleted_at WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL`,
         params: { contract_id: contractId, deleted_at: now },
       },
       {
-        query: `UPDATE MAINTENANCE_CONTRACT_HISTORIES SET DELETED_AT = :deleted_at WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
+        query: `UPDATE "MAINTENANCE_CONTRACT_HISTORIES" SET "deleted_at" = :deleted_at WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL`,
         params: { contract_id: contractId, deleted_at: now },
       },
     ]);

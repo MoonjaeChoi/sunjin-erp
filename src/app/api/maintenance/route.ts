@@ -51,46 +51,46 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
     // 4. Raw SQL 쿼리 구성
-    let whereClause = 'WHERE MC.DELETED_AT IS NULL';
+    let whereClause = 'WHERE mc."deleted_at" IS NULL';
     const params: any = {};
 
     if (status) {
-      whereClause += ' AND MC.CONTRACT_STATUS = :status';
+      whereClause += ' AND mc."contract_status" = :status';
       params.status = status;
     }
 
     if (customerId) {
-      whereClause += ' AND MC.CUSTOMER_ID = :customerId';
+      whereClause += ' AND mc."customer_id" = :customerId';
       params.customerId = customerId;
     }
 
     if (assignedEmployeeId) {
-      whereClause += ' AND MC.ASSIGNED_EMPLOYEE_ID = :assignedEmployeeId';
+      whereClause += ' AND mc."assigned_employee_id" = :assignedEmployeeId';
       params.assignedEmployeeId = assignedEmployeeId;
     }
 
     if (contractNameSearch) {
-      whereClause += ' AND LOWER(MC.CONTRACT_NAME) LIKE LOWER(:contractNameSearch)';
+      whereClause += ' AND LOWER(mc."contract_name") LIKE LOWER(:contractNameSearch)';
       params.contractNameSearch = `%${contractNameSearch}%`;
     }
 
     if (startDateFrom) {
-      whereClause += ' AND MC.START_DATE >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND mc."start_date" >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
       params.startDateFrom = startDateFrom;
     }
 
     if (startDateTo) {
-      whereClause += ' AND MC.START_DATE <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND mc."start_date" <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
       params.startDateTo = startDateTo;
     }
 
     if (endDateFrom) {
-      whereClause += ' AND MC.END_DATE >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND mc."end_date" >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
       params.endDateFrom = endDateFrom;
     }
 
     if (endDateTo) {
-      whereClause += ' AND MC.END_DATE <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND mc."end_date" <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
       params.endDateTo = endDateTo;
     }
 
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
 
     // 5. 총 개수 조회
     const countResult = await executeQuery(
-      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACTS MC ${whereClause}`,
+      `SELECT COUNT(*) as TOTAL FROM "MAINTENANCE_CONTRACTS" mc ${whereClause}`,
       params
     );
     const total = parseInt(countResult.rows[0]?.TOTAL || '0');
@@ -106,21 +106,21 @@ export async function GET(request: NextRequest) {
     // 6. 목록 조회
     const sql = `
       SELECT
-        MC.ID,
-        MC.CUSTOMER_ID,
-        MC.CONTRACT_NAME,
-        MC.CONTRACT_TYPE,
-        MC.START_DATE,
-        MC.END_DATE,
-        MC.ASSIGNED_EMPLOYEE_ID,
-        MC.CONTRACT_AMOUNT,
-        MC.CONTRACT_STATUS,
-        MC.NOTES,
-        MC.CREATED_AT,
-        MC.UPDATED_AT,
-        MC.CREATED_BY_ID,
-        MC.UPDATED_BY_ID
-      FROM MAINTENANCE_CONTRACTS MC
+        mc."id",
+        mc."customer_id",
+        mc."contract_name",
+        mc."contract_type",
+        mc."start_date",
+        mc."end_date",
+        mc."assigned_employee_id",
+        mc."contract_amount",
+        mc."contract_status",
+        mc."notes",
+        mc."created_at",
+        mc."updated_at",
+        mc."created_by_id",
+        mc."updated_by_id"
+      FROM "MAINTENANCE_CONTRACTS" mc
       ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
@@ -137,20 +137,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         data: contractsResult.rows.map((c: any) => ({
-          id: c.ID,
-          customer_id: c.CUSTOMER_ID,
-          contract_name: c.CONTRACT_NAME,
-          contract_type: c.CONTRACT_TYPE,
-          start_date: c.START_DATE,
-          end_date: c.END_DATE,
-          assigned_employee_id: c.ASSIGNED_EMPLOYEE_ID,
-          contract_amount: c.CONTRACT_AMOUNT,
-          contract_status: c.CONTRACT_STATUS,
-          notes: c.NOTES,
-          created_at: c.CREATED_AT,
-          updated_at: c.UPDATED_AT,
-          created_by_id: c.CREATED_BY_ID,
-          updated_by_id: c.UPDATED_BY_ID,
+          id: c.id,
+          customer_id: c.customer_id,
+          contract_name: c.contract_name,
+          contract_type: c.contract_type,
+          start_date: c.start_date,
+          end_date: c.end_date,
+          assigned_employee_id: c.assigned_employee_id,
+          contract_amount: c.contract_amount,
+          contract_status: c.contract_status,
+          notes: c.notes,
+          created_at: c.created_at,
+          updated_at: c.updated_at,
+          created_by_id: c.created_by_id,
+          updated_by_id: c.updated_by_id,
         })),
         pagination: {
           page,
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
 
     // 7. 의존성 확인 (Customer, Employee 존재 여부)
     const customerCheck = await executeQuerySingle(
-      'SELECT ID FROM CUSTOMER WHERE ID = :customer_id AND DELETED_AT IS NULL',
+      'SELECT "id" FROM "CUSTOMER" WHERE "id" = :customer_id AND "deleted_at" IS NULL',
       { customer_id }
     );
 
@@ -283,7 +283,7 @@ export async function POST(request: NextRequest) {
     }
 
     const employeeCheck = await executeQuerySingle(
-      'SELECT ID FROM EMPLOYEE WHERE ID = :assigned_employee_id AND DELETED_AT IS NULL',
+      'SELECT "id" FROM "EMPLOYEE" WHERE "id" = :assigned_employee_id AND "deleted_at" IS NULL',
       { assigned_employee_id }
     );
 
@@ -305,8 +305,8 @@ export async function POST(request: NextRequest) {
 
     const results = await executeTransaction([
       {
-        query: `INSERT INTO MAINTENANCE_CONTRACTS
-          (ID, CUSTOMER_ID, CONTRACT_NAME, CONTRACT_TYPE, START_DATE, END_DATE, ASSIGNED_EMPLOYEE_ID, CONTRACT_AMOUNT, CONTRACT_STATUS, NOTES, CREATED_BY_ID, UPDATED_BY_ID, CREATED_AT, UPDATED_AT)
+        query: `INSERT INTO "MAINTENANCE_CONTRACTS"
+          ("id", "customer_id", "contract_name", "contract_type", "start_date", "end_date", "assigned_employee_id", "contract_amount", "contract_status", "notes", "created_by_id", "updated_by_id", "created_at", "updated_at")
           VALUES (SEQ_MAINTENANCE_CONTRACTS.NEXTVAL, :customer_id, :contract_name, :contract_type, TO_DATE(:start_date, 'YYYY-MM-DD'), TO_DATE(:end_date, 'YYYY-MM-DD'), :assigned_employee_id, :contract_amount, '활성', :notes, :created_by_id, :updated_by_id, :created_at, :updated_at)`,
         params: {
           customer_id,
@@ -327,15 +327,15 @@ export async function POST(request: NextRequest) {
 
     // 9. 생성된 계약 ID 조회
     const lastIdResult = await executeQuerySingle(
-      'SELECT MAX(ID) as ID FROM MAINTENANCE_CONTRACTS WHERE CUSTOMER_ID = :customer_id',
+      'SELECT MAX("id") as id FROM "MAINTENANCE_CONTRACTS" WHERE "customer_id" = :customer_id',
       { customer_id }
     );
-    const contractId = (lastIdResult as any)?.ID;
+    const contractId = (lastIdResult as any)?.id;
 
     // 10. 이력 기록
     await executeUpdate(
-      `INSERT INTO MAINTENANCE_CONTRACT_HISTORIES
-        (ID, MAINTENANCE_CONTRACT_ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT, DELETED_AT)
+      `INSERT INTO "MAINTENANCE_CONTRACT_HISTORIES"
+        ("id", "maintenance_contract_id", "change_type", "reason", "changed_by_id", "changed_at", "deleted_at")
         VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORIES.NEXTVAL, :contract_id, '정보수정', '계약 생성', :changed_by_id, :changed_at, NULL)`,
       {
         contract_id: contractId,
@@ -346,25 +346,25 @@ export async function POST(request: NextRequest) {
 
     // 11. 생성된 계약 조회 및 반환
     const contract = await executeQuerySingle(
-      'SELECT * FROM MAINTENANCE_CONTRACTS WHERE ID = :id',
+      'SELECT * FROM "MAINTENANCE_CONTRACTS" WHERE "id" = :id',
       { id: contractId }
     );
 
     return NextResponse.json(
       {
         data: {
-          id: (contract as any)?.ID,
-          customer_id: (contract as any)?.CUSTOMER_ID,
-          contract_name: (contract as any)?.CONTRACT_NAME,
-          contract_type: (contract as any)?.CONTRACT_TYPE,
-          start_date: (contract as any)?.START_DATE,
-          end_date: (contract as any)?.END_DATE,
-          assigned_employee_id: (contract as any)?.ASSIGNED_EMPLOYEE_ID,
-          contract_amount: (contract as any)?.CONTRACT_AMOUNT,
-          contract_status: (contract as any)?.CONTRACT_STATUS,
-          notes: (contract as any)?.NOTES,
-          created_at: (contract as any)?.CREATED_AT,
-          updated_at: (contract as any)?.UPDATED_AT,
+          id: (contract as any)?.id,
+          customer_id: (contract as any)?.customer_id,
+          contract_name: (contract as any)?.contract_name,
+          contract_type: (contract as any)?.contract_type,
+          start_date: (contract as any)?.start_date,
+          end_date: (contract as any)?.end_date,
+          assigned_employee_id: (contract as any)?.assigned_employee_id,
+          contract_amount: (contract as any)?.contract_amount,
+          contract_status: (contract as any)?.contract_status,
+          notes: (contract as any)?.notes,
+          created_at: (contract as any)?.created_at,
+          updated_at: (contract as any)?.updated_at,
         },
         message: '유지보수 계약이 생성되었습니다.',
       },
