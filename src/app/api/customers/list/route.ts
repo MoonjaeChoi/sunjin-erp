@@ -1,9 +1,9 @@
-// Generated: 2026-01-26 09:50:00 KST
+// Generated: 2026-01-27 23:58:00 KST
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,23 +14,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const sql = `
+      SELECT "id", "name", "category"
+      FROM CUSTOMER
+      WHERE "deleted_at" IS NULL
+      ORDER BY "name" ASC
+    `;
 
-    try {
-      const sql = `
-        SELECT "id", "name", "category"
-        FROM CUSTOMER
-        WHERE "deleted_at" IS NULL
-        ORDER BY "name" ASC
-      `;
-
-      const customers = await queryRunner.query(sql);
-
-      return NextResponse.json({ customers });
-    } finally {
-      await queryRunner.release();
-    }
+    const result = await executeQuery(sql);
+    return NextResponse.json({ customers: result.rows });
   } catch (error) {
     console.error('GET /api/customers/list error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
