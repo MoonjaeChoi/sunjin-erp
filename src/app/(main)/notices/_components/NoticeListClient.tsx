@@ -2,6 +2,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useNotices } from '@/hooks/notices';
 import { useNoticeFilterStore } from '@/stores/noticeFilterStore';
@@ -10,8 +11,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Eye, MessageCircle, Paperclip } from 'lucide-react';
+import { toast } from 'sonner';
 import NoticeFilters from './NoticeFilters';
 import NoticePagination from './NoticePagination';
+import CreateNoticeDialog from './CreateNoticeDialog';
 import { NOTICE_TYPE_COLORS, type NoticeType } from '@/types/notice';
 
 interface NoticeListClientProps {
@@ -19,6 +22,7 @@ interface NoticeListClientProps {
 }
 
 export default function NoticeListClient({ userRole }: NoticeListClientProps) {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { getQueryParams } = useNoticeFilterStore();
   const params = getQueryParams();
   const { data, isLoading, isError, error } = useNotices(params);
@@ -49,11 +53,9 @@ export default function NoticeListClient({ userRole }: NoticeListClientProps) {
           <p className="text-muted-foreground">회사 공지사항 및 게시물을 확인하세요</p>
         </div>
         {canCreate && (
-          <Button asChild>
-            <Link href="/notices/new">
-              <Plus className="h-4 w-4 mr-1" />
-              게시물 작성
-            </Link>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            게시물 작성
           </Button>
         )}
       </div>
@@ -121,6 +123,15 @@ export default function NoticeListClient({ userRole }: NoticeListClientProps) {
       {data && data.pagination.totalPages > 1 && (
         <NoticePagination pagination={data.pagination} />
       )}
+
+      {/* Create Notice Dialog */}
+      <CreateNoticeDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSuccess={() => {
+          toast.success('게시물이 등록되었습니다.');
+        }}
+      />
     </div>
   );
 }
