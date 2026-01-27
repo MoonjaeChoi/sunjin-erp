@@ -1,43 +1,23 @@
 // Generated: 2026-01-25 14:30:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
+import { executeQuery } from '../../../../lib/db-direct';
 
 export async function GET(req: NextRequest) {
   try {
     console.log('[HEALTH] Checking database connection...');
 
-    const { getDataSource } = await import('../../../../lib/db');
-    const ds = await getDataSource();
+    // Test database connection using direct oracledb
+    const result = await executeQuery('SELECT 1 as test FROM dual');
 
-    console.log('[HEALTH] DataSource initialized:', ds.isInitialized);
+    console.log('[HEALTH] Database query successful');
 
-    if (!ds.isInitialized) {
-      return NextResponse.json({
-        status: 'error',
-        message: 'Database not initialized',
-        dataSource: { isInitialized: false }
-      }, { status: 500 });
-    }
-
-    // Try a raw SQL query to test database connection
-    console.log('[HEALTH] Testing database query...');
-    try {
-      const queryRunner = ds.createQueryRunner();
-      const result = await queryRunner.query('SELECT 1 as test FROM dual');
-      await queryRunner.release();
-
-      console.log('[HEALTH] Database query successful, result:', result);
-
-      return NextResponse.json({
-        status: 'ok',
-        database: 'connected',
-        dataSourceInitialized: ds.isInitialized,
-        queryTest: !!result
-      });
-    } catch (queryError) {
-      console.error('[HEALTH] Query error:', queryError);
-      throw queryError;
-    }
+    return NextResponse.json({
+      status: 'ok',
+      database: 'connected',
+      queryTest: !!result,
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
     console.error('[HEALTH] Error:', error);
     return NextResponse.json({
