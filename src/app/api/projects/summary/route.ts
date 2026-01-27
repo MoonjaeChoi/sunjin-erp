@@ -37,17 +37,17 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
     const user = session.user as any;
 
     // Raw SQL to count projects by status
-    let whereClauses: string[] = ['"p"."deleted_at" IS NULL'];
+    let whereClauses: string[] = ['p."deleted_at" IS NULL'];
     const params: any = {};
     let paramIndex = 0;
 
     // RBAC 조건 적용
     if (user.role === 'MANAGER') {
-      whereClauses.push(`"e"."department_id" = :departmentId${paramIndex}`);
+      whereClauses.push(`e."department_id" = :departmentId${paramIndex}`);
       params[`departmentId${paramIndex}`] = user.department;
       paramIndex++;
     } else if (user.role === 'USER') {
-      whereClauses.push(`"p"."employee_id" = :userId${paramIndex}`);
+      whereClauses.push(`p."employee_id" = :userId${paramIndex}`);
       params[`userId${paramIndex}`] = user.id;
       paramIndex++;
     }
@@ -55,25 +55,25 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectSum
 
     // 필터 조건 적용
     if (customerId) {
-      whereClauses.push(`"p"."customer_id" = :customerId${paramIndex}`);
+      whereClauses.push(`p."customer_id" = :customerId${paramIndex}`);
       params[`customerId${paramIndex}`] = customerId;
       paramIndex++;
     }
 
     if (employeeId) {
-      whereClauses.push(`"p"."employee_id" = :employeeId${paramIndex}`);
+      whereClauses.push(`p."employee_id" = :employeeId${paramIndex}`);
       params[`employeeId${paramIndex}`] = employeeId;
       paramIndex++;
     }
 
     const sql = `
       SELECT
-        COUNT(CASE WHEN "p"."status" = 'PREPARING' THEN 1 END) AS preparing,
-        COUNT(CASE WHEN "p"."status" = 'IN_PROGRESS' THEN 1 END) AS in_progress,
-        COUNT(CASE WHEN "p"."status" = 'COMPLETED' THEN 1 END) AS completed,
-        COUNT(CASE WHEN "p"."status" = 'ON_HOLD' THEN 1 END) AS on_hold
+        COUNT(CASE WHEN p."status" = 'PREPARING' THEN 1 END) AS preparing,
+        COUNT(CASE WHEN p."status" = 'IN_PROGRESS' THEN 1 END) AS in_progress,
+        COUNT(CASE WHEN p."status" = 'COMPLETED' THEN 1 END) AS completed,
+        COUNT(CASE WHEN p."status" = 'ON_HOLD' THEN 1 END) AS on_hold
       FROM "PROJECT" p
-      LEFT JOIN "EMPLOYEE" e ON "e"."id" = "p"."employee_id"
+      LEFT JOIN "EMPLOYEE" e ON e."id" = p."employee_id"
       WHERE ${whereClauses.join(' AND ')}
     `;
 
