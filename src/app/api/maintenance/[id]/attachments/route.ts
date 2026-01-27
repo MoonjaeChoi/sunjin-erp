@@ -46,7 +46,7 @@ export async function GET(
 
     // 4. 계약 존재 여부 확인
     const contract = await executeQuerySingle(
-      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
+      `SELECT MC.ID FROM MAINTENANCE_CONTRACT MC
        WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
       { id: contractId }
     );
@@ -65,7 +65,7 @@ export async function GET(
 
     // 6. 총 첨부파일 개수 조회
     const countResult = await executeQuerySingle(
-      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_ATTACHMENT
        WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
       { contract_id: contractId }
     );
@@ -75,7 +75,7 @@ export async function GET(
     const offset = (page - 1) * limit;
     const attachmentsResult = await executeQuery(
       `SELECT ID, FILE_NAME, FILE_PATH, FILE_SIZE, CREATED_AT, UPLOADED_BY_ID
-       FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+       FROM MAINTENANCE_CONTRACT_ATTACHMENT
        WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL
        ORDER BY CREATED_AT DESC
        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
@@ -156,7 +156,7 @@ export async function POST(
 
     // 4. 계약 존재 여부 확인
     const contract = await executeQuerySingle(
-      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
+      `SELECT MC.ID FROM MAINTENANCE_CONTRACT MC
        WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
       { id: contractId }
     );
@@ -170,7 +170,7 @@ export async function POST(
 
     // 5. 현재 첨부파일 개수 확인
     const countResult = await executeQuerySingle(
-      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_ATTACHMENT
        WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
       { contract_id: contractId }
     );
@@ -260,9 +260,9 @@ export async function POST(
     const now = new Date();
 
     const insertResult = await executeUpdate(
-      `INSERT INTO MAINTENANCE_CONTRACT_ATTACHMENTS
+      `INSERT INTO MAINTENANCE_CONTRACT_ATTACHMENT
         (ID, MAINTENANCE_CONTRACT_ID, FILE_NAME, FILE_PATH, FILE_SIZE, UPLOADED_BY_ID, CREATED_AT, DELETED_AT)
-        VALUES (SEQ_MAINTENANCE_CONTRACT_ATTACHMENTS.NEXTVAL, :contract_id, :file_name, :file_path, :file_size, :uploaded_by_id, :created_at, NULL)`,
+        VALUES (SEQ_MC_ATTACHMENT.NEXTVAL, :contract_id, :file_name, :file_path, :file_size, :uploaded_by_id, :created_at, NULL)`,
       {
         contract_id: contractId,
         file_name: file.name,
@@ -275,7 +275,7 @@ export async function POST(
 
     // 11. 생성된 첨부파일 ID 조회
     const attachmentResult = await executeQuerySingle(
-      `SELECT ID, FILE_NAME, FILE_SIZE, CREATED_AT FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+      `SELECT ID, FILE_NAME, FILE_SIZE, CREATED_AT FROM MAINTENANCE_CONTRACT_ATTACHMENT
        WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL
        ORDER BY CREATED_AT DESC FETCH FIRST 1 ROWS ONLY`,
       { contract_id: contractId }

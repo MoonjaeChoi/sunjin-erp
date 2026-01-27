@@ -334,9 +334,9 @@ export async function POST(request: NextRequest) {
 
     // 10. 이력 기록
     await executeUpdate(
-      `INSERT INTO "MAINTENANCE_CONTRACT_HISTORIES"
+      `INSERT INTO "MAINTENANCE_CONTRACT_HISTORY"
         ("id", "maintenance_contract_id", "change_type", "reason", "changed_by_id", "changed_at", "deleted_at")
-        VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORIES.NEXTVAL, :contract_id, '정보수정', '계약 생성', :changed_by_id, :changed_at, NULL)`,
+        VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORY.NEXTVAL, :contract_id, '정보수정', '계약 생성', :changed_by_id, :changed_at, NULL)`,
       {
         contract_id: contractId,
         changed_by_id: userId,

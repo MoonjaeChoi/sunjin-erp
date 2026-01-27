@@ -453,7 +453,7 @@ export async function DELETE(
 
     const maintenanceCountSql = `
       SELECT COUNT(*) as count
-      FROM MAINTENANCE_CONTRACTS
+      FROM MAINTENANCE_CONTRACT
       WHERE customer_id = :customerId AND deleted_at IS NULL
     `;
     const maintenanceCountResult = await executeQuery(maintenanceCountSql, {

@@ -29,12 +29,14 @@ echo ""
 echo "🔄 Running database migrations..."
 cd /app
 
-if [ -f "scripts/run-migrations.js" ]; then
-  node scripts/run-migrations.js || {
-    echo "⚠️  Migration script failed, but continuing with app startup"
+if [ -f "run-migrations.js" ]; then
+  node run-migrations.js || {
+    echo "❌ Migration failed!"
+    exit 1
   }
 else
-  echo "⚠️  Migration script not found at scripts/run-migrations.js"
+  echo "⚠️  Migration script not found at run-migrations.js"
+  exit 1
 fi
 
 echo ""

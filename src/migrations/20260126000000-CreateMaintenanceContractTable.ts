@@ -12,6 +12,11 @@ export class CreateMaintenanceContractTable20260126000000
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Create sequence for ID generation
+    await queryRunner.query(
+      `CREATE SEQUENCE SEQ_MAINTENANCE_CONTRACT START WITH 1 INCREMENT BY 1 NOCACHE`
+    );
+
     await queryRunner.createTable(
       new Table({
         name: 'MAINTENANCE_CONTRACT',
@@ -238,5 +243,8 @@ export class CreateMaintenanceContractTable20260126000000
     await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_customer_enddate');
 
     await queryRunner.dropTable('MAINTENANCE_CONTRACT');
+
+    // Drop sequence
+    await queryRunner.query(`DROP SEQUENCE SEQ_MAINTENANCE_CONTRACT`);
   }
 }

@@ -51,7 +51,7 @@ export async function DELETE(
 
     // 4. 계약 존재 여부 확인
     const contract = await executeQuerySingle(
-      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
+      `SELECT MC.ID FROM MAINTENANCE_CONTRACT MC
        WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
       { id: contractId }
     );
@@ -65,7 +65,7 @@ export async function DELETE(
 
     // 5. 첨부파일 존재 여부 확인
     const attachment = await executeQuerySingle(
-      `SELECT ID FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+      `SELECT ID FROM MAINTENANCE_CONTRACT_ATTACHMENT
        WHERE ID = :id AND MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
       { id: attachmentId, contract_id: contractId }
     );
@@ -83,7 +83,7 @@ export async function DELETE(
     // 6. Soft Delete 수행
     const now = new Date();
     await executeUpdate(
-      `UPDATE MAINTENANCE_CONTRACT_ATTACHMENTS SET DELETED_AT = :deleted_at WHERE ID = :id`,
+      `UPDATE MAINTENANCE_CONTRACT_ATTACHMENT SET DELETED_AT = :deleted_at WHERE ID = :id`,
       { id: attachmentId, deleted_at: now }
     );
 

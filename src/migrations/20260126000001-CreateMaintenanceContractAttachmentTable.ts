@@ -12,6 +12,11 @@ export class CreateMaintenanceContractAttachmentTable20260126000001
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Create sequence for ID generation
+    await queryRunner.query(
+      `CREATE SEQUENCE SEQ_MC_ATTACHMENT START WITH 1 INCREMENT BY 1 NOCACHE`
+    );
+
     await queryRunner.createTable(
       new Table({
         name: 'MAINTENANCE_CONTRACT_ATTACHMENT',
@@ -134,5 +139,8 @@ export class CreateMaintenanceContractAttachmentTable20260126000001
     await queryRunner.dropIndex('MAINTENANCE_CONTRACT_ATTACHMENT', 'idx_mca_deleted_at');
 
     await queryRunner.dropTable('MAINTENANCE_CONTRACT_ATTACHMENT');
+
+    // Drop sequence
+    await queryRunner.query(`DROP SEQUENCE SEQ_MC_ATTACHMENT`);
   }
 }

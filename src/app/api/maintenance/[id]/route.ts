@@ -73,7 +73,7 @@ export async function GET(
     // 8. 첨부파일 조회
     const attachmentsResult = await executeQuery(
       `SELECT "id", "file_name", "file_path", "file_size", "created_at", "uploaded_by_id"
-       FROM "MAINTENANCE_CONTRACT_ATTACHMENTS"
+       FROM "MAINTENANCE_CONTRACT_ATTACHMENT"
        WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL
        ORDER BY "created_at" DESC`,
       { contract_id: contractId }
@@ -82,7 +82,7 @@ export async function GET(
     // 9. 이력 조회
     const historiesResult = await executeQuery(
       `SELECT "id", "change_type", "reason", "changed_by_id", "changed_at"
-       FROM "MAINTENANCE_CONTRACT_HISTORIES"
+       FROM "MAINTENANCE_CONTRACT_HISTORY"
        WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL
        ORDER BY "changed_at" DESC`,
       { contract_id: contractId }
@@ -343,9 +343,9 @@ export async function PUT(
         }
 
         historyOperations.push({
-          query: `INSERT INTO "MAINTENANCE_CONTRACT_HISTORIES"
+          query: `INSERT INTO "MAINTENANCE_CONTRACT_HISTORY"
             ("id", "maintenance_contract_id", "change_type", "reason", "changed_by_id", "changed_at", "deleted_at")
-            VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORIES.NEXTVAL, :contract_id, '정보수정', :reason, :changed_by_id, :changed_at, NULL)`,
+            VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORY.NEXTVAL, :contract_id, '정보수정', :reason, :changed_by_id, :changed_at, NULL)`,
           params: {
             contract_id: contractId,
             reason,
@@ -457,11 +457,11 @@ export async function DELETE(
         params: { id: contractId, deleted_at: now },
       },
       {
-        query: `UPDATE "MAINTENANCE_CONTRACT_ATTACHMENTS" SET "deleted_at" = :deleted_at WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL`,
+        query: `UPDATE "MAINTENANCE_CONTRACT_ATTACHMENT" SET "deleted_at" = :deleted_at WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL`,
         params: { contract_id: contractId, deleted_at: now },
       },
       {
-        query: `UPDATE "MAINTENANCE_CONTRACT_HISTORIES" SET "deleted_at" = :deleted_at WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL`,
+        query: `UPDATE "MAINTENANCE_CONTRACT_HISTORY" SET "deleted_at" = :deleted_at WHERE "maintenance_contract_id" = :contract_id AND "deleted_at" IS NULL`,
         params: { contract_id: contractId, deleted_at: now },
       },
     ]);

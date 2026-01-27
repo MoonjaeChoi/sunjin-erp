@@ -69,7 +69,7 @@ export async function POST(
 
     // 6. 기존 계약 조회
     const existingContract = await executeQuerySingle(
-      `SELECT MC.* FROM MAINTENANCE_CONTRACTS MC
+      `SELECT MC.* FROM MAINTENANCE_CONTRACT MC
        WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
       { id: contractId }
     );
@@ -107,7 +107,7 @@ export async function POST(
 
     await executeTransaction([
       {
-        query: `UPDATE MAINTENANCE_CONTRACTS SET CONTRACT_STATUS = :status, UPDATED_AT = :updated_at, UPDATED_BY_ID = :updated_by_id WHERE ID = :id`,
+        query: `UPDATE MAINTENANCE_CONTRACT SET CONTRACT_STATUS = :status, UPDATED_AT = :updated_at, UPDATED_BY_ID = :updated_by_id WHERE ID = :id`,
         params: {
           id: contractId,
           status,
@@ -116,9 +116,9 @@ export async function POST(
         },
       },
       {
-        query: `INSERT INTO MAINTENANCE_CONTRACT_HISTORIES
+        query: `INSERT INTO MAINTENANCE_CONTRACT_HISTORY
           (ID, MAINTENANCE_CONTRACT_ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT, DELETED_AT)
-          VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORIES.NEXTVAL, :contract_id, '상태변경', :reason, :changed_by_id, :changed_at, NULL)`,
+          VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORY.NEXTVAL, :contract_id, '상태변경', :reason, :changed_by_id, :changed_at, NULL)`,
         params: {
           contract_id: contractId,
           reason,
@@ -130,7 +130,7 @@ export async function POST(
 
     // 9. 수정된 계약 조회 및 반환
     const updatedContract = await executeQuerySingle(
-      `SELECT MC.ID, MC.CONTRACT_STATUS FROM MAINTENANCE_CONTRACTS MC WHERE MC.ID = :id`,
+      `SELECT MC.ID, MC.CONTRACT_STATUS FROM MAINTENANCE_CONTRACT MC WHERE MC.ID = :id`,
       { id: contractId }
     );
 

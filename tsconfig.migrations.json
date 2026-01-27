@@ -1,0 +1,20 @@
+// Generated: 2026-01-27 23:45:00 KST
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist/migrations",
+    "rootDir": "./src/migrations",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "declaration": false
+  },
+  "include": ["src/migrations/**/*.ts"],
+  "exclude": ["node_modules"]
+}

@@ -44,7 +44,7 @@ export async function GET(
 
     // 4. 계약 존재 여부 확인
     const contract = await executeQuerySingle(
-      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
+      `SELECT MC.ID FROM MAINTENANCE_CONTRACT MC
        WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
       { id: contractId }
     );
@@ -63,7 +63,7 @@ export async function GET(
 
     // 6. 총 이력 개수 조회
     const countResult = await executeQuerySingle(
-      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_HISTORIES
+      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_HISTORY
        WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
       { contract_id: contractId }
     );
@@ -73,7 +73,7 @@ export async function GET(
     const offset = (page - 1) * limit;
     const historiesResult = await executeQuery(
       `SELECT ID, MAINTENANCE_CONTRACT_ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT
-       FROM MAINTENANCE_CONTRACT_HISTORIES
+       FROM MAINTENANCE_CONTRACT_HISTORY
        WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL
        ORDER BY CHANGED_AT DESC
        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
