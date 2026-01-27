@@ -194,7 +194,7 @@ export default function CreateMaintenanceContractForm({
                   고객사 *
                 </label>
                 <Select
-                  value={String(formData.customer_id || '')}
+                  value={formData.customer_id > 0 ? String(formData.customer_id) : undefined}
                   onValueChange={(value) =>
                     handleInputChange('customer_id', parseInt(value))
                   }
@@ -245,7 +245,7 @@ export default function CreateMaintenanceContractForm({
                 담당자 *
               </label>
               <Select
-                value={String(formData.assigned_employee_id || '')}
+                value={formData.assigned_employee_id > 0 ? String(formData.assigned_employee_id) : undefined}
                 onValueChange={(value) =>
                   handleInputChange('assigned_employee_id', parseInt(value))
                 }

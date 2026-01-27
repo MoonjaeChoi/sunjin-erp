@@ -186,7 +186,7 @@ export default function UpdateMaintenanceContractForm({
                 담당자
               </label>
               <Select
-                value={String(formData.assigned_employee_id || '')}
+                value={formData.assigned_employee_id && formData.assigned_employee_id > 0 ? String(formData.assigned_employee_id) : undefined}
                 onValueChange={(value) =>
                   handleInputChange('assigned_employee_id', parseInt(value))
                 }
