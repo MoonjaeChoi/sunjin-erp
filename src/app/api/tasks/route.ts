@@ -332,10 +332,9 @@ export async function POST(request: NextRequest) {
         :taskType, :workType, :status, :employeeId, :customerId,
         :completedAt, :createdAt, :updatedAt
       )
-      RETURNING *
     `;
 
-    const result = await executeQuery(sql, {
+    await executeUpdate(sql, {
       title: sanitizedTitle,
       description: body.description || null,
       taskDate,
@@ -351,7 +350,23 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     });
 
-    const saved = result.rows[0] || result.rows;
+    // Return created task data (just the input data)
+    const saved = {
+      title: sanitizedTitle,
+      description: body.description || null,
+      task_date: taskDate,
+      start_time: body.start_time ?? null,
+      end_time: body.end_time ?? null,
+      task_type: body.task_type,
+      work_type: body.work_type,
+      status: body.status || TaskStatus.READY,
+      employee_id: user.id,
+      customer_id: body.customer_id ?? null,
+      completed_at: completedAt,
+      created_at: now,
+      updated_at: now,
+    };
+
     return NextResponse.json(saved, { status: 201 });
   } catch (error) {
     console.error('POST /api/tasks error:', error);
