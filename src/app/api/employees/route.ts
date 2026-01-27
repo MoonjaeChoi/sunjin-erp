@@ -22,7 +22,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const user = session.user as any;
     const userRole = user.role;
-    const userDepartmentId = user.departmentId;
+    const userDepartmentId = user.department; // Note: auth.ts stores as 'department', not 'departmentId'
 
     // 2. RBAC 검증 (ADMIN 또는 MANAGER만)
     if (!['ADMIN', 'MANAGER'].includes(userRole)) {
