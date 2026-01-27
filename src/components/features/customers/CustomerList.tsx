@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreateCustomerDialog } from './CreateCustomerDialog';
 import Link from 'next/link';
-import { Plus, ArrowUpDown } from 'lucide-react';
+import { Plus, ArrowUpDown, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function CustomerList() {
@@ -121,9 +121,17 @@ export function CustomerList() {
                     <td className="hidden md:table-cell px-4 py-3 text-sm">{customer.managerName || '-'}</td>
                     <td className="hidden md:table-cell px-4 py-3 text-sm">{customer.phone || '-'}</td>
                     <td className="px-4 py-3 text-center text-sm">
-                      <Link href={`/customers/${customer.id}`}>
-                        <Button variant="ghost" size="sm">상세</Button>
-                      </Link>
+                      <div className="flex items-center justify-center gap-1">
+                        <Link href={`/customers/${customer.id}`}>
+                          <Button variant="ghost" size="sm">상세</Button>
+                        </Link>
+                        <Link href={`/customers/${customer.id}/edit`}>
+                          <Button variant="ghost" size="sm" className="gap-1">
+                            <Edit2 className="h-3 w-3" />
+                            수정
+                          </Button>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))
