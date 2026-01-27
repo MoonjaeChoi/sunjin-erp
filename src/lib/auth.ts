@@ -37,9 +37,13 @@ export const authOptions: NextAuthOptions = {
             console.log('[Auth] Connection established, querying employee...');
 
             const result = await connection.execute(
-              `SELECT "id", "name", "username", "password_hash", "role", "department_id"
-               FROM EMPLOYEE
-               WHERE "username" = :username AND "deleted_at" IS NULL`,
+              `SELECT e.ID, e.NAME, a.USERNAME, a.PASSWORD_HASH, a.ROLE, e.DEPARTMENT_ID
+               FROM ACCOUNT a
+               JOIN EMPLOYEE e ON a.EMPLOYEE_ID = e.ID
+               WHERE a.USERNAME = :username
+                 AND a.IS_ACTIVE = 1
+                 AND a.DELETED_AT IS NULL
+                 AND e.DELETED_AT IS NULL`,
               { username: credentials.username }
             );
             console.log('[Auth] Query result:', result.rows ? `${result.rows.length} rows` : 'no rows');
@@ -49,7 +53,7 @@ export const authOptions: NextAuthOptions = {
               return null;
             }
 
-            const [id, name, username_col, password_hash, role, department_id] = result.rows[0];
+            const [id, name, username_col, password_hash, role, department_id] = result.rows[0] as any[];
             console.log('[Auth] User found, verifying password...');
 
             const isValid = await bcrypt.compare(
