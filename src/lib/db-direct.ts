@@ -16,39 +16,68 @@ export interface QueryResult<T = any> {
 
 /**
  * Convert oracledb row objects to plain JavaScript objects
- * Uses JSON serialization with a custom replacer to handle circular references
+ * Removes circular references and oracledb metadata
  */
 function toPlainObject(row: any): any {
   if (row === null || row === undefined) return row;
   if (typeof row !== 'object') return row;
+  if (row instanceof Date) return row;
 
-  // Special handling for Dates - convert to ISO string then back
-  if (row instanceof Date) {
-    return row;
+  // List of problematic properties that cause circular references
+  const skipProps = new Set([
+    'parent', 'connection', '_connection', 'client', '_client',
+    '_owner', 'metadata', '_metadata', 'socket', '_socket',
+    'pool', '_pool', 'parentRow', 'stmt', 'resultSet',
+    'list', // NVPair circular reference
+  ]);
+
+  // Recursively build a clean object
+  function stripCircular(obj: any, depth = 0, seen = new Set()): any {
+    // Prevent infinite recursion
+    if (depth > 10 || seen.has(obj)) {
+      return undefined;
+    }
+
+    if (obj === null || obj === undefined) return obj;
+    if (obj instanceof Date) return obj;
+    if (typeof obj !== 'object') return obj;
+
+    seen.add(obj);
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => stripCircular(item, depth + 1, new Set(seen)));
+    }
+
+    const clean: any = {};
+    for (const key in obj) {
+      try {
+        if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+        if (skipProps.has(key)) continue;
+
+        const value = obj[key];
+        if (typeof value === 'function') continue;
+        if (value === null || value === undefined) {
+          clean[key] = value;
+        } else if (value instanceof Date) {
+          clean[key] = value;
+        } else if (typeof value === 'object') {
+          if (seen.has(value)) continue;
+          clean[key] = stripCircular(value, depth + 1, new Set(seen));
+        } else {
+          clean[key] = value;
+        }
+      } catch (e) {
+        // Skip properties that throw errors
+        continue;
+      }
+    }
+    return clean;
   }
 
-  // Try to serialize and deserialize to create a plain object
-  // This naturally removes circular references and oracledb internal properties
   try {
-    return JSON.parse(JSON.stringify(row, (key, value) => {
-      // Skip functions and problematic oracledb properties
-      if (typeof value === 'function') {
-        return undefined;
-      }
-      // Skip connection-related properties
-      if (key === 'parent' || key === 'connection' || key === '_connection' ||
-          key === 'client' || key === '_client' || key === 'socket' ||
-          key === 'pool' || key === 'metadata' || key === 'parentRow' ||
-          key === 'stmt' || key === 'resultSet' || key === '_owner' ||
-          key === '_metadata' || key === '_pool' || key === '_socket') {
-        return undefined;
-      }
-      return value;
-    }));
+    return stripCircular(row);
   } catch (err) {
-    // If JSON serialization fails, return as-is
-    // This handles cases where the row has properties that can't be serialized
-    console.warn('[DB-Direct] Warning: Could not serialize row to plain object:', err);
+    console.warn('[DB-Direct] Warning: Could not strip circular references:', err);
     return row;
   }
 }
