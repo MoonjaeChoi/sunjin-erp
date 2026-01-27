@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
 
     // Build SQL query with RBAC filtering
     let sql = `
-      SELECT id, title, task_type, work_type, status, start_time, end_time, employee_id
+      SELECT ID, TITLE, TASK_TYPE, WORK_TYPE, STATUS, START_TIME, END_TIME, EMPLOYEE_ID
       FROM TASK
-      WHERE TRUNC(task_date) = TO_DATE(:date, 'YYYY-MM-DD')
-        AND deleted_at IS NULL
+      WHERE TRUNC(TASK_DATE) = TO_DATE(:dateParam, 'YYYY-MM-DD')
+        AND DELETED_AT IS NULL
     `;
-    const params: any = { date };
+    const params: any = { dateParam: date };
 
     // RBAC filtering
     if (user.role === 'USER' || user.role === 'MANAGER') {
@@ -53,13 +53,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       date,
       tasks: result.rows.map((task: any) => ({
-        id: task.id,
-        title: task.title,
-        task_type: task.task_type,
-        work_type: task.work_type,
-        status: task.status,
-        start_time: task.start_time,
-        end_time: task.end_time,
+        id: task.ID,
+        title: task.TITLE,
+        task_type: task.TASK_TYPE,
+        work_type: task.WORK_TYPE,
+        status: task.STATUS,
+        start_time: task.START_TIME,
+        end_time: task.END_TIME,
         customer_name: null, // Phase 1 완료 후 JOIN
       })),
       techSupports: [], // Phase 3 전까지 빈 배열
