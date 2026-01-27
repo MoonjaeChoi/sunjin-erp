@@ -311,10 +311,11 @@ export async function POST(request: NextRequest) {
 
     // 7. 고객 등록 (Oracle doesn't support RETURNING without INTO clause)
     // Note: category column is required (NOT NULL), use same value as classification
+    // Column names: "name", "category", "created_at", "updated_at" are quoted (lowercase preserved)
     const now = new Date();
     const insertSql = `
       INSERT INTO CUSTOMER (
-        "name", CODE, CATEGORY, CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
+        "name", CODE, "category", CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
         CREATED_BY_ID, UPDATED_BY_ID, "created_at", "updated_at"
       ) VALUES (
         :name, :code, :classification, :classification, :address, :phone, :email, :memo,
