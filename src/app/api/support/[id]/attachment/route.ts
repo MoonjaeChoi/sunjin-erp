@@ -1,11 +1,9 @@
-// Generated: 2026-01-25 06:10:00 KST
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { IsNull } from 'typeorm';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
-import { TechSupport } from '../../../../../entities/TechSupport';
+import { executeQuery, executeQuerySingle, executeUpdate } from '@/lib/db-direct';
 import { validateFile, sanitizeFilename, getMimeType, getExtension } from '@/lib/file-utils';
 import { randomUUID } from 'crypto';
 import { mkdir, writeFile, unlink, readFile, chmod } from 'fs/promises';
@@ -32,12 +30,12 @@ export async function POST(
   }
 
   try {
-    const ds = await getDataSource();
-    const repo = ds.getRepository(TechSupport);
-
-    const support = await repo.findOne({
-      where: { id, deleted_at: IsNull() },
-    });
+    const support = await executeQuerySingle<any>(
+      `SELECT "id", "employee_id", "attachment_path", "attachment_name"
+       FROM TECH_SUPPORT
+       WHERE "id" = :id AND "deleted_at" IS NULL`,
+      { id }
+    );
 
     if (!support) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -94,9 +92,17 @@ export async function POST(
 
     // DB 업데이트
     const relativePath = path.join('support', String(id), storedFilename);
-    support.attachment_path = relativePath;
-    support.attachment_name = originalName;
-    await repo.save(support);
+    await executeUpdate(
+      `UPDATE TECH_SUPPORT
+       SET "attachment_path" = :attachmentPath,
+           "attachment_name" = :attachmentName
+       WHERE "id" = :id`,
+      {
+        attachmentPath: relativePath,
+        attachmentName: originalName,
+        id,
+      }
+    );
 
     return NextResponse.json({
       attachment_path: relativePath,
@@ -126,12 +132,12 @@ export async function GET(
   }
 
   try {
-    const ds = await getDataSource();
-    const repo = ds.getRepository(TechSupport);
-
-    const support = await repo.findOne({
-      where: { id, deleted_at: IsNull() },
-    });
+    const support = await executeQuerySingle<any>(
+      `SELECT "id", "employee_id", "attachment_path", "attachment_name"
+       FROM TECH_SUPPORT
+       WHERE "id" = :id AND "deleted_at" IS NULL`,
+      { id }
+    );
 
     if (!support) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -186,12 +192,12 @@ export async function DELETE(
   }
 
   try {
-    const ds = await getDataSource();
-    const repo = ds.getRepository(TechSupport);
-
-    const support = await repo.findOne({
-      where: { id, deleted_at: IsNull() },
-    });
+    const support = await executeQuerySingle<any>(
+      `SELECT "id", "employee_id", "attachment_path", "attachment_name"
+       FROM TECH_SUPPORT
+       WHERE "id" = :id AND "deleted_at" IS NULL`,
+      { id }
+    );
 
     if (!support) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -217,9 +223,13 @@ export async function DELETE(
     }
 
     // DB 업데이트
-    support.attachment_path = null;
-    support.attachment_name = null;
-    await repo.save(support);
+    await executeUpdate(
+      `UPDATE TECH_SUPPORT
+       SET "attachment_path" = NULL,
+           "attachment_name" = NULL
+       WHERE "id" = :id`,
+      { id }
+    );
 
     return NextResponse.json({ message: 'Attachment deleted' });
   } catch (error) {

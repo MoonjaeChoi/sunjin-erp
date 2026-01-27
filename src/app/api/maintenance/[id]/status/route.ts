@@ -1,15 +1,14 @@
-// Generated: 2026-01-26 23:15:00 KST
-
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../../../lib/auth';
-import { getDataSource } from '../../../../../lib/db';
+import { executeQuerySingle, executeTransaction } from '../../../../../lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * POST /api/maintenance/[id]/status
+ * PUT /api/maintenance/[id]/status
  *
  * 유지보수 계약 상태 변경
  * - 권한: MANAGER+ (MANAGER, ADMIN)
@@ -43,20 +42,11 @@ export async function POST(
       );
     }
 
-    // 4. 데이터베이스 연결 확인
-    const dataSource = await getDataSource();
-    if (!dataSource.isInitialized) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // 5. 요청 본문 파싱
+    // 4. 요청 본문 파싱
     const body = await request.json();
     const { status, reason } = body;
 
-    // 6. 필수 필드 검증
+    // 5. 필수 필드 검증
     if (!status || !reason) {
       return NextResponse.json(
         {
@@ -77,12 +67,12 @@ export async function POST(
       );
     }
 
-    // 7. 저장소 동적 import 및 기존 계약 조회
-    const { MaintenanceContractRepository } = await import(
-      '../../../../../lib/maintenance-repository'
+    // 6. 기존 계약 조회
+    const existingContract = await executeQuerySingle(
+      `SELECT MC.* FROM MAINTENANCE_CONTRACTS MC
+       WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
+      { id: contractId }
     );
-    const repository = new MaintenanceContractRepository(dataSource);
-    const existingContract = await repository.findById(contractId);
 
     if (!existingContract) {
       return NextResponse.json(
@@ -91,11 +81,12 @@ export async function POST(
       );
     }
 
-    // 8. 상태 전이 검증
+    // 7. 상태 전이 검증
     const { VALID_STATUS_TRANSITIONS } = await import(
       '../../../../../lib/maintenance-constants'
     );
-    const currentStatus = existingContract.contract_status as string;
+    const existing = existingContract as any;
+    const currentStatus = existing.CONTRACT_STATUS;
     const validNextStatuses = (VALID_STATUS_TRANSITIONS as any)[currentStatus];
 
     if (!validNextStatuses || !validNextStatuses.includes(status)) {
@@ -110,32 +101,46 @@ export async function POST(
       );
     }
 
-    // 9. 서비스를 통해 상태 변경 (트랜잭션 포함)
-    const { MaintenanceContractService } = await import(
-      '../../../../../lib/maintenance-service'
-    );
-    const service = new MaintenanceContractService(dataSource);
+    // 8. 트랜잭션으로 상태 변경 + 이력 기록
     const userId = (session.user as any)?.id as number;
+    const now = new Date();
 
-    const updatedContract = await service.changeStatus(
-      contractId,
-      status,
-      reason,
-      userId
+    await executeTransaction([
+      {
+        query: `UPDATE MAINTENANCE_CONTRACTS SET CONTRACT_STATUS = :status, UPDATED_AT = :updated_at, UPDATED_BY_ID = :updated_by_id WHERE ID = :id`,
+        params: {
+          id: contractId,
+          status,
+          updated_at: now,
+          updated_by_id: userId,
+        },
+      },
+      {
+        query: `INSERT INTO MAINTENANCE_CONTRACT_HISTORIES
+          (ID, MAINTENANCE_CONTRACT_ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT, DELETED_AT)
+          VALUES (SEQ_MAINTENANCE_CONTRACT_HISTORIES.NEXTVAL, :contract_id, '상태변경', :reason, :changed_by_id, :changed_at, NULL)`,
+        params: {
+          contract_id: contractId,
+          reason,
+          changed_by_id: userId,
+          changed_at: now,
+        },
+      },
+    ]);
+
+    // 9. 수정된 계약 조회 및 반환
+    const updatedContract = await executeQuerySingle(
+      `SELECT MC.ID, MC.CONTRACT_STATUS FROM MAINTENANCE_CONTRACTS MC WHERE MC.ID = :id`,
+      { id: contractId }
     );
 
-    if (!updatedContract) {
-      return NextResponse.json(
-        { error: 'Not Found', details: `Contract with id ${contractId} not found` },
-        { status: 404 }
-      );
-    }
+    const updated = updatedContract as any;
 
     // 10. 성공 응답
     return NextResponse.json(
       {
-        id: updatedContract.id,
-        contract_status: updatedContract.contract_status,
+        id: updated.ID,
+        contract_status: updated.CONTRACT_STATUS,
         message: 'Status updated successfully',
       },
       { status: 200 }

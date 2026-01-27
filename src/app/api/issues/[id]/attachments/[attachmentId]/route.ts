@@ -1,8 +1,8 @@
-// Generated: 2026-01-25 18:55:00 KST
+// Generated: 2026-01-27 23:54:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db-direct';
 import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -40,21 +40,13 @@ export async function DELETE(
       );
     }
 
-    // 2. Get datasource and repositories
-    const { IssueAttachment } = await import('../../../../../../entities/IssueAttachment');
-    const { IssueHistory } = await import('../../../../../../entities/IssueHistory');
-    const dataSource = await getDataSource();
-    const attachmentRepo = dataSource.getRepository(IssueAttachment);
-    const historyRepo = dataSource.getRepository(IssueHistory);
-
-    // 3. Fetch attachment
-    const attachment = await attachmentRepo.findOne({
-      where: {
-        id: attachmentId,
-        issue_id: issueId,
-        deleted_at: null as any,
-      },
-    });
+    // 2. Fetch attachment
+    const attachmentSql = `
+      SELECT id, issue_id, file_name, uploaded_by_id
+      FROM ISSUE_ATTACHMENT
+      WHERE id = :attachmentId AND issue_id = :issueId AND deleted_at IS NULL
+    `;
+    const attachment = await executeQuerySingle(attachmentSql, { attachmentId, issueId });
 
     if (!attachment) {
       return NextResponse.json(
@@ -63,29 +55,49 @@ export async function DELETE(
       );
     }
 
-    // 4. Permission check (ADMIN or uploader)
-    if (userRole !== 'ADMIN' && attachment.uploaded_by_id !== userId) {
+    // 3. Permission check (ADMIN or uploader)
+    if (userRole !== 'ADMIN' && attachment.UPLOADED_BY_ID !== userId) {
       return NextResponse.json(
         { message: 'Forbidden' },
         { status: 403 }
       );
     }
 
-    // 5. Soft delete
-    attachment.deleted_at = new Date();
-    await attachmentRepo.save(attachment);
+    // 4. Soft delete attachment
+    const now = new Date();
+    const deleteSql = `
+      UPDATE ISSUE_ATTACHMENT
+      SET deleted_at = :deletedAt, updated_at = :updatedAt
+      WHERE id = :attachmentId
+    `;
+    await executeUpdate(deleteSql, { deletedAt: now, updatedAt: now, attachmentId });
 
-    // 6. Create history record
-    const history = new IssueHistory();
-    history.issue_id = issueId;
-    history.change_type = 'ATTACHMENT_DELETED';
-    history.old_value = attachment.file_name;
-    history.new_value = null;
-    history.changed_by_id = userId;
+    // 5. Create history record
+    const historySeqSql = `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as ID FROM DUAL`;
+    const historySeqResult = await executeQuerySingle(historySeqSql);
+    const historyId = historySeqResult?.ID;
 
-    await historyRepo.save(history);
+    if (historyId) {
+      const historySql = `
+        INSERT INTO ISSUE_HISTORY (
+          id, issue_id, change_type, old_value, new_value, changed_by_id, changed_at, remark
+        ) VALUES (
+          :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
+        )
+      `;
+      await executeUpdate(historySql, {
+        id: historyId,
+        issueId,
+        changeType: 'ATTACHMENT_DELETED',
+        oldValue: attachment.FILE_NAME,
+        newValue: null,
+        changedById: userId,
+        changedAt: now,
+        remark: null,
+      });
+    }
 
-    // 7. Response (204 No Content per spec)
+    // 6. Response (204 No Content per spec)
     return NextResponse.json(undefined, { status: 204 });
   } catch (error) {
     console.error('DELETE /api/issues/[id]/attachments/[attachmentId] error:', error);

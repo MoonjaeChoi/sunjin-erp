@@ -1,10 +1,9 @@
-// Generated: 2026-01-25 18:55:00 KST
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
-import { IsNull } from 'typeorm';
+import { executeQuery, executeQuerySingle, executeUpdate } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,20 +93,38 @@ export async function GET(
       );
     }
 
-    // 3. 데이터베이스 연결
-    const { Issue } = await import('../../../../entities/Issue');
-    const { IssueAttachment } = await import('../../../../entities/IssueAttachment');
-    const { IssueHistory } = await import('../../../../entities/IssueHistory');
-    const ds = await getDataSource();
-    const issueRepo = ds.getRepository(Issue);
-    const attachmentRepo = ds.getRepository(IssueAttachment);
-    const historyRepo = ds.getRepository(IssueHistory);
-
-    // 4. Issue 조회 (관계 포함)
-    const issue = await issueRepo.findOne({
-      where: { id: issueId, deleted_at: IsNull() },
-      relations: ['customer', 'created_by', 'assigned_to'],
-    });
+    // 3. Issue 조회
+    const issue = await executeQuerySingle<any>(
+      `SELECT
+        i.ID,
+        i.CUSTOMER_ID,
+        i.TITLE,
+        i.DESCRIPTION,
+        i.SEVERITY,
+        i.STATUS,
+        i.IS_PUBLIC,
+        i.CREATED_BY_ID,
+        i.ASSIGNED_TO_ID,
+        i.TREATMENT_METHOD,
+        i.TREATMENT_TIME_MINUTES,
+        i.TREATMENT_RESULT,
+        i.CREATED_AT,
+        i.COMPLETED_AT,
+        i.UPDATED_AT,
+        c."id" AS customer_id,
+        c."name" AS customer_name,
+        ec."id" AS created_by_id,
+        ec."name" AS created_by_name,
+        ea."id" AS assigned_to_id,
+        ea."name" AS assigned_to_name,
+        ea."department_id" AS assigned_to_department_id
+       FROM ISSUE i
+       LEFT JOIN CUSTOMER c ON c."id" = i.CUSTOMER_ID AND c."deleted_at" IS NULL
+       LEFT JOIN EMPLOYEE ec ON ec."id" = i.CREATED_BY_ID AND ec."deleted_at" IS NULL
+       LEFT JOIN EMPLOYEE ea ON ea."id" = i.ASSIGNED_TO_ID AND ea."deleted_at" IS NULL
+       WHERE i.ID = :issueId AND i.DELETED_AT IS NULL`,
+      { issueId }
+    );
 
     if (!issue) {
       return NextResponse.json(
@@ -116,7 +133,7 @@ export async function GET(
       );
     }
 
-    // 5. 권한 검증 (RLS)
+    // 4. 권한 검증 (RLS)
     let hasAccess = false;
 
     if (userRole === 'ADMIN') {
@@ -124,16 +141,16 @@ export async function GET(
       hasAccess = true;
     } else if (userRole === 'MANAGER') {
       // MANAGER: 같은 부서 담당자의 Issue만
-      if (issue.assigned_to?.department_id === userDepartmentId) {
+      if (issue.assigned_to_department_id === userDepartmentId) {
         hasAccess = true;
       }
     } else if (userRole === 'USER') {
       // USER: 자신 생성 + 자신 담당 + 같은 부서 공개
       if (
-        issue.created_by_id === userId ||
-        issue.assigned_to_id === userId ||
-        (issue.is_public === 1 &&
-          issue.assigned_to?.department_id === userDepartmentId)
+        issue.CREATED_BY_ID === userId ||
+        issue.ASSIGNED_TO_ID === userId ||
+        (issue.IS_PUBLIC === 1 &&
+          issue.assigned_to_department_id === userDepartmentId)
       ) {
         hasAccess = true;
       }
@@ -146,75 +163,106 @@ export async function GET(
       );
     }
 
-    // 6. 첨부파일 조회
-    const attachments = await attachmentRepo.find({
-      where: { issue_id: issueId, deleted_at: IsNull() },
-      relations: ['uploaded_by'],
-    });
+    // 5. 첨부파일 조회
+    const attachmentsResult = await executeQuery<any>(
+      `SELECT
+        ia.ID,
+        ia.FILE_NAME,
+        ia.FILE_PATH,
+        ia.FILE_SIZE,
+        ia.UPLOADED_BY_ID,
+        e."name" AS uploaded_by_name,
+        ia.CREATED_AT
+       FROM ISSUE_ATTACHMENT ia
+       LEFT JOIN EMPLOYEE e ON e."id" = ia.UPLOADED_BY_ID AND e."deleted_at" IS NULL
+       WHERE ia.ISSUE_ID = :issueId AND ia.DELETED_AT IS NULL`,
+      { issueId }
+    );
 
-    // 7. 이력 조회 (최신순 정렬)
-    const histories = await historyRepo.find({
-      where: { issue_id: issueId },
-      relations: ['changed_by'],
-      order: { changed_at: 'DESC' },
-    });
+    // 6. 이력 조회 (최신순 정렬)
+    const historiesResult = await executeQuery<any>(
+      `SELECT
+        ID,
+        ISSUE_ID,
+        CHANGE_TYPE,
+        OLD_VALUE,
+        NEW_VALUE,
+        CHANGED_BY_ID,
+        CHANGED_AT,
+        REMARK
+       FROM ISSUE_HISTORY
+       WHERE ISSUE_ID = :issueId
+       ORDER BY CHANGED_AT DESC`,
+      { issueId }
+    );
+
+    // 7. 변경 기록자의 이름 조회
+    const historyWithNames = await Promise.all(
+      historiesResult.rows.map(async (h: any) => {
+        const changerResult = await executeQuerySingle<any>(
+          `SELECT "name" FROM EMPLOYEE WHERE "id" = :id AND "deleted_at" IS NULL`,
+          { id: h.CHANGED_BY_ID }
+        );
+        return {
+          id: h.ID,
+          change_type: h.CHANGE_TYPE,
+          old_value: h.OLD_VALUE,
+          new_value: h.NEW_VALUE,
+          changed_by_id: h.CHANGED_BY_ID,
+          changed_by_name: changerResult?.name || null,
+          changed_at: h.CHANGED_AT,
+          remark: h.REMARK,
+        };
+      })
+    );
 
     // 8. 응답 생성
     return NextResponse.json<IssueDetailResponse>({
       data: {
-        id: issue.id,
-        customer_id: issue.customer_id,
-        customer: issue.customer
+        id: issue.ID,
+        customer_id: issue.CUSTOMER_ID,
+        customer: issue.customer_id
           ? {
-              id: issue.customer.id,
-              name: issue.customer.name,
+              id: issue.customer_id,
+              name: issue.customer_name,
             }
           : null,
-        title: issue.title,
-        description: issue.description,
-        severity: issue.severity,
-        status: issue.status,
-        is_public: issue.is_public,
-        created_by_id: issue.created_by_id,
-        created_by: issue.created_by
+        title: issue.TITLE,
+        description: issue.DESCRIPTION,
+        severity: issue.SEVERITY,
+        status: issue.STATUS,
+        is_public: issue.IS_PUBLIC,
+        created_by_id: issue.CREATED_BY_ID,
+        created_by: issue.created_by_id
           ? {
-              id: issue.created_by.id,
-              name: issue.created_by.name,
+              id: issue.created_by_id,
+              name: issue.created_by_name,
             }
           : null,
-        assigned_to_id: issue.assigned_to_id,
-        assigned_to: issue.assigned_to
+        assigned_to_id: issue.ASSIGNED_TO_ID,
+        assigned_to: issue.ASSIGNED_TO_ID
           ? {
-              id: issue.assigned_to.id,
-              name: issue.assigned_to.name,
-              department_id: issue.assigned_to.department_id,
+              id: issue.ASSIGNED_TO_ID,
+              name: issue.assigned_to_name,
+              department_id: issue.assigned_to_department_id,
             }
           : null,
-        treatment_method: issue.treatment_method,
-        treatment_time_minutes: issue.treatment_time_minutes,
-        treatment_result: issue.treatment_result,
-        created_at: issue.created_at,
-        completed_at: issue.completed_at,
-        updated_at: issue.updated_at,
-        attachments: attachments.map((a: any) => ({
-          id: a.id,
-          file_name: a.file_name,
-          file_path: a.file_path,
-          file_size: a.file_size,
-          uploaded_by_id: a.uploaded_by_id,
-          uploaded_by_name: a.uploaded_by?.name || null,
-          created_at: a.created_at,
+        treatment_method: issue.TREATMENT_METHOD,
+        treatment_time_minutes: issue.TREATMENT_TIME_MINUTES,
+        treatment_result: issue.TREATMENT_RESULT,
+        created_at: issue.CREATED_AT,
+        completed_at: issue.COMPLETED_AT,
+        updated_at: issue.UPDATED_AT,
+        attachments: attachmentsResult.rows.map((a: any) => ({
+          id: a.ID,
+          file_name: a.FILE_NAME,
+          file_path: a.FILE_PATH,
+          file_size: a.FILE_SIZE,
+          uploaded_by_id: a.UPLOADED_BY_ID,
+          uploaded_by_name: a.uploaded_by_name || null,
+          created_at: a.CREATED_AT,
         })),
-        histories: histories.map((h: any) => ({
-          id: h.id,
-          change_type: h.change_type,
-          old_value: h.old_value,
-          new_value: h.new_value,
-          changed_by_id: h.changed_by_id,
-          changed_by_name: h.changed_by?.name || null,
-          changed_at: h.changed_at,
-          remark: h.remark,
-        })),
+        histories: historyWithNames,
       },
     });
   } catch (error) {
@@ -254,26 +302,45 @@ export async function PUT(
       );
     }
 
-    // 3. 데이터베이스 연결
-    const { Issue } = await import('../../../../entities/Issue');
-    const { Employee } = await import('../../../../entities/Employee');
-    const { IssueHistory } = await import('../../../../entities/IssueHistory');
-    const ds = await getDataSource();
-    const issueRepo = ds.getRepository(Issue);
-    const employeeRepo = ds.getRepository(Employee);
-    const historyRepo = ds.getRepository(IssueHistory);
-
-    // 4. Issue 조회
-    const issue = await issueRepo.findOne({
-      where: { id: issueId, deleted_at: IsNull() },
-      relations: ['assigned_to'],
-    });
+    // 3. Issue 조회
+    const issue = await executeQuerySingle<any>(
+      `SELECT
+        ID,
+        CUSTOMER_ID,
+        TITLE,
+        DESCRIPTION,
+        SEVERITY,
+        STATUS,
+        IS_PUBLIC,
+        CREATED_BY_ID,
+        ASSIGNED_TO_ID,
+        TREATMENT_METHOD,
+        TREATMENT_TIME_MINUTES,
+        TREATMENT_RESULT,
+        CREATED_AT,
+        COMPLETED_AT,
+        UPDATED_AT,
+        DELETED_AT
+       FROM ISSUE
+       WHERE ID = :issueId AND DELETED_AT IS NULL`,
+      { issueId }
+    );
 
     if (!issue) {
       return NextResponse.json(
         { message: 'Issue not found' },
         { status: 404 }
       );
+    }
+
+    // 4. Get assigned employee's department
+    let assignedToDepartmentId = null;
+    if (issue.ASSIGNED_TO_ID) {
+      const assignedEmp = await executeQuerySingle<any>(
+        `SELECT "department_id" FROM EMPLOYEE WHERE "id" = :id AND "deleted_at" IS NULL`,
+        { id: issue.ASSIGNED_TO_ID }
+      );
+      assignedToDepartmentId = assignedEmp?.department_id;
     }
 
     // 5. 수정 권한 검증
@@ -283,12 +350,12 @@ export async function PUT(
       canModify = true;
     } else if (userRole === 'MANAGER') {
       // MANAGER: 같은 부서 담당자의 Issue만
-      if (issue.assigned_to?.department_id === userDepartmentId) {
+      if (assignedToDepartmentId === userDepartmentId) {
         canModify = true;
       }
     } else if (userRole === 'USER') {
       // USER: 자신 담당 Issue만 (처리 정보 수정만 가능)
-      if (issue.assigned_to_id === userId) {
+      if (issue.ASSIGNED_TO_ID === userId) {
         canModify = true;
       }
     }
@@ -319,10 +386,15 @@ export async function PUT(
       new_value: string;
     }> = [];
 
-    // 8. 필드별 수정 및 권한 검증
+    // 8. Track current values for update
+    let updateSql = 'UPDATE ISSUE SET ';
+    const updateParams: any = { issueId };
+    const updateFields: string[] = [];
+    let currentStatus = issue.STATUS;
+    let currentCompletedAt = issue.COMPLETED_AT;
 
     // 8.1 상태 변경 (MANAGER/ADMIN만)
-    if (status !== undefined && status !== issue.status) {
+    if (status !== undefined && status !== issue.STATUS) {
       if (userRole !== 'ADMIN' && userRole !== 'MANAGER') {
         return NextResponse.json(
           { message: 'Only ADMIN/MANAGER can change status' },
@@ -337,31 +409,35 @@ export async function PUT(
         COMPLETED: [],
       };
 
-      if (!validTransitions[issue.status as string]?.includes(status)) {
+      if (!validTransitions[issue.STATUS as string]?.includes(status)) {
         return NextResponse.json(
-          { message: `Cannot change from ${issue.status} to ${status}` },
+          { message: `Cannot change from ${issue.STATUS} to ${status}` },
           { status: 400 }
         );
       }
 
       changes.push({
         change_type: 'STATUS_CHANGE',
-        old_value: issue.status,
+        old_value: issue.STATUS,
         new_value: status,
       });
 
-      issue.status = status as any;
+      currentStatus = status;
+      updateFields.push('STATUS = :status');
+      updateParams.status = status;
 
       // 완료일 자동 기록
       if (status === 'COMPLETED') {
-        issue.completed_at = new Date();
+        currentCompletedAt = new Date();
+        updateFields.push('COMPLETED_AT = :completedAt');
+        updateParams.completedAt = currentCompletedAt;
       }
     }
 
     // 8.2 담당자 변경 (MANAGER/ADMIN만, 부서 제약)
     if (
       assigned_to_id !== undefined &&
-      assigned_to_id !== issue.assigned_to_id
+      assigned_to_id !== issue.ASSIGNED_TO_ID
     ) {
       if (userRole !== 'ADMIN' && userRole !== 'MANAGER') {
         return NextResponse.json(
@@ -371,9 +447,10 @@ export async function PUT(
       }
 
       if (assigned_to_id !== null) {
-        const newAssignee = await employeeRepo.findOne({
-          where: { id: assigned_to_id, deleted_at: IsNull() },
-        });
+        const newAssignee = await executeQuerySingle<any>(
+          `SELECT "id", "department_id" FROM EMPLOYEE WHERE "id" = :assigneeId AND "deleted_at" IS NULL`,
+          { assigneeId: assigned_to_id }
+        );
 
         if (!newAssignee) {
           return NextResponse.json(
@@ -397,18 +474,19 @@ export async function PUT(
         }
       }
 
-      const oldAssigneeId = issue.assigned_to_id ?? 'null';
+      const oldAssigneeId = issue.ASSIGNED_TO_ID ?? 'null';
       changes.push({
         change_type: 'ASSIGNEE_CHANGE',
         old_value: oldAssigneeId.toString(),
         new_value: (assigned_to_id ?? 'null').toString(),
       });
 
-      issue.assigned_to_id = assigned_to_id;
+      updateFields.push('ASSIGNED_TO_ID = :assignedToId');
+      updateParams.assignedToId = assigned_to_id;
     }
 
     // 8.3 심각도 변경 (MANAGER/ADMIN만, COMPLETED 제외)
-    if (severity !== undefined && severity !== issue.severity) {
+    if (severity !== undefined && severity !== issue.SEVERITY) {
       if (userRole !== 'ADMIN' && userRole !== 'MANAGER') {
         return NextResponse.json(
           { message: 'Only ADMIN/MANAGER can change severity' },
@@ -416,7 +494,7 @@ export async function PUT(
         );
       }
 
-      if (issue.status === 'COMPLETED') {
+      if (issue.STATUS === 'COMPLETED') {
         return NextResponse.json(
           { message: 'Cannot change severity for COMPLETED issues' },
           { status: 400 }
@@ -432,15 +510,16 @@ export async function PUT(
 
       changes.push({
         change_type: 'SEVERITY_CHANGE',
-        old_value: issue.severity,
+        old_value: issue.SEVERITY,
         new_value: severity,
       });
 
-      issue.severity = severity as any;
+      updateFields.push('SEVERITY = :severity');
+      updateParams.severity = severity;
     }
 
     // 8.4 공개 여부 토글 (MANAGER/ADMIN만)
-    if (is_public !== undefined && is_public !== issue.is_public) {
+    if (is_public !== undefined && is_public !== issue.IS_PUBLIC) {
       if (userRole !== 'ADMIN' && userRole !== 'MANAGER') {
         return NextResponse.json(
           { message: 'Only ADMIN/MANAGER can change is_public' },
@@ -455,13 +534,14 @@ export async function PUT(
         );
       }
 
-      issue.is_public = is_public;
+      updateFields.push('IS_PUBLIC = :isPublic');
+      updateParams.isPublic = is_public;
     }
 
     // 8.5 처리 정보 입력 (USER도 담당 시 가능)
     if (
       treatment_method !== undefined &&
-      treatment_method !== issue.treatment_method
+      treatment_method !== issue.TREATMENT_METHOD
     ) {
       if (treatment_method && !['REMOTE', 'PHONE', 'ONSITE'].includes(treatment_method)) {
         return NextResponse.json(
@@ -470,12 +550,13 @@ export async function PUT(
         );
       }
 
-      issue.treatment_method = treatment_method;
+      updateFields.push('TREATMENT_METHOD = :treatmentMethod');
+      updateParams.treatmentMethod = treatment_method;
     }
 
     if (
       treatment_time_minutes !== undefined &&
-      treatment_time_minutes !== issue.treatment_time_minutes
+      treatment_time_minutes !== issue.TREATMENT_TIME_MINUTES
     ) {
       if (
         treatment_time_minutes !== null &&
@@ -489,45 +570,70 @@ export async function PUT(
         );
       }
 
-      issue.treatment_time_minutes = treatment_time_minutes;
+      updateFields.push('TREATMENT_TIME_MINUTES = :treatmentTimeMinutes');
+      updateParams.treatmentTimeMinutes = treatment_time_minutes;
     }
 
     if (
       treatment_result !== undefined &&
-      treatment_result !== issue.treatment_result
+      treatment_result !== issue.TREATMENT_RESULT
     ) {
-      issue.treatment_result = treatment_result;
+      updateFields.push('TREATMENT_RESULT = :treatmentResult');
+      updateParams.treatmentResult = treatment_result;
     }
 
-    // 9. Issue 저장
-    const updatedIssue = await issueRepo.save(issue);
+    // 9. Issue 저장 (if there are updates)
+    if (updateFields.length > 0) {
+      updateFields.push('UPDATED_AT = :now');
+      updateParams.now = new Date();
+
+      const finalUpdateSql = updateSql + updateFields.join(', ') + ' WHERE ID = :issueId';
+      await executeUpdate(finalUpdateSql, updateParams);
+    }
 
     // 10. 이력 기록
     for (const change of changes) {
-      const history = new IssueHistory();
-      history.issue_id = issueId;
-      history.change_type = change.change_type as any;
-      history.old_value = change.old_value;
-      history.new_value = change.new_value;
-      history.changed_by_id = userId;
+      // Get next history ID from sequence
+      const historySeqResult = await executeQuerySingle<any>(
+        `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as ID FROM DUAL`
+      );
+      const historyId = historySeqResult?.ID;
 
-      await historyRepo.save(history);
+      if (historyId) {
+        await executeUpdate(
+          `INSERT INTO ISSUE_HISTORY (
+            ID, ISSUE_ID, CHANGE_TYPE, OLD_VALUE, NEW_VALUE, CHANGED_BY_ID, CHANGED_AT, REMARK
+          ) VALUES (
+            :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
+          )`,
+          {
+            id: historyId,
+            issueId,
+            changeType: change.change_type,
+            oldValue: change.old_value,
+            newValue: change.new_value,
+            changedById: userId,
+            changedAt: new Date(),
+            remark: null,
+          }
+        );
+      }
     }
 
     // 11. 응답 반환
     return NextResponse.json({
       message: 'Issue updated successfully',
       data: {
-        id: updatedIssue.id,
-        status: updatedIssue.status,
-        assigned_to_id: updatedIssue.assigned_to_id,
-        severity: updatedIssue.severity,
-        is_public: updatedIssue.is_public,
-        treatment_method: updatedIssue.treatment_method,
-        treatment_time_minutes: updatedIssue.treatment_time_minutes,
-        treatment_result: updatedIssue.treatment_result,
-        completed_at: updatedIssue.completed_at,
-        updated_at: updatedIssue.updated_at,
+        id: issueId,
+        status: currentStatus,
+        assigned_to_id: updateParams.assignedToId !== undefined ? updateParams.assignedToId : issue.ASSIGNED_TO_ID,
+        severity: updateParams.severity !== undefined ? updateParams.severity : issue.SEVERITY,
+        is_public: updateParams.isPublic !== undefined ? updateParams.isPublic : issue.IS_PUBLIC,
+        treatment_method: updateParams.treatmentMethod !== undefined ? updateParams.treatmentMethod : issue.TREATMENT_METHOD,
+        treatment_time_minutes: updateParams.treatmentTimeMinutes !== undefined ? updateParams.treatmentTimeMinutes : issue.TREATMENT_TIME_MINUTES,
+        treatment_result: updateParams.treatmentResult !== undefined ? updateParams.treatmentResult : issue.TREATMENT_RESULT,
+        completed_at: currentCompletedAt,
+        updated_at: updateParams.now || issue.UPDATED_AT,
       },
     });
   } catch (error) {
@@ -574,19 +680,11 @@ export async function DELETE(
       );
     }
 
-    // 4. 데이터베이스 연결
-    const { Issue } = await import('../../../../entities/Issue');
-    const { IssueAttachment } = await import('../../../../entities/IssueAttachment');
-    const { IssueHistory } = await import('../../../../entities/IssueHistory');
-    const ds = await getDataSource();
-    const issueRepo = ds.getRepository(Issue);
-    const attachmentRepo = ds.getRepository(IssueAttachment);
-    const historyRepo = ds.getRepository(IssueHistory);
-
-    // 5. Issue 조회
-    const issue = await issueRepo.findOne({
-      where: { id: issueId, deleted_at: IsNull() },
-    });
+    // 4. Issue 조회
+    const issue = await executeQuerySingle<any>(
+      `SELECT ID, DELETED_AT FROM ISSUE WHERE ID = :issueId AND DELETED_AT IS NULL`,
+      { issueId }
+    );
 
     if (!issue) {
       return NextResponse.json(
@@ -595,10 +693,12 @@ export async function DELETE(
       );
     }
 
-    // 6. 첨부파일 존재 여부 확인 (ON DELETE RESTRICT)
-    const attachmentCount = await attachmentRepo.count({
-      where: { issue_id: issueId, deleted_at: IsNull() },
-    });
+    // 5. 첨부파일 존재 여부 확인 (ON DELETE RESTRICT)
+    const attachmentCountResult = await executeQuerySingle<any>(
+      `SELECT COUNT(*) as cnt FROM ISSUE_ATTACHMENT WHERE ISSUE_ID = :issueId AND DELETED_AT IS NULL`,
+      { issueId }
+    );
+    const attachmentCount = parseInt(attachmentCountResult?.CNT || '0', 10);
 
     if (attachmentCount > 0) {
       return NextResponse.json(
@@ -611,27 +711,49 @@ export async function DELETE(
       );
     }
 
-    // 7. 소프트 삭제 (deleted_at 설정)
-    issue.deleted_at = new Date();
-    await issueRepo.save(issue);
+    // 6. 소프트 삭제 (deleted_at 설정)
+    const now = new Date();
+    await executeUpdate(
+      `UPDATE ISSUE SET DELETED_AT = :deletedAt WHERE ID = :issueId`,
+      { deletedAt: now, issueId }
+    );
 
-    // 8. 선택: 삭제 이력 기록
-    const history = new IssueHistory();
-    history.issue_id = issueId;
-    history.change_type = 'STATUS_CHANGE' as any; // Deletion marker
-    history.old_value = 'ACTIVE';
-    history.new_value = 'DELETED';
-    history.changed_by_id = userId;
-    history.remark = `Soft deleted at ${issue.deleted_at.toISOString()}`;
+    // 7. 삭제 이력 기록
+    try {
+      const historySeqResult = await executeQuerySingle<any>(
+        `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as ID FROM DUAL`
+      );
+      const historyId = historySeqResult?.ID;
 
-    await historyRepo.save(history);
+      if (historyId) {
+        await executeUpdate(
+          `INSERT INTO ISSUE_HISTORY (
+            ID, ISSUE_ID, CHANGE_TYPE, OLD_VALUE, NEW_VALUE, CHANGED_BY_ID, CHANGED_AT, REMARK
+          ) VALUES (
+            :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
+          )`,
+          {
+            id: historyId,
+            issueId,
+            changeType: 'STATUS_CHANGE',
+            oldValue: 'ACTIVE',
+            newValue: 'DELETED',
+            changedById: userId,
+            changedAt: now,
+            remark: `Soft deleted at ${now.toISOString()}`,
+          }
+        );
+      }
+    } catch (historyError) {
+      console.warn('Failed to record deletion history:', historyError);
+    }
 
-    // 9. 응답 반환
+    // 8. 응답 반환
     return NextResponse.json({
       message: 'Issue deleted successfully',
       data: {
-        id: issue.id,
-        deleted_at: issue.deleted_at,
+        id: issueId,
+        deleted_at: now,
       },
     });
   } catch (error) {

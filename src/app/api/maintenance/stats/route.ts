@@ -1,9 +1,9 @@
-// Generated: 2026-01-27 18:00:00 KST
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../../lib/auth';
-import { getDataSource } from '../../../../lib/db';
+import { executeQuery } from '../../../../lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,8 +15,6 @@ export const dynamic = 'force-dynamic';
  * - 응답: { byStatus, expiringIn30Days, expiringIn60Days, total }
  */
 export async function GET(request: NextRequest) {
-  let queryRunner;
-
   try {
     // 1. 세션 검증
     const session = await getServerSession(authOptions);
@@ -31,51 +29,40 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 3. 데이터베이스 연결 확인
-    const dataSource = await getDataSource();
-    if (!dataSource.isInitialized) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    queryRunner = dataSource.createQueryRunner();
-
-    // 4. 상태별 계약 수 조회
-    const statusStats = await queryRunner.query(`
+    // 3. 상태별 계약 수 조회
+    const statusStatsResult = await executeQuery(`
       SELECT
-        contract_status,
-        COUNT(*) as count
-      FROM maintenance_contracts
-      WHERE deleted_at IS NULL
-      GROUP BY contract_status
+        CONTRACT_STATUS,
+        COUNT(*) as COUNT
+      FROM MAINTENANCE_CONTRACTS
+      WHERE DELETED_AT IS NULL
+      GROUP BY CONTRACT_STATUS
     `);
 
     const byStatus: Record<string, number> = {};
     let total = 0;
 
-    for (const row of statusStats) {
-      const status = row.CONTRACT_STATUS;
-      const count = parseInt(row.COUNT || '0');
+    for (const row of statusStatsResult.rows) {
+      const status = (row as any)?.CONTRACT_STATUS;
+      const count = parseInt((row as any)?.COUNT || '0');
       byStatus[status] = count;
       total += count;
     }
 
-    // 5. 만료 예정 계약 조회 (30일, 60일)
+    // 4. 만료 예정 계약 조회 (30일, 60일)
     const today = new Date();
     const thirtyDaysLater = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysLater = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
 
-    const expiringContracts = await queryRunner.query(`
+    const expiringContractsResult = await executeQuery(`
       SELECT
-        id,
-        end_date
-      FROM maintenance_contracts
-      WHERE deleted_at IS NULL
-      AND contract_status = '활성'
-      AND end_date <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
-      AND end_date >= TO_DATE(:today, 'YYYY-MM-DD')
+        ID,
+        END_DATE
+      FROM MAINTENANCE_CONTRACTS
+      WHERE DELETED_AT IS NULL
+      AND CONTRACT_STATUS = '활성'
+      AND END_DATE <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
+      AND END_DATE >= TO_DATE(:today, 'YYYY-MM-DD')
     `, {
       today: today.toISOString().split('T')[0],
       sixtyDaysLater: sixtyDaysLater.toISOString().split('T')[0],
@@ -84,8 +71,8 @@ export async function GET(request: NextRequest) {
     let expiringIn30Days = 0;
     let expiringIn60Days = 0;
 
-    for (const contract of expiringContracts) {
-      const endDate = new Date(contract.END_DATE);
+    for (const contract of expiringContractsResult.rows) {
+      const endDate = new Date((contract as any)?.END_DATE);
 
       if (endDate <= thirtyDaysLater && endDate >= today) {
         expiringIn30Days++;
@@ -95,7 +82,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 6. 응답 구성
+    // 5. 응답 구성
     const response = {
       byStatus,
       expiringIn30Days,
@@ -103,7 +90,7 @@ export async function GET(request: NextRequest) {
       total,
     };
 
-    // 7. 성공 응답
+    // 6. 성공 응답
     return NextResponse.json({ data: response }, { status: 200 });
   } catch (error) {
     console.error('GET /api/maintenance/stats error:', error);
@@ -114,9 +101,5 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
-  } finally {
-    if (queryRunner) {
-      await queryRunner.release();
-    }
   }
 }

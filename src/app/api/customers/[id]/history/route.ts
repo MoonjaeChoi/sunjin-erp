@@ -1,9 +1,9 @@
-// Generated: 2026-01-28 00:15:00 KST
+// Generated: 2026-01-27 10:34:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeQuerySingle } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,139 +69,131 @@ export async function GET(
   }
 
   try {
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    // Verify customer exists
+    const customerResult = await executeQuerySingle(
+      `SELECT id FROM CUSTOMER WHERE id = :customerId AND deleted_at IS NULL`,
+      { customerId }
+    );
 
-    try {
-      // Verify customer exists
-      const customerSql = `
-        SELECT id FROM CUSTOMER
-        WHERE id = :customerId AND deleted_at IS NULL
-      `;
-      const customers = await queryRunner.query(customerSql, { customerId });
+    if (!customerResult) {
+      return NextResponse.json(
+        { error: 'Customer not found' },
+        { status: 404 }
+      );
+    }
 
-      if (!customers || customers.length === 0) {
+    // Build query for total count
+    let countSql = `
+      SELECT COUNT(*) as total FROM CUSTOMER_HISTORY
+      WHERE customer_id = :customerId
+    `;
+    const countParams: any = { customerId };
+
+    // Add filters
+    if (changeType) {
+      countSql += ` AND change_type = :changeType`;
+      countParams.changeType = changeType;
+    }
+
+    if (fromDate) {
+      try {
+        new Date(fromDate); // Validate ISO format
+        countSql += ` AND changed_at >= :fromDate`;
+        countParams.fromDate = new Date(fromDate);
+      } catch {
         return NextResponse.json(
-          { error: 'Customer not found' },
-          { status: 404 }
+          { error: 'Invalid fromDate format (use ISO 8601)' },
+          { status: 400 }
         );
       }
-
-      // Build query for total count
-      let countSql = `
-        SELECT COUNT(*) as total FROM CUSTOMER_HISTORY
-        WHERE customer_id = :customerId
-      `;
-      const countParams: any = { customerId };
-
-      // Add filters
-      if (changeType) {
-        countSql += ` AND change_type = :changeType`;
-        countParams.changeType = changeType;
-      }
-
-      if (fromDate) {
-        try {
-          new Date(fromDate); // Validate ISO format
-          countSql += ` AND changed_at >= :fromDate`;
-          countParams.fromDate = new Date(fromDate);
-        } catch {
-          return NextResponse.json(
-            { error: 'Invalid fromDate format (use ISO 8601)' },
-            { status: 400 }
-          );
-        }
-      }
-
-      if (toDate) {
-        try {
-          new Date(toDate); // Validate ISO format
-          countSql += ` AND changed_at <= :toDate`;
-          countParams.toDate = new Date(toDate);
-        } catch {
-          return NextResponse.json(
-            { error: 'Invalid toDate format (use ISO 8601)' },
-            { status: 400 }
-          );
-        }
-      }
-
-      const countResult = await queryRunner.query(countSql, countParams);
-      const total = Number(countResult[0]?.total || 0);
-      const totalPages = Math.ceil(total / limit);
-
-      // Build main query
-      let sql = `
-        SELECT
-          h.id,
-          h.customer_id as customerId,
-          h.change_type as changeType,
-          h.changed_fields as changedFields,
-          h.changed_by_id as changedById,
-          h.changed_at as changedAt,
-          e.id as employeeId,
-          e.name as employeeName
-        FROM CUSTOMER_HISTORY h
-        LEFT JOIN EMPLOYEE e ON h.changed_by_id = e.id
-        WHERE h.customer_id = :customerId
-      `;
-
-      const params: any = { customerId };
-
-      // Add filters
-      if (changeType) {
-        sql += ` AND h.change_type = :changeType`;
-        params.changeType = changeType;
-      }
-
-      if (fromDate) {
-        sql += ` AND h.changed_at >= :fromDate`;
-        params.fromDate = new Date(fromDate);
-      }
-
-      if (toDate) {
-        sql += ` AND h.changed_at <= :toDate`;
-        params.toDate = new Date(toDate);
-      }
-
-      // Add sorting
-      sql += ` ORDER BY h.${sortBy} ${sortOrder}`;
-
-      // Add pagination
-      const offset = (page - 1) * limit;
-      sql += ` LIMIT :limit OFFSET :offset`;
-      params.limit = limit;
-      params.offset = offset;
-
-      const records = await queryRunner.query(sql, params);
-
-      // Transform response
-      const data: HistoryResponse[] = records.map((record: any) => ({
-        id: record.id,
-        customerId: record.customerId,
-        changeType: record.changeType,
-        changedFields: record.changedFields ? JSON.parse(record.changedFields) : {},
-        changedBy: {
-          id: record.changedById,
-          name: record.employeeName || 'Unknown User',
-        },
-        changedAt: record.changedAt,
-      }));
-
-      const response: HistoryListResponse = {
-        data,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-        },
-      };
-
-      return NextResponse.json(response, { status: 200 });
-    } finally {
-      await queryRunner.release();
     }
+
+    if (toDate) {
+      try {
+        new Date(toDate); // Validate ISO format
+        countSql += ` AND changed_at <= :toDate`;
+        countParams.toDate = new Date(toDate);
+      } catch {
+        return NextResponse.json(
+          { error: 'Invalid toDate format (use ISO 8601)' },
+          { status: 400 }
+        );
+      }
+    }
+
+    const countResult = await executeQuery(countSql, countParams);
+    const total = Number(countResult.rows[0]?.total || 0);
+    const totalPages = Math.ceil(total / limit);
+
+    // Build main query
+    let sql = `
+      SELECT
+        h.id,
+        h.customer_id as customerId,
+        h.change_type as changeType,
+        h.changed_fields as changedFields,
+        h.changed_by_id as changedById,
+        h.changed_at as changedAt,
+        e.id as employeeId,
+        e.name as employeeName
+      FROM CUSTOMER_HISTORY h
+      LEFT JOIN EMPLOYEE e ON h.changed_by_id = e.id
+      WHERE h.customer_id = :customerId
+    `;
+
+    const params: any = { customerId };
+
+    // Add filters
+    if (changeType) {
+      sql += ` AND h.change_type = :changeType`;
+      params.changeType = changeType;
+    }
+
+    if (fromDate) {
+      sql += ` AND h.changed_at >= :fromDate`;
+      params.fromDate = new Date(fromDate);
+    }
+
+    if (toDate) {
+      sql += ` AND h.changed_at <= :toDate`;
+      params.toDate = new Date(toDate);
+    }
+
+    // Add sorting
+    sql += ` ORDER BY h.${sortBy} ${sortOrder}`;
+
+    // Add pagination
+    const offset = (page - 1) * limit;
+    sql += ` LIMIT :limit OFFSET :offset`;
+    params.limit = limit;
+    params.offset = offset;
+
+    const recordsResult = await executeQuery(sql, params);
+
+    // Transform response
+    const data: HistoryResponse[] = recordsResult.rows.map((record: any) => ({
+      id: record.id,
+      customerId: record.customerId,
+      changeType: record.changeType,
+      changedFields: record.changedFields ? JSON.parse(record.changedFields) : {},
+      changedBy: {
+        id: record.changedById,
+        name: record.employeeName || 'Unknown User',
+      },
+      changedAt: record.changedAt,
+    }));
+
+    const response: HistoryListResponse = {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    };
+
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error(`GET /api/customers/${customerId}/history error:`, error);
     return NextResponse.json(

@@ -1,9 +1,9 @@
-// Generated: 2026-01-26 23:45:00 KST
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeQuerySingle, executeUpdate } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -216,98 +216,91 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const finalSortOrder = sort_order === 'ASC' ? 'ASC' : 'DESC';
 
     // 6. 데이터베이스 연결 및 쿼리 실행
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const offset = (page - 1) * page_size;
+    params.offset = offset;
+    params.pageSize = page_size;
 
-    try {
-      const offset = (page - 1) * page_size;
-      params.offset = offset;
-      params.pageSize = page_size;
+    const query = `
+      SELECT
+        i.ID,
+        i.CUSTOMER_ID,
+        i.TITLE,
+        i.DESCRIPTION,
+        i.SEVERITY,
+        i.STATUS,
+        i.IS_PUBLIC,
+        i.CREATED_BY_ID,
+        i.ASSIGNED_TO_ID,
+        i.TREATMENT_METHOD,
+        i.TREATMENT_TIME_MINUTES,
+        i.TREATMENT_RESULT,
+        i.CREATED_AT,
+        i.COMPLETED_AT,
+        i.UPDATED_AT,
+        i.DELETED_AT,
+        c."name" AS customer_name,
+        e_created."name" AS created_by_name,
+        e_assigned."name" AS assigned_to_name
+      FROM ISSUE i
+      LEFT JOIN CUSTOMER c ON c."id" = i.CUSTOMER_ID AND c."deleted_at" IS NULL
+      LEFT JOIN EMPLOYEE e_created ON e_created."id" = i.CREATED_BY_ID AND e_created."deleted_at" IS NULL
+      LEFT JOIN EMPLOYEE e_assigned ON e_assigned."id" = i.ASSIGNED_TO_ID AND e_assigned."deleted_at" IS NULL
+      WHERE ${whereClauses.join(' AND ')}
+      ORDER BY i.${finalSortBy.toUpperCase()} ${finalSortOrder}
+      OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
+    `;
 
-      const query = `
-        SELECT
-          i.ID,
-          i.CUSTOMER_ID,
-          i.TITLE,
-          i.DESCRIPTION,
-          i.SEVERITY,
-          i.STATUS,
-          i.IS_PUBLIC,
-          i.CREATED_BY_ID,
-          i.ASSIGNED_TO_ID,
-          i.TREATMENT_METHOD,
-          i.TREATMENT_TIME_MINUTES,
-          i.TREATMENT_RESULT,
-          i.CREATED_AT,
-          i.COMPLETED_AT,
-          i.UPDATED_AT,
-          i.DELETED_AT,
-          c."name" AS customer_name,
-          e_created."name" AS created_by_name,
-          e_assigned."name" AS assigned_to_name
-        FROM ISSUE i
-        LEFT JOIN CUSTOMER c ON c."id" = i.CUSTOMER_ID AND c."deleted_at" IS NULL
-        LEFT JOIN EMPLOYEE e_created ON e_created."id" = i.CREATED_BY_ID AND e_created."deleted_at" IS NULL
-        LEFT JOIN EMPLOYEE e_assigned ON e_assigned."id" = i.ASSIGNED_TO_ID AND e_assigned."deleted_at" IS NULL
-        WHERE ${whereClauses.join(' AND ')}
-        ORDER BY i.${finalSortBy.toUpperCase()} ${finalSortOrder}
-        OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY
-      `;
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM ISSUE i
+      LEFT JOIN EMPLOYEE e_assigned ON e_assigned."id" = i.ASSIGNED_TO_ID
+      WHERE ${whereClauses.join(' AND ')}
+    `;
 
-      const countQuery = `
-        SELECT COUNT(*) as total
-        FROM ISSUE i
-        LEFT JOIN EMPLOYEE e_assigned ON e_assigned."id" = i.ASSIGNED_TO_ID
-        WHERE ${whereClauses.join(' AND ')}
-      `;
+    // Separate params for count query (no offset/pageSize) and data query
+    const countParams = { ...params };
+    delete countParams.offset;
+    delete countParams.pageSize;
 
-      // Separate params for count query (no offset/pageSize) and data query
-      const countParams = { ...params };
-      delete countParams.offset;
-      delete countParams.pageSize;
+    const [issuesResult, countResult] = await Promise.all([
+      executeQuery<any>(query, params),
+      executeQuery<any>(countQuery, countParams),
+    ]);
 
-      const [issues, countResult] = await Promise.all([
-        queryRunner.query(query, params),
-        queryRunner.query(countQuery, countParams),
-      ]);
+    // COUNT(*) as total returns uppercase TOTAL key in Oracle
+    const total = parseInt(countResult.rows[0]?.TOTAL || '0', 10);
 
-      // COUNT(*) as total returns uppercase TOTAL key in Oracle
-      const total = parseInt(countResult[0]?.TOTAL || '0', 10);
+    // 7. 응답 반환
+    const formattedIssues: IssueListItem[] = issuesResult.rows.map((row: any) => ({
+      id: row.ID,
+      customer_id: row.CUSTOMER_ID,
+      customer_name: row.customer_name || '',
+      title: row.TITLE,
+      description: row.DESCRIPTION,
+      severity: row.SEVERITY,
+      status: row.STATUS,
+      is_public: row.IS_PUBLIC,
+      created_by_id: row.CREATED_BY_ID,
+      created_by_name: row.created_by_name || '',
+      assigned_to_id: row.ASSIGNED_TO_ID,
+      assigned_to_name: row.assigned_to_name || null,
+      treatment_method: row.TREATMENT_METHOD,
+      treatment_time_minutes: row.TREATMENT_TIME_MINUTES,
+      treatment_result: row.TREATMENT_RESULT,
+      created_at: row.CREATED_AT,
+      completed_at: row.COMPLETED_AT,
+      updated_at: row.UPDATED_AT,
+    }));
 
-      // 7. 응답 반환
-      const formattedIssues: IssueListItem[] = issues.map((row: any) => ({
-        id: row.ID,
-        customer_id: row.CUSTOMER_ID,
-        customer_name: row.customer_name || '',
-        title: row.TITLE,
-        description: row.DESCRIPTION,
-        severity: row.SEVERITY,
-        status: row.STATUS,
-        is_public: row.IS_PUBLIC,
-        created_by_id: row.CREATED_BY_ID,
-        created_by_name: row.created_by_name || '',
-        assigned_to_id: row.ASSIGNED_TO_ID,
-        assigned_to_name: row.assigned_to_name || null,
-        treatment_method: row.TREATMENT_METHOD,
-        treatment_time_minutes: row.TREATMENT_TIME_MINUTES,
-        treatment_result: row.TREATMENT_RESULT,
-        created_at: row.CREATED_AT,
-        completed_at: row.COMPLETED_AT,
-        updated_at: row.UPDATED_AT,
-      }));
-
-      return NextResponse.json<IssueListResponse>({
-        data: formattedIssues,
-        pagination: {
-          page,
-          page_size,
-          total,
-          total_pages: Math.ceil(total / page_size),
-        },
-      });
-    } finally {
-      await queryRunner.release();
-    }
+    return NextResponse.json<IssueListResponse>({
+      data: formattedIssues,
+      pagination: {
+        page,
+        page_size,
+        total,
+        total_pages: Math.ceil(total / page_size),
+      },
+    });
   } catch (error: any) {
     console.error('GET /api/issues error:', error);
     console.error('Error message:', error?.message);
@@ -416,153 +409,144 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // 4. 데이터베이스 연결
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
-
-    try {
-      // 5. 외래키 존재 확인 (customer_id)
-      const customerResult = await queryRunner.query(
-        `SELECT "id" FROM CUSTOMER WHERE "id" = :customerId AND "deleted_at" IS NULL`,
-        { customerId: customer_id }
+    // 4. 외래키 존재 확인 (customer_id)
+    const customerResult = await executeQuerySingle<any>(
+      `SELECT "id" FROM CUSTOMER WHERE "id" = :customerId AND "deleted_at" IS NULL`,
+      { customerId: customer_id }
+    );
+    if (!customerResult) {
+      return NextResponse.json(
+        { message: 'Customer not found' },
+        { status: 404 }
       );
-      if (customerResult.length === 0) {
+    }
+
+    // 5. 담당자 존재 확인 및 MANAGER 부서 제약 검증
+    let assignee = null;
+    if (assigned_to_id) {
+      assignee = await executeQuerySingle<any>(
+        `SELECT "id", "department_id" FROM EMPLOYEE WHERE "id" = :assigneeId AND "deleted_at" IS NULL`,
+        { assigneeId: assigned_to_id }
+      );
+      if (!assignee) {
         return NextResponse.json(
-          { message: 'Customer not found' },
+          { message: 'Assignee employee not found' },
           { status: 404 }
         );
       }
 
-      // 6. 담당자 존재 확인 및 MANAGER 부서 제약 검증
-      let assignee = null;
-      if (assigned_to_id) {
-        const assigneeResult = await queryRunner.query(
-          `SELECT "id", "department_id" FROM EMPLOYEE WHERE "id" = :assigneeId AND "deleted_at" IS NULL`,
-          { assigneeId: assigned_to_id }
-        );
-        if (assigneeResult.length === 0) {
-          return NextResponse.json(
-            { message: 'Assignee employee not found' },
-            { status: 404 }
-          );
-        }
-        assignee = assigneeResult[0];
-
-        // MANAGER는 다른 부서 직원에게 할당 불가
-        if (userRole === 'MANAGER' && assignee.department_id !== userDepartmentId) {
-          return NextResponse.json(
-            {
-              message:
-                'MANAGER can only assign to employees in the same department',
-            },
-            { status: 400 }
-          );
-        }
-      }
-
-      // 7. Issue INSERT
-      const now = new Date();
-
-      // Get next ID from sequence - use uppercase for the result alias since table uses uppercase columns
-      const seqResult = await queryRunner.query(
-        `SELECT ISSUE_SEQ.NEXTVAL as ID FROM DUAL`
-      );
-      const issueId = seqResult[0]?.ID;
-
-      if (!issueId) {
+      // MANAGER는 다른 부서 직원에게 할당 불가
+      if (userRole === 'MANAGER' && assignee.department_id !== userDepartmentId) {
         return NextResponse.json(
-          { message: 'Failed to generate issue ID' },
-          { status: 500 }
-        );
-      }
-
-      const insertSql = `
-        INSERT INTO ISSUE (
-          id, customer_id, title, severity, description, status,
-          is_public, created_by_id, assigned_to_id,
-          treatment_method, treatment_time_minutes, treatment_result,
-          created_at, updated_at, deleted_at
-        ) VALUES (
-          :id, :customerId, :title, :severity, :description, :status,
-          :isPublic, :createdById, :assignedToId,
-          :treatmentMethod, :treatmentTimeMinutes, :treatmentResult,
-          :createdAt, :updatedAt, :deletedAt
-        )
-      `;
-
-      await queryRunner.query(insertSql, {
-        id: issueId,
-        customerId: customer_id,
-        title,
-        severity,
-        description,
-        status: 'INTAKE',
-        isPublic: 0,
-        createdById: userId,
-        assignedToId: assigned_to_id || null,
-        treatmentMethod: treatment_method || null,
-        treatmentTimeMinutes: treatment_time_minutes || null,
-        treatmentResult: treatment_result || null,
-        createdAt: now,
-        updatedAt: now,
-        deletedAt: null,
-      });
-
-      const createdAt = now;
-
-      // 8. IssueHistory 첫 기록
-      try {
-        // Get next history ID from sequence
-        const historySeqResult = await queryRunner.query(
-          `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as ID FROM DUAL`
-        );
-        const historyId = historySeqResult[0]?.ID;
-
-        if (historyId) {
-          await queryRunner.query(
-            `INSERT INTO ISSUE_HISTORY (
-              id, issue_id, change_type, old_value, new_value, changed_by_id, changed_at, remark
-            ) VALUES (
-              :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
-            )`,
-            {
-              id: historyId,
-              issueId,
-              changeType: 'STATUS_CHANGE',
-              oldValue: null,
-              newValue: 'INTAKE',
-              changedById: userId,
-              changedAt: now,
-              remark: 'Issue created',
-            }
-          );
-        }
-      } catch (historyError) {
-        // ISSUE_HISTORY table might not exist yet - continue without it
-        console.warn('ISSUE_HISTORY insert failed (table may not exist):', historyError);
-      }
-
-      // 9. 응답 반환
-      return NextResponse.json<CreateIssueResponse>(
-        {
-          message: 'Issue created successfully',
-          data: {
-            id: issueId,
-            customer_id,
-            title,
-            severity,
-            status: 'INTAKE',
-            is_public: 0,
-            created_by_id: userId,
-            assigned_to_id: assigned_to_id || null,
-            created_at: createdAt,
+          {
+            message:
+              'MANAGER can only assign to employees in the same department',
           },
-        },
-        { status: 201 }
-      );
-    } finally {
-      await queryRunner.release();
+          { status: 400 }
+        );
+      }
     }
+
+    // 6. Issue INSERT
+    const now = new Date();
+
+    // Get next ID from sequence - use uppercase for the result alias since table uses uppercase columns
+    const seqResult = await executeQuerySingle<any>(
+      `SELECT ISSUE_SEQ.NEXTVAL as ID FROM DUAL`
+    );
+    const issueId = seqResult?.ID;
+
+    if (!issueId) {
+      return NextResponse.json(
+        { message: 'Failed to generate issue ID' },
+        { status: 500 }
+      );
+    }
+
+    const insertSql = `
+      INSERT INTO ISSUE (
+        id, customer_id, title, severity, description, status,
+        is_public, created_by_id, assigned_to_id,
+        treatment_method, treatment_time_minutes, treatment_result,
+        created_at, updated_at, deleted_at
+      ) VALUES (
+        :id, :customerId, :title, :severity, :description, :status,
+        :isPublic, :createdById, :assignedToId,
+        :treatmentMethod, :treatmentTimeMinutes, :treatmentResult,
+        :createdAt, :updatedAt, :deletedAt
+      )
+    `;
+
+    await executeUpdate(insertSql, {
+      id: issueId,
+      customerId: customer_id,
+      title,
+      severity,
+      description,
+      status: 'INTAKE',
+      isPublic: 0,
+      createdById: userId,
+      assignedToId: assigned_to_id || null,
+      treatmentMethod: treatment_method || null,
+      treatmentTimeMinutes: treatment_time_minutes || null,
+      treatmentResult: treatment_result || null,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    });
+
+    const createdAt = now;
+
+    // 7. IssueHistory 첫 기록
+    try {
+      // Get next history ID from sequence
+      const historySeqResult = await executeQuerySingle<any>(
+        `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as ID FROM DUAL`
+      );
+      const historyId = historySeqResult?.ID;
+
+      if (historyId) {
+        await executeUpdate(
+          `INSERT INTO ISSUE_HISTORY (
+            id, issue_id, change_type, old_value, new_value, changed_by_id, changed_at, remark
+          ) VALUES (
+            :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
+          )`,
+          {
+            id: historyId,
+            issueId,
+            changeType: 'STATUS_CHANGE',
+            oldValue: null,
+            newValue: 'INTAKE',
+            changedById: userId,
+            changedAt: now,
+            remark: 'Issue created',
+          }
+        );
+      }
+    } catch (historyError) {
+      // ISSUE_HISTORY table might not exist yet - continue without it
+      console.warn('ISSUE_HISTORY insert failed (table may not exist):', historyError);
+    }
+
+    // 8. 응답 반환
+    return NextResponse.json<CreateIssueResponse>(
+      {
+        message: 'Issue created successfully',
+        data: {
+          id: issueId,
+          customer_id,
+          title,
+          severity,
+          status: 'INTAKE',
+          is_public: 0,
+          created_by_id: userId,
+          assigned_to_id: assigned_to_id || null,
+          created_at: createdAt,
+        },
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('POST /api/issues error:', error);
     return NextResponse.json(

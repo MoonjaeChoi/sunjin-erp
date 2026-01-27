@@ -1,13 +1,9 @@
-// Generated: 2026-01-25 17:15:00 KST
+// Generated: 2026-01-28 00:05:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
-import { Project } from '../../../../../entities/Project';
-import { ProjectAttachment, AttachmentCategory } from '../../../../../entities/ProjectAttachment';
-import { Employee } from '../../../../../entities/Employee';
-import { IsNull } from 'typeorm';
+import { executeQuery, executeQuerySingle, executeUpdate } from '@/lib/db-direct';
 import { validateFile, sanitizeFilename, getExtension } from '@/lib/file-utils';
 import { randomUUID } from 'crypto';
 import { mkdir, writeFile, chmod } from 'fs/promises';
@@ -46,31 +42,28 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
-    const ds = await getDataSource();
-    const projectRepo = ds.getRepository(Project);
-    const attachmentRepo = ds.getRepository(ProjectAttachment);
-    const employeeRepo = ds.getRepository(Employee);
-
     // 프로젝트 존재 확인
-    const project = await projectRepo.findOne({
-      where: { id: projectId, deleted_at: IsNull() },
-    });
+    const projectResult = await executeQuerySingle(
+      'SELECT id, employee_id FROM PROJECT WHERE id = :id AND deleted_at IS NULL',
+      { id: projectId }
+    );
 
-    if (!project) {
+    if (!projectResult) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // RBAC 권한 확인 (edit 권한 필요)
     const user = session.user as any;
     if (user.role === 'MANAGER') {
-      const employee = await employeeRepo.findOne({
-        where: { id: project.employee_id },
-      });
-      if (employee?.department_id !== user.department) {
+      const employeeResult = await executeQuerySingle(
+        'SELECT department_id FROM EMPLOYEE WHERE id = :id',
+        { id: projectResult.employee_id }
+      );
+      if (employeeResult?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
-      if (project.employee_id !== user.id) {
+      if (projectResult.employee_id !== user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
@@ -118,22 +111,52 @@ export async function POST(
 
     // DB 저장
     const relativePath = path.join('projects', String(projectId), storedFilename);
-    const attachment = new ProjectAttachment();
-    attachment.project_id = projectId;
-    attachment.file_name = originalName;
-    attachment.file_size = file.size;
-    attachment.category = category as AttachmentCategory;
-    attachment.file_path = relativePath;
+    const now = new Date();
 
-    const saved = await attachmentRepo.save(attachment);
+    const insertSql = `
+      INSERT INTO PROJECT_ATTACHMENT (
+        project_id, file_name, file_size, category, file_path, created_at
+      ) VALUES (
+        :projectId, :fileName, :fileSize, :category, :filePath, :now
+      )
+    `;
+
+    const insertResult = await executeQuery(
+      insertSql + ' RETURNING id',
+      {
+        projectId,
+        fileName: originalName,
+        fileSize: file.size,
+        category,
+        filePath: relativePath,
+        now,
+      }
+    );
+
+    const attachmentId = insertResult.rows[0]?.id || null;
+    if (!attachmentId) {
+      const lastIdResult = await executeQuerySingle(
+        'SELECT MAX(id) as id FROM PROJECT_ATTACHMENT'
+      );
+      return NextResponse.json(
+        {
+          id: lastIdResult?.id,
+          file_name: originalName,
+          category,
+          file_size: file.size,
+          created_at: now.toISOString(),
+        },
+        { status: 201 }
+      );
+    }
 
     return NextResponse.json(
       {
-        id: saved.id,
-        file_name: saved.file_name,
-        category: saved.category,
-        file_size: saved.file_size,
-        created_at: saved.created_at.toISOString(),
+        id: attachmentId,
+        file_name: originalName,
+        category,
+        file_size: file.size,
+        created_at: now.toISOString(),
       },
       { status: 201 }
     );

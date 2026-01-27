@@ -1,11 +1,9 @@
-// Generated: 2026-01-26 23:45:00 KST
-
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../../../../lib/auth';
-import { getDataSource } from '../../../../../../lib/db';
-import { IsNull } from 'typeorm';
+import { executeQuerySingle, executeUpdate } from '../../../../../../lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,21 +49,12 @@ export async function DELETE(
       );
     }
 
-    // 4. 데이터베이스 연결 확인
-    const dataSource = await getDataSource();
-    if (!dataSource.isInitialized) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // 5. 계약 존재 여부 확인
-    const { MaintenanceContractRepository } = await import(
-      '../../../../../../lib/maintenance-repository'
+    // 4. 계약 존재 여부 확인
+    const contract = await executeQuerySingle(
+      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
+       WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
+      { id: contractId }
     );
-    const repository = new MaintenanceContractRepository(dataSource);
-    const contract = await repository.findById(contractId);
 
     if (!contract) {
       return NextResponse.json(
@@ -74,19 +63,12 @@ export async function DELETE(
       );
     }
 
-    // 6. 첨부파일 존재 여부 확인 및 Soft Delete
-    const { MaintenanceContractAttachment } = await import(
-      '../../../../../../entities/MaintenanceContractAttachment'
+    // 5. 첨부파일 존재 여부 확인
+    const attachment = await executeQuerySingle(
+      `SELECT ID FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+       WHERE ID = :id AND MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
+      { id: attachmentId, contract_id: contractId }
     );
-    const attachmentRepo = dataSource.getRepository(MaintenanceContractAttachment);
-
-    const attachment = await attachmentRepo.findOne({
-      where: {
-        id: attachmentId,
-        maintenance_contract_id: contractId,
-        deleted_at: IsNull(),
-      },
-    });
 
     if (!attachment) {
       return NextResponse.json(
@@ -98,13 +80,14 @@ export async function DELETE(
       );
     }
 
-    // 7. Soft Delete 수행
-    await attachmentRepo.update(
-      { id: attachmentId },
-      { deleted_at: new Date() }
+    // 6. Soft Delete 수행
+    const now = new Date();
+    await executeUpdate(
+      `UPDATE MAINTENANCE_CONTRACT_ATTACHMENTS SET DELETED_AT = :deleted_at WHERE ID = :id`,
+      { id: attachmentId, deleted_at: now }
     );
 
-    // 8. 성공 응답
+    // 7. 성공 응답
     return NextResponse.json(
       { message: 'Attachment deleted successfully' },
       { status: 200 }

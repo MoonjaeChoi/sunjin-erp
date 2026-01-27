@@ -1,13 +1,9 @@
-// Generated: 2026-01-25 16:10:00 KST
+// Generated: 2026-01-27 23:50:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
-import { Project } from '../../../entities/Project';
-import { Customer } from '../../../entities/Customer';
-import { Employee } from '../../../entities/Employee';
-import { IsNull } from 'typeorm';
+import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,123 +91,116 @@ export async function GET(request: NextRequest): Promise<NextResponse<ProjectLis
       );
     }
 
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const user = session.user as any;
 
-    try {
-      const user = session.user as any;
+    // 동적 WHERE 절 구성
+    let whereClauses: string[] = ['p.deleted_at IS NULL'];
+    const params: any = {};
+    let paramIndex = 0;
 
-      // 동적 WHERE 절 구성
-      let whereClauses: string[] = ['"p"."deleted_at" IS NULL'];
-      const params: any = {};
-      let paramIndex = 0;
-
-      // RBAC 조건 적용
-      if (user.role === 'MANAGER') {
-        whereClauses.push(`"e"."department_id" = :departmentId${paramIndex}`);
-        params[`departmentId${paramIndex}`] = user.department;
-        paramIndex++;
-      } else if (user.role === 'USER') {
-        whereClauses.push(`"p"."employee_id" = :userId${paramIndex}`);
-        params[`userId${paramIndex}`] = user.id;
-        paramIndex++;
-      }
-      // ADMIN은 모든 프로젝트 조회 가능
-
-      // 필터 조건 적용
-      if (customerId) {
-        whereClauses.push(`"p"."customer_id" = :customerId${paramIndex}`);
-        params[`customerId${paramIndex}`] = customerId;
-        paramIndex++;
-      }
-
-      if (status) {
-        whereClauses.push(`"p"."status" = :status${paramIndex}`);
-        params[`status${paramIndex}`] = status;
-        paramIndex++;
-      }
-
-      if (employeeId) {
-        whereClauses.push(`"p"."employee_id" = :employeeId${paramIndex}`);
-        params[`employeeId${paramIndex}`] = employeeId;
-        paramIndex++;
-      }
-
-      // 키워드 검색
-      if (keyword && keyword.length >= 2) {
-        whereClauses.push(`("p"."project_name" LIKE :keyword${paramIndex} OR "p"."project_code" LIKE :keyword${paramIndex})`);
-        params[`keyword${paramIndex}`] = `%${keyword}%`;
-        paramIndex++;
-      }
-
-      // Raw SQL 쿼리
-      const sql = `SELECT "p"."id", "p"."project_code", "p"."project_name", "p"."customer_id",
-                          "c"."name" AS customer_name, "p"."employee_id", "e"."name" AS employee_name,
-                          "p"."status", "p"."start_date", "p"."end_date", "p"."contract_amount", "p"."created_at"
-                   FROM PROJECT "p"
-                   LEFT JOIN CUSTOMER "c" ON "c"."id" = "p"."customer_id" AND "c"."deleted_at" IS NULL
-                   LEFT JOIN EMPLOYEE "e" ON "e"."id" = "p"."employee_id" AND "e"."deleted_at" IS NULL
-                   WHERE ${whereClauses.join(' AND ')}
-                   ORDER BY "p"."${sortBy}" ${sortOrder}
-                   OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
-
-      const countSql = `SELECT COUNT(*) as total
-                        FROM PROJECT "p"
-                        LEFT JOIN EMPLOYEE "e" ON "e"."id" = "p"."employee_id"
-                        WHERE ${whereClauses.join(' AND ')}`;
-
-      // Separate params for count query (no offset/pageSize) and data query
-      const countParams = { ...params };
-      const dataParams = { ...params, offset: (page - 1) * pageSize, pageSize };
-
-      const [results, countResult] = await Promise.all([
-        queryRunner.query(sql, dataParams),
-        queryRunner.query(countSql, countParams),
-      ]);
-
-      const total = parseInt(countResult[0]?.total || '0', 10);
-
-      // 응답 형태 변환
-      const projects: ProjectListItem[] = results.map((row: any) => {
-        const formatDate = (date: any) => {
-          if (!date) return null;
-          if (typeof date === 'string') return date.split('T')[0];
-          if (date instanceof Date) return date.toISOString().split('T')[0];
-          return null;
-        };
-
-        const formatDateTime = (date: any) => {
-          if (!date) return new Date().toISOString();
-          if (typeof date === 'string') return date;
-          if (date instanceof Date) return date.toISOString();
-          return new Date().toISOString();
-        };
-
-        return {
-          id: row.id,
-          project_code: row.project_code,
-          project_name: row.project_name,
-          customer_id: row.customer_id,
-          customer_name: row.customer_name,
-          employee_id: row.employee_id,
-          employee_name: row.employee_name,
-          status: row.status,
-          start_date: formatDate(row.start_date),
-          end_date: formatDate(row.end_date),
-          contract_amount: row.contract_amount,
-          created_at: formatDateTime(row.created_at),
-        };
-      });
-
-      return NextResponse.json({
-        projects,
-        total,
-        page,
-        page_size: pageSize,
-      });
-    } finally {
-      await queryRunner.release();
+    // RBAC 조건 적용
+    if (user.role === 'MANAGER') {
+      whereClauses.push(`e.department_id = :departmentId${paramIndex}`);
+      params[`departmentId${paramIndex}`] = user.department;
+      paramIndex++;
+    } else if (user.role === 'USER') {
+      whereClauses.push(`p.employee_id = :userId${paramIndex}`);
+      params[`userId${paramIndex}`] = user.id;
+      paramIndex++;
     }
+    // ADMIN은 모든 프로젝트 조회 가능
+
+    // 필터 조건 적용
+    if (customerId) {
+      whereClauses.push(`p.customer_id = :customerId${paramIndex}`);
+      params[`customerId${paramIndex}`] = customerId;
+      paramIndex++;
+    }
+
+    if (status) {
+      whereClauses.push(`p.status = :status${paramIndex}`);
+      params[`status${paramIndex}`] = status;
+      paramIndex++;
+    }
+
+    if (employeeId) {
+      whereClauses.push(`p.employee_id = :employeeId${paramIndex}`);
+      params[`employeeId${paramIndex}`] = employeeId;
+      paramIndex++;
+    }
+
+    // 키워드 검색
+    if (keyword && keyword.length >= 2) {
+      whereClauses.push(`(p.project_name LIKE :keyword${paramIndex} OR p.project_code LIKE :keyword${paramIndex})`);
+      params[`keyword${paramIndex}`] = `%${keyword}%`;
+      paramIndex++;
+    }
+
+    // Raw SQL 쿼리
+    const sql = `SELECT p.id, p.project_code, p.project_name, p.customer_id,
+                        c.name AS customer_name, p.employee_id, e.name AS employee_name,
+                        p.status, p.start_date, p.end_date, p.contract_amount, p.created_at
+                 FROM PROJECT p
+                 LEFT JOIN CUSTOMER c ON c.id = p.customer_id AND c.deleted_at IS NULL
+                 LEFT JOIN EMPLOYEE e ON e.id = p.employee_id AND e.deleted_at IS NULL
+                 WHERE ${whereClauses.join(' AND ')}
+                 ORDER BY p.${sortBy} ${sortOrder}
+                 OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY`;
+
+    const countSql = `SELECT COUNT(*) as total
+                      FROM PROJECT p
+                      LEFT JOIN EMPLOYEE e ON e.id = p.employee_id
+                      WHERE ${whereClauses.join(' AND ')}`;
+
+    // Separate params for count query (no offset/pageSize) and data query
+    const countParams = { ...params };
+    const dataParams = { ...params, offset: (page - 1) * pageSize, pageSize };
+
+    const [countResult, results] = await Promise.all([
+      executeQuery(countSql, countParams),
+      executeQuery(sql, dataParams),
+    ]);
+
+    const total = parseInt(countResult.rows[0]?.TOTAL || countResult.rows[0]?.total || '0', 10);
+
+    // 응답 형태 변환
+    const projects: ProjectListItem[] = results.rows.map((row: any) => {
+      const formatDate = (date: any) => {
+        if (!date) return null;
+        if (typeof date === 'string') return date.split('T')[0];
+        if (date instanceof Date) return date.toISOString().split('T')[0];
+        return null;
+      };
+
+      const formatDateTime = (date: any) => {
+        if (!date) return new Date().toISOString();
+        if (typeof date === 'string') return date;
+        if (date instanceof Date) return date.toISOString();
+        return new Date().toISOString();
+      };
+
+      return {
+        id: row.id,
+        project_code: row.project_code,
+        project_name: row.project_name,
+        customer_id: row.customer_id,
+        customer_name: row.customer_name,
+        employee_id: row.employee_id,
+        employee_name: row.employee_name,
+        status: row.status,
+        start_date: formatDate(row.start_date),
+        end_date: formatDate(row.end_date),
+        contract_amount: row.contract_amount,
+        created_at: formatDateTime(row.created_at),
+      };
+    });
+
+    return NextResponse.json({
+      projects,
+      total,
+      page,
+      page_size: pageSize,
+    });
   } catch (error) {
     console.error('GET /api/projects error:', error);
     return NextResponse.json(
@@ -268,31 +257,28 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
       );
     }
 
-    const ds = await getDataSource();
-
     // ============================================================================
     // 2. FK 존재 확인 (customer_id, employee_id)
     // ============================================================================
-    const customerRepo = ds.getRepository(Customer);
-    const employeeRepo = ds.getRepository(Employee);
-
-    const [customer, employee] = await Promise.all([
-      customerRepo.findOne({
-        where: { id: body.customer_id, deleted_at: IsNull() },
-      }),
-      employeeRepo.findOne({
-        where: { id: body.employee_id, deleted_at: IsNull() },
-      }),
+    const [customerResult, employeeResult] = await Promise.all([
+      executeQuerySingle(
+        'SELECT id FROM CUSTOMER WHERE id = :id AND deleted_at IS NULL',
+        { id: body.customer_id }
+      ),
+      executeQuerySingle(
+        'SELECT id FROM EMPLOYEE WHERE id = :id AND deleted_at IS NULL',
+        { id: body.employee_id }
+      ),
     ]);
 
-    if (!customer) {
+    if (!customerResult) {
       return NextResponse.json(
         { error: 'Customer not found' },
         { status: 400 }
       );
     }
 
-    if (!employee) {
+    if (!employeeResult) {
       return NextResponse.json(
         { error: 'Employee not found' },
         { status: 400 }
@@ -303,12 +289,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
     // 3. project_code 중복 확인 (제공 시)
     // ============================================================================
     if (body.project_code) {
-      const projectRepo = ds.getRepository(Project);
-      const existingProject = await projectRepo.findOne({
-        where: { project_code: body.project_code },
-      });
+      const existingCode = await executeQuerySingle(
+        'SELECT id FROM PROJECT WHERE project_code = :code',
+        { code: body.project_code }
+      );
 
-      if (existingProject) {
+      if (existingCode) {
         return NextResponse.json(
           { error: 'Project code already exists' },
           { status: 409 }
@@ -319,22 +305,43 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreatePro
     // ============================================================================
     // 4. PROJECT INSERT
     // ============================================================================
-    const projectRepo = ds.getRepository(Project);
-    const project = projectRepo.create({
-      project_name: body.project_name.trim(),
-      customer_id: body.customer_id,
-      employee_id: body.employee_id,
-      project_code: body.project_code || null,
-      start_date: body.start_date ? new Date(body.start_date) : null,
-      end_date: body.end_date ? new Date(body.end_date) : null,
-      contract_amount: body.contract_amount || null,
-      description: body.description || null,
-      status: 'PREPARING', // 초기 상태
-    });
+    const now = new Date();
+    const insertSql = `
+      INSERT INTO PROJECT (
+        project_name, customer_id, employee_id, project_code, start_date,
+        end_date, contract_amount, description, status, created_at
+      ) VALUES (
+        :projectName, :customerId, :employeeId, :projectCode, :startDate,
+        :endDate, :contractAmount, :description, :status, :now
+      )
+    `;
 
-    const result = await projectRepo.save(project);
+    const insertResult = await executeQuery(
+      insertSql + ' RETURNING id',
+      {
+        projectName: body.project_name.trim(),
+        customerId: body.customer_id,
+        employeeId: body.employee_id,
+        projectCode: body.project_code || null,
+        startDate: body.start_date ? new Date(body.start_date) : null,
+        endDate: body.end_date ? new Date(body.end_date) : null,
+        contractAmount: body.contract_amount || null,
+        description: body.description || null,
+        status: 'PREPARING',
+        now,
+      }
+    );
 
-    return NextResponse.json({ id: result.id }, { status: 201 });
+    const projectId = insertResult.rows[0]?.id || null;
+    if (!projectId) {
+      // Fallback: query the last inserted id
+      const lastIdResult = await executeQuerySingle(
+        'SELECT MAX(id) as id FROM PROJECT'
+      );
+      return NextResponse.json({ id: lastIdResult?.id }, { status: 201 });
+    }
+
+    return NextResponse.json({ id: projectId }, { status: 201 });
   } catch (error) {
     console.error('POST /api/projects error:', error);
     return NextResponse.json(

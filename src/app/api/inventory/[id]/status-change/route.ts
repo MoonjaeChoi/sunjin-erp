@@ -1,9 +1,9 @@
-// Generated: 2026-01-26 13:30:00 KST
+// Generated: 2026-01-27 14:06:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuerySingle, executeTransaction } from '@/lib/db-direct';
 import { StatusChangeInventoryRequest, InventoryStatus } from '@/types/inventory';
 
 export const dynamic = 'force-dynamic';
@@ -49,94 +49,92 @@ export async function POST(
       return NextResponse.json({ error: 'current_status is required' }, { status: 400 });
     }
 
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
-
     try {
-      await queryRunner.startTransaction();
-
-      const checkQuery = `
-        SELECT CURRENT_STATUS FROM INVENTORY
-        WHERE ID = :id AND DELETED_AT IS NULL
-      `;
-      const [inventory] = await queryRunner.query(checkQuery, { id: inventoryId });
+      // Check current status first
+      const inventory = await executeQuerySingle(
+        `
+          SELECT CURRENT_STATUS FROM INVENTORY
+          WHERE ID = :id AND DELETED_AT IS NULL
+        `,
+        { id: inventoryId }
+      );
 
       if (!inventory) {
-        await queryRunner.rollbackTransaction();
         return NextResponse.json({ error: 'Not Found' }, { status: 404 });
       }
 
       const currentStatus = inventory.CURRENT_STATUS as InventoryStatus;
 
-      // 상태 전이 검증
+      // Validate state transition
       if (!validateStateTransition(currentStatus, body.current_status)) {
-        await queryRunner.rollbackTransaction();
         return NextResponse.json(
           { error: `Cannot transition from ${currentStatus} to ${body.current_status}` },
           { status: 400 }
         );
       }
 
-      // 상태 업데이트
-      const updateQuery = `
-        UPDATE INVENTORY
-        SET CURRENT_STATUS = :newStatus, UPDATED_BY_ID = :updatedById, UPDATED_AT = CURRENT_TIMESTAMP
-        WHERE ID = :id
-      `;
-      await queryRunner.query(updateQuery, {
-        id: inventoryId,
-        newStatus: body.current_status,
-        updatedById: user.id,
-      });
+      // Use transaction for status change operation
+      await executeTransaction([
+        {
+          query: `
+            UPDATE INVENTORY
+            SET CURRENT_STATUS = :newStatus, UPDATED_BY_ID = :updatedById, UPDATED_AT = CURRENT_TIMESTAMP
+            WHERE ID = :id
+          `,
+          params: {
+            id: inventoryId,
+            newStatus: body.current_status,
+            updatedById: user.id,
+          },
+        },
+        {
+          query: `
+            INSERT INTO INVENTORY_HISTORY (
+              INVENTORY_ID, CHANGE_TYPE, PREVIOUS_STATUS, NEW_STATUS,
+              REASON, CHANGED_BY_ID, CHANGED_AT
+            )
+            VALUES (
+              :inventoryId, '상태변경', :previousStatus, :newStatus,
+              :reason, :changedById, CURRENT_TIMESTAMP
+            )
+          `,
+          params: {
+            inventoryId,
+            previousStatus: currentStatus,
+            newStatus: body.current_status,
+            reason: body.reason || null,
+            changedById: user.id,
+          },
+        },
+      ]);
 
-      // 이력 기록
-      const historyQuery = `
-        INSERT INTO INVENTORY_HISTORY (
-          INVENTORY_ID, CHANGE_TYPE, PREVIOUS_STATUS, NEW_STATUS,
-          REASON, CHANGED_BY_ID, CHANGED_AT
-        )
-        VALUES (
-          :inventoryId, '상태변경', :previousStatus, :newStatus,
-          :reason, :changedById, CURRENT_TIMESTAMP
-        )
-      `;
-      await queryRunner.query(historyQuery, {
-        inventoryId,
-        previousStatus: currentStatus,
-        newStatus: body.current_status,
-        reason: body.reason || null,
-        changedById: user.id,
-      });
-
-      await queryRunner.commitTransaction();
-
-      const detailQuery = `
-        SELECT ID, CATEGORY, MODEL, SERIAL_NUMBER, PURCHASE_DATE, PURCHASE_FROM,
-               CURRENT_LOCATION, CURRENT_STATUS, CREATED_AT, UPDATED_AT
-        FROM INVENTORY WHERE ID = :id
-      `;
-      const [updated] = await queryRunner.query(detailQuery, { id: inventoryId });
+      // Fetch updated inventory
+      const updated = await executeQuerySingle(
+        `
+          SELECT ID, CATEGORY, MODEL, SERIAL_NUMBER, PURCHASE_DATE, PURCHASE_FROM,
+                 CURRENT_LOCATION, CURRENT_STATUS, CREATED_AT, UPDATED_AT
+          FROM INVENTORY WHERE ID = :id
+        `,
+        { id: inventoryId }
+      );
 
       return NextResponse.json(
         {
-          id: updated.ID,
-          category: updated.CATEGORY,
-          model: updated.MODEL,
-          serial_number: updated.SERIAL_NUMBER,
-          purchase_date: updated.PURCHASE_DATE.toISOString().split('T')[0],
-          purchase_from: updated.PURCHASE_FROM,
-          current_location: updated.CURRENT_LOCATION,
-          current_status: updated.CURRENT_STATUS,
-          created_at: updated.CREATED_AT.toISOString(),
-          updated_at: updated.UPDATED_AT.toISOString(),
+          id: updated?.ID,
+          category: updated?.CATEGORY,
+          model: updated?.MODEL,
+          serial_number: updated?.SERIAL_NUMBER,
+          purchase_date: updated?.PURCHASE_DATE ? new Date(updated.PURCHASE_DATE).toISOString().split('T')[0] : null,
+          purchase_from: updated?.PURCHASE_FROM,
+          current_location: updated?.CURRENT_LOCATION,
+          current_status: updated?.CURRENT_STATUS,
+          created_at: updated?.CREATED_AT ? new Date(updated.CREATED_AT).toISOString() : null,
+          updated_at: updated?.UPDATED_AT ? new Date(updated.UPDATED_AT).toISOString() : null,
         },
         { status: 200 }
       );
     } catch (error) {
-      await queryRunner.rollbackTransaction();
       throw error;
-    } finally {
-      await queryRunner.release();
     }
   } catch (error) {
     console.error('POST /api/inventory/[id]/status-change error:', error);

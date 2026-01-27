@@ -1,19 +1,17 @@
-// Generated: 2026-01-26 19:15:00 KST
+// Generated: 2026-01-27 10:30:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeUpdate } from '@/lib/db-direct';
 
 // 초기화 API - 마이그레이션 및 테스트 데이터 생성
 export async function POST(req: NextRequest) {
   try {
-    const ds = await getDataSource();
-
     // 테이블 존재 확인
-    const result = await ds.query(
+    const result = await executeQuery(
       `SELECT COUNT(*) as TOTAL FROM user_tables WHERE table_name = 'INVENTORY'`
     );
 
-    if (result[0]?.TOTAL > 0) {
+    if (result.rows[0]?.TOTAL > 0) {
       return NextResponse.json(
         { message: 'INVENTORY 테이블이 이미 존재합니다' },
         { status: 200 }
@@ -21,11 +19,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Sequences 생성
-    await ds.query(`CREATE SEQUENCE INVENTORY_SEQ START WITH 1 INCREMENT BY 1`);
-    await ds.query(`CREATE SEQUENCE INVENTORY_HISTORY_SEQ START WITH 1 INCREMENT BY 1`);
+    await executeUpdate(`CREATE SEQUENCE INVENTORY_SEQ START WITH 1 INCREMENT BY 1`);
+    await executeUpdate(`CREATE SEQUENCE INVENTORY_HISTORY_SEQ START WITH 1 INCREMENT BY 1`);
 
     // INVENTORY 테이블 생성
-    await ds.query(`
+    await executeUpdate(`
       CREATE TABLE INVENTORY (
         id NUMBER DEFAULT INVENTORY_SEQ.NEXTVAL PRIMARY KEY,
         category VARCHAR2(50) NOT NULL,
@@ -46,20 +44,20 @@ export async function POST(req: NextRequest) {
     `);
 
     // 인덱스 생성 (Oracle XE는 부분 인덱스 미지원)
-    await ds.query(`CREATE UNIQUE INDEX idx_inventory_serial ON INVENTORY(serial_number)`);
-    await ds.query(`CREATE INDEX idx_inventory_status ON INVENTORY(current_status)`);
-    await ds.query(`CREATE INDEX idx_inventory_category ON INVENTORY(category)`);
+    await executeUpdate(`CREATE UNIQUE INDEX idx_inventory_serial ON INVENTORY(serial_number)`);
+    await executeUpdate(`CREATE INDEX idx_inventory_status ON INVENTORY(current_status)`);
+    await executeUpdate(`CREATE INDEX idx_inventory_category ON INVENTORY(category)`);
 
     // 외래키 추가
-    await ds.query(
+    await executeUpdate(
       `ALTER TABLE INVENTORY ADD CONSTRAINT FK_INVENTORY_CREATED_BY FOREIGN KEY (created_by_id) REFERENCES EMPLOYEE(id) ON DELETE RESTRICT`
     );
-    await ds.query(
+    await executeUpdate(
       `ALTER TABLE INVENTORY ADD CONSTRAINT FK_INVENTORY_UPDATED_BY FOREIGN KEY (updated_by_id) REFERENCES EMPLOYEE(id) ON DELETE RESTRICT`
     );
 
     // INVENTORY_HISTORY 테이블 생성
-    await ds.query(`
+    await executeUpdate(`
       CREATE TABLE INVENTORY_HISTORY (
         id NUMBER DEFAULT INVENTORY_HISTORY_SEQ.NEXTVAL PRIMARY KEY,
         inventory_id NUMBER NOT NULL,
@@ -77,10 +75,10 @@ export async function POST(req: NextRequest) {
     `);
 
     // INVENTORY_HISTORY 외래키
-    await ds.query(
+    await executeUpdate(
       `ALTER TABLE INVENTORY_HISTORY ADD CONSTRAINT FK_INVENTORY_HISTORY_INVENTORY FOREIGN KEY (inventory_id) REFERENCES INVENTORY(id) ON DELETE RESTRICT`
     );
-    await ds.query(
+    await executeUpdate(
       `ALTER TABLE INVENTORY_HISTORY ADD CONSTRAINT FK_INVENTORY_HISTORY_CHANGED_BY FOREIGN KEY (changed_by_id) REFERENCES EMPLOYEE(id) ON DELETE RESTRICT`
     );
 

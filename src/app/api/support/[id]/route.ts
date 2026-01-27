@@ -1,13 +1,15 @@
-// Generated: 2026-01-25 06:00:00 KST
+// Generated: 2026-01-27 23:50:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { IsNull } from 'typeorm';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
-import { TechSupport, SupportType, SupportMethod, SupportStatus } from '../../../../entities/TechSupport';
+import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db-direct';
 import { unlink } from 'fs/promises';
 import path from 'path';
+
+type SupportType = 'INSTALL' | 'TEST' | 'TRAINING' | 'MAINTENANCE' | 'GENERAL';
+type SupportMethod = 'ONSITE' | 'REMOTE' | 'PHONE';
+type SupportStatus = 'RECEIVED' | 'IN_PROGRESS' | 'COMPLETED';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,34 +101,29 @@ export async function GET(
   }
 
   try {
-    const ds = await getDataSource();
-    const repo = ds.getRepository(TechSupport);
+    const sql = `
+      SELECT
+        ts.id, ts.title, ts.description, ts.support_date, ts.start_time, ts.end_time,
+        ts.support_type, ts.support_method, ts.status, ts.completed_at,
+        ts.customer_id, ts.employee_id, ts.attachment_path,
+        ts.created_by_id, ts.updated_by_id, ts.created_at, ts.updated_at, ts.deleted_at,
+        c.name as customer_name, c.classification as customer_category
+      FROM TECH_SUPPORT ts
+      LEFT JOIN CUSTOMER c ON c.id = ts.customer_id AND c.deleted_at IS NULL
+      WHERE ts.id = :id AND ts.deleted_at IS NULL
+    `;
 
-    const queryBuilder = repo
-      .createQueryBuilder('ts')
-      .leftJoin('CUSTOMER', 'c', 'c.id = ts.customer_id AND c.deleted_at IS NULL')
-      .addSelect(['c.name', 'c.category'])
-      .where('ts.id = :id', { id })
-      .andWhere('ts.deleted_at IS NULL');
+    const result = await executeQuerySingle(sql, { id });
 
-    const raw = await queryBuilder.getRawAndEntities();
-    const entity = raw.entities[0];
-
-    if (!entity) {
+    if (!result) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
     // RBAC: 본인 건 또는 ADMIN
     const user = session.user as any;
-    if (user.role !== 'ADMIN' && entity.employee_id !== user.id) {
+    if (user.role !== 'ADMIN' && result.employee_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-
-    const result = {
-      ...entity,
-      customer_name: raw.raw[0]?.c_name || null,
-      customer_category: raw.raw[0]?.c_category || null,
-    };
 
     return NextResponse.json(result);
   } catch (error) {
@@ -168,12 +165,17 @@ export async function PUT(
   }
 
   try {
-    const ds = await getDataSource();
-    const repo = ds.getRepository(TechSupport);
+    const getSql = `
+      SELECT
+        id, title, description, support_date, start_time, end_time,
+        support_type, support_method, status, completed_at,
+        customer_id, employee_id, attachment_path,
+        created_by_id, updated_by_id, created_at, updated_at, deleted_at
+      FROM TECH_SUPPORT
+      WHERE id = :id AND deleted_at IS NULL
+    `;
 
-    const support = await repo.findOne({
-      where: { id, deleted_at: IsNull() },
-    });
+    const support = await executeQuerySingle(getSql, { id });
 
     if (!support) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -196,47 +198,87 @@ export async function PUT(
       }
     }
 
-    // completed_at 자동 처리
-    if (body.status === 'COMPLETED' && support.status !== 'COMPLETED') {
-      support.completed_at = new Date();
-    } else if (body.status && body.status !== 'COMPLETED' && support.status === 'COMPLETED') {
-      support.completed_at = null;
+    // Build update parameters
+    const updateColumns: string[] = [];
+    const params: any = { id };
+    const now = new Date();
+    params.updatedAt = now;
+    params.updatedById = user.id;
+
+    updateColumns.push('updated_at = :updatedAt');
+    updateColumns.push('updated_by_id = :updatedById');
+
+    if (body.title !== undefined) {
+      params.title = sanitizeHtml(body.title.trim());
+      updateColumns.push('title = :title');
     }
 
-    // 필드 업데이트
-    if (body.title !== undefined) {
-      support.title = sanitizeHtml(body.title.trim());
-    }
     if (body.description !== undefined) {
-      support.description = body.description || null;
+      params.description = body.description || null;
+      updateColumns.push('description = :description');
     }
+
     if (body.support_date !== undefined) {
-      support.support_date = new Date(body.support_date);
+      params.supportDate = new Date(body.support_date);
+      updateColumns.push('support_date = :supportDate');
     }
+
     if (body.start_time !== undefined) {
-      support.start_time = body.start_time;
+      params.startTime = body.start_time;
+      updateColumns.push('start_time = :startTime');
     }
+
     if (body.end_time !== undefined) {
-      support.end_time = body.end_time;
+      params.endTime = body.end_time;
+      updateColumns.push('end_time = :endTime');
     }
+
     if (body.support_type !== undefined) {
-      support.support_type = body.support_type;
+      params.supportType = body.support_type;
+      updateColumns.push('support_type = :supportType');
     }
+
     if (body.support_method !== undefined) {
-      support.support_method = body.support_method;
+      params.supportMethod = body.support_method;
+      updateColumns.push('support_method = :supportMethod');
     }
+
     if (body.status !== undefined) {
-      support.status = body.status;
+      params.status = body.status;
+      updateColumns.push('status = :status');
+
+      // completed_at 자동 처리
+      if (body.status === 'COMPLETED' && support.status !== 'COMPLETED') {
+        params.completedAt = now;
+        updateColumns.push('completed_at = :completedAt');
+      } else if (body.status !== 'COMPLETED' && support.status === 'COMPLETED') {
+        updateColumns.push('completed_at = NULL');
+      }
     }
+
     if (body.customer_id !== undefined) {
-      support.customer_id = body.customer_id;
+      params.customerId = body.customer_id;
+      updateColumns.push('customer_id = :customerId');
     }
+
     // ADMIN만 담당자 변경 가능
     if (body.employee_id !== undefined && user.role === 'ADMIN') {
-      support.employee_id = body.employee_id;
+      params.employeeId = body.employee_id;
+      updateColumns.push('employee_id = :employeeId');
     }
 
-    const updated = await repo.save(support);
+    if (updateColumns.length > 2) {
+      const updateSql = `
+        UPDATE TECH_SUPPORT
+        SET ${updateColumns.join(', ')}
+        WHERE id = :id
+      `;
+
+      await executeUpdate(updateSql, params);
+    }
+
+    // Fetch updated record
+    const updated = await executeQuerySingle(getSql, { id });
     return NextResponse.json(updated);
   } catch (error) {
     console.error('PUT /api/support/[id] error:', error);
@@ -262,12 +304,17 @@ export async function DELETE(
   }
 
   try {
-    const ds = await getDataSource();
-    const repo = ds.getRepository(TechSupport);
+    const getSql = `
+      SELECT
+        id, title, description, support_date, start_time, end_time,
+        support_type, support_method, status, completed_at,
+        customer_id, employee_id, attachment_path,
+        created_by_id, updated_by_id, created_at, updated_at, deleted_at
+      FROM TECH_SUPPORT
+      WHERE id = :id AND deleted_at IS NULL
+    `;
 
-    const support = await repo.findOne({
-      where: { id, deleted_at: IsNull() },
-    });
+    const support = await executeQuerySingle(getSql, { id });
 
     if (!support) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -291,7 +338,19 @@ export async function DELETE(
     }
 
     // Soft delete
-    await repo.softDelete(support.id);
+    const now = new Date();
+    const deleteSql = `
+      UPDATE TECH_SUPPORT
+      SET deleted_at = :now, updated_by_id = :userId, updated_at = :now
+      WHERE id = :id
+    `;
+
+    await executeUpdate(deleteSql, {
+      id,
+      now,
+      userId: user.id,
+    });
+
     return NextResponse.json({ message: 'Deleted' });
   } catch (error) {
     console.error('DELETE /api/support/[id] error:', error);

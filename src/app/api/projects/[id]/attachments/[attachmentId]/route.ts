@@ -1,15 +1,11 @@
-// Generated: 2026-01-25 17:15:00 KST
+// Generated: 2026-01-28 00:10:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
-import { Project } from '../../../../../../entities/Project';
-import { ProjectAttachment } from '../../../../../../entities/ProjectAttachment';
-import { Employee } from '../../../../../../entities/Employee';
-import { IsNull } from 'typeorm';
+import { executeQuery, executeQuerySingle, executeUpdate } from '@/lib/db-direct';
 import { getMimeType, getExtension } from '@/lib/file-utils';
-import { readFile } from 'fs/promises';
+import { readFile, unlink } from 'fs/promises';
 import path from 'path';
 
 export const dynamic = 'force-dynamic';
@@ -39,43 +35,43 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const ds = await getDataSource();
-    const projectRepo = ds.getRepository(Project);
-    const attachmentRepo = ds.getRepository(ProjectAttachment);
-    const employeeRepo = ds.getRepository(Employee);
-
     // 프로젝트 존재 확인
-    const project = await projectRepo.findOne({
-      where: { id: projectId, deleted_at: IsNull() },
-    });
+    const projectResult = await executeQuerySingle(
+      'SELECT id, employee_id FROM PROJECT WHERE id = :id AND deleted_at IS NULL',
+      { id: projectId }
+    );
 
-    if (!project) {
+    if (!projectResult) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // RBAC 권한 확인 (read 권한, 모든 역할이 접근 가능)
     const user = session.user as any;
     if (user.role === 'MANAGER') {
-      const employee = await employeeRepo.findOne({
-        where: { id: project.employee_id },
-      });
-      if (employee?.department_id !== user.department) {
+      const employeeResult = await executeQuerySingle(
+        'SELECT department_id FROM EMPLOYEE WHERE id = :id',
+        { id: projectResult.employee_id }
+      );
+      if (employeeResult?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
-      if (project.employee_id !== user.id) {
+      if (projectResult.employee_id !== user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
 
     // 첨부파일 조회
-    const attachment = await attachmentRepo.findOne({
-      where: { id: attachmentId, project_id: projectId },
-    });
+    const attachmentResult = await executeQuerySingle(
+      'SELECT id, file_name, file_path FROM PROJECT_ATTACHMENT WHERE id = :id AND project_id = :projectId',
+      { id: attachmentId, projectId }
+    );
 
-    if (!attachment || !attachment.file_path) {
+    if (!attachmentResult || !attachmentResult.file_path) {
       return NextResponse.json({ error: 'Attachment not found' }, { status: 404 });
     }
+
+    const attachment = attachmentResult;
 
     // 파일 읽기
     const uploadDir = getUploadDir();
@@ -120,50 +116,47 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const ds = await getDataSource();
-    const projectRepo = ds.getRepository(Project);
-    const attachmentRepo = ds.getRepository(ProjectAttachment);
-    const employeeRepo = ds.getRepository(Employee);
-
     // 프로젝트 존재 확인
-    const project = await projectRepo.findOne({
-      where: { id: projectId, deleted_at: IsNull() },
-    });
+    const projectResult = await executeQuerySingle(
+      'SELECT id, employee_id FROM PROJECT WHERE id = :id AND deleted_at IS NULL',
+      { id: projectId }
+    );
 
-    if (!project) {
+    if (!projectResult) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // RBAC 권한 확인 (edit 권한 필요)
     const user = session.user as any;
     if (user.role === 'MANAGER') {
-      const employee = await employeeRepo.findOne({
-        where: { id: project.employee_id },
-      });
-      if (employee?.department_id !== user.department) {
+      const employeeResult = await executeQuerySingle(
+        'SELECT department_id FROM EMPLOYEE WHERE id = :id',
+        { id: projectResult.employee_id }
+      );
+      if (employeeResult?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
-      if (project.employee_id !== user.id) {
+      if (projectResult.employee_id !== user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
 
     // 첨부파일 존재 확인
-    const attachment = await attachmentRepo.findOne({
-      where: { id: attachmentId, project_id: projectId },
-    });
+    const attachmentResult = await executeQuerySingle(
+      'SELECT id, file_path FROM PROJECT_ATTACHMENT WHERE id = :id AND project_id = :projectId',
+      { id: attachmentId, projectId }
+    );
 
-    if (!attachment) {
+    if (!attachmentResult) {
       return NextResponse.json({ error: 'Attachment not found' }, { status: 404 });
     }
 
     // 파일 물리 삭제
-    if (attachment.file_path) {
+    if (attachmentResult.file_path) {
       try {
-        const { unlink } = await import('fs/promises');
         const uploadDir = getUploadDir();
-        const filePath = path.resolve(uploadDir, attachment.file_path);
+        const filePath = path.resolve(uploadDir, attachmentResult.file_path);
         await unlink(filePath);
       } catch {
         // 파일이 없는 경우 무시
@@ -171,7 +164,10 @@ export async function DELETE(
     }
 
     // DB 삭제
-    await attachmentRepo.remove(attachment);
+    await executeUpdate(
+      'DELETE FROM PROJECT_ATTACHMENT WHERE id = :id',
+      { id: attachmentId }
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,9 +1,9 @@
-// Generated: 2026-01-24 23:30:00 KST
+// Generated: 2026-01-27 10:30:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,62 +42,54 @@ export async function GET(request: NextRequest) {
 
   try {
     // 4. 쿼리 구성 - raw SQL (IDX_TASK_EMPLOYEE_DATE 인덱스 활용)
-    const ds = await getDataSource();
-    const user = session.user as any;
-
     // Build SQL query
     let sql = `
-      SELECT "id", "title", "task_date", "start_time", "end_time", "task_type", "work_type", "status", "employee_id"
+      SELECT id, title, task_date, start_time, end_time, task_type, work_type, status, employee_id
       FROM TASK
-      WHERE "deleted_at" IS NULL
-        AND "task_date" BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')
+      WHERE deleted_at IS NULL
+        AND task_date BETWEEN TO_DATE(:dateFrom, 'YYYY-MM-DD') AND TO_DATE(:dateTo, 'YYYY-MM-DD')
     `;
     const params: any = { dateFrom, dateTo };
 
     // Optional employee filter
     if (employeeId) {
-      sql += ` AND "employee_id" = :employeeId`;
+      sql += ` AND employee_id = :employeeId`;
       params.employeeId = Number(employeeId);
     }
 
-    sql += ` ORDER BY "employee_id" ASC, "task_date" ASC, "start_time" ASC`;
+    sql += ` ORDER BY employee_id ASC, task_date ASC, start_time ASC`;
 
-    const queryRunner = ds.createQueryRunner();
-    try {
-      const tasks = await queryRunner.query(sql, params);
+    const result = await executeQuery(sql, params);
 
-      // 5. 직원별 그룹화
-      const employeeMap = new Map<
-        number,
-        { employee_id: number; employee_name: string; tasks: any[] }
-      >();
+    // 5. 직원별 그룹화
+    const employeeMap = new Map<
+      number,
+      { employee_id: number; employee_name: string; tasks: any[] }
+    >();
 
-      for (const task of tasks) {
-        if (!employeeMap.has(task.employee_id)) {
-          employeeMap.set(task.employee_id, {
-            employee_id: task.employee_id,
-            employee_name: '', // Phase 1 완료 후 Employee JOIN
-            tasks: [],
-          });
-        }
-        employeeMap.get(task.employee_id)!.tasks.push({
-          id: task.id,
-          title: task.title,
-          task_date: task.task_date,
-          start_time: task.start_time,
-          end_time: task.end_time,
-          task_type: task.task_type,
-          work_type: task.work_type,
-          status: task.status,
+    for (const task of result.rows) {
+      if (!employeeMap.has(task.employee_id)) {
+        employeeMap.set(task.employee_id, {
+          employee_id: task.employee_id,
+          employee_name: '', // Phase 1 완료 후 Employee JOIN
+          tasks: [],
         });
       }
-
-      return NextResponse.json({
-        employees: Array.from(employeeMap.values()),
+      employeeMap.get(task.employee_id)!.tasks.push({
+        id: task.id,
+        title: task.title,
+        task_date: task.task_date,
+        start_time: task.start_time,
+        end_time: task.end_time,
+        task_type: task.task_type,
+        work_type: task.work_type,
+        status: task.status,
       });
-    } finally {
-      await queryRunner.release();
     }
+
+    return NextResponse.json({
+      employees: Array.from(employeeMap.values()),
+    });
   } catch (error) {
     console.error('GET /api/dashboard/team error:', error);
     if (error instanceof Error) {

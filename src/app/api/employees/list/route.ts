@@ -1,9 +1,9 @@
-// Generated: 2026-01-26 09:55:00 KST
+// Generated: 2026-01-27 10:30:00 KST
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,43 +34,36 @@ export async function GET(): Promise<NextResponse<EmployeeListResponse | { error
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const user = session.user as any;
 
-    try {
-      const user = session.user as any;
+    // RBAC 조건에 따른 Raw SQL 쿼리 작성
+    let sql = `
+      SELECT e.id, e.name, d.name AS department_name
+      FROM EMPLOYEE e
+      LEFT JOIN DEPARTMENT d ON d.id = e.department_id
+      WHERE e.deleted_at IS NULL
+    `;
+    const params: any = {};
 
-      // RBAC 조건에 따른 Raw SQL 쿼리 작성
-      let sql = `
-        SELECT "e"."id", "e"."name", "d"."name" AS "department_name"
-        FROM EMPLOYEE "e"
-        LEFT JOIN DEPARTMENT "d" ON "d"."id" = "e"."department_id"
-        WHERE "e"."deleted_at" IS NULL
-      `;
-      const params: any = {};
-
-      if (user.role === 'MANAGER' && user.department) {
-        sql += ' AND "e"."department_id" = :departmentId';
-        params.departmentId = user.department;
-      }
-      // ADMIN과 USER는 전체 직원 목록 조회 가능
-
-      sql += ' ORDER BY "e"."name" ASC';
-
-      // Raw SQL 쿼리 실행
-      const results = await queryRunner.query(sql, params);
-
-      // 응답 형태 변환
-      const employees: EmployeeListItem[] = results.map((row: any) => ({
-        id: row.id,
-        name: row.name,
-        department_name: row.department_name || null,
-      }));
-
-      return NextResponse.json({ employees });
-    } finally {
-      await queryRunner.release();
+    if (user.role === 'MANAGER' && user.department) {
+      sql += ' AND e.department_id = :departmentId';
+      params.departmentId = user.department;
     }
+    // ADMIN과 USER는 전체 직원 목록 조회 가능
+
+    sql += ' ORDER BY e.name ASC';
+
+    // Raw SQL 쿼리 실행
+    const result = await executeQuery(sql, params);
+
+    // 응답 형태 변환
+    const employees: EmployeeListItem[] = result.rows.map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      department_name: row.department_name || null,
+    }));
+
+    return NextResponse.json({ employees });
   } catch (error) {
     console.error('GET /api/employees/list error:', error);
     return NextResponse.json(

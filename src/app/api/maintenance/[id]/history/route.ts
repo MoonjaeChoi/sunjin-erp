@@ -1,10 +1,9 @@
-// Generated: 2026-01-26 23:55:00 KST
-
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../../../lib/auth';
-import { getDataSource } from '../../../../../lib/db';
+import { executeQuerySingle, executeQuery } from '../../../../../lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,21 +42,12 @@ export async function GET(
       );
     }
 
-    // 4. 데이터베이스 연결 확인
-    const dataSource = await getDataSource();
-    if (!dataSource.isInitialized) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // 5. 계약 존재 여부 확인
-    const { MaintenanceContractRepository } = await import(
-      '../../../../../lib/maintenance-repository'
+    // 4. 계약 존재 여부 확인
+    const contract = await executeQuerySingle(
+      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
+       WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
+      { id: contractId }
     );
-    const repository = new MaintenanceContractRepository(dataSource);
-    const contract = await repository.findById(contractId);
 
     if (!contract) {
       return NextResponse.json(
@@ -66,27 +56,47 @@ export async function GET(
       );
     }
 
-    // 6. 쿼리 파라미터 파싱
+    // 5. 쿼리 파라미터 파싱
     const searchParams = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
-    // 7. 이력 조회
-    const { MaintenanceContractService } = await import(
-      '../../../../../lib/maintenance-service'
+    // 6. 총 이력 개수 조회
+    const countResult = await executeQuerySingle(
+      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_HISTORIES
+       WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
+      { contract_id: contractId }
     );
-    const service = new MaintenanceContractService(dataSource);
-    const histories = await service.getHistories(contractId, { page, limit });
+    const total = parseInt((countResult as any)?.TOTAL || '0');
+
+    // 7. 이력 조회 (페이지네이션)
+    const offset = (page - 1) * limit;
+    const historiesResult = await executeQuery(
+      `SELECT ID, MAINTENANCE_CONTRACT_ID, CHANGE_TYPE, REASON, CHANGED_BY_ID, CHANGED_AT
+       FROM MAINTENANCE_CONTRACT_HISTORIES
+       WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL
+       ORDER BY CHANGED_AT DESC
+       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
+      { contract_id: contractId, offset, limit }
+    );
 
     // 8. 성공 응답
+    const totalPages = Math.ceil(total / limit);
     return NextResponse.json(
       {
-        data: histories,
+        data: historiesResult.rows.map((h: any) => ({
+          id: h.ID,
+          maintenance_contract_id: h.MAINTENANCE_CONTRACT_ID,
+          change_type: h.CHANGE_TYPE,
+          reason: h.REASON,
+          changed_by_id: h.CHANGED_BY_ID,
+          changed_at: h.CHANGED_AT,
+        })),
         pagination: {
           page,
           limit,
-          total: 0, // Repository에서 total 정보가 없으므로, histories.length로 표시
-          totalPages: Math.ceil(histories.length / limit),
+          total,
+          totalPages,
         },
       },
       { status: 200 }

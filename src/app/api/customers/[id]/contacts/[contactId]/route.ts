@@ -1,9 +1,9 @@
-// Generated: 2026-01-27 23:55:00 KST
+// Generated: 2026-01-27 10:32:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,186 +102,163 @@ export async function PUT(
   }
 
   try {
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const customerResult = await executeQuerySingle(
+      `SELECT id FROM CUSTOMER WHERE id = :customerId AND deleted_at IS NULL`,
+      { customerId }
+    );
 
-    try {
-      const customerSql = `
-        SELECT id FROM CUSTOMER
-        WHERE id = :customerId AND deleted_at IS NULL
-      `;
-      const customers = await queryRunner.query(customerSql, { customerId });
+    if (!customerResult) {
+      return NextResponse.json(
+        { error: 'Customer not found' },
+        { status: 404 }
+      );
+    }
 
-      if (!customers || customers.length === 0) {
-        return NextResponse.json(
-          { error: 'Customer not found' },
-          { status: 404 }
+    const contactSql = `
+      SELECT id, name, title, department, email, phone, description, primary_contact as primaryContact,
+             updated_at as updatedAt
+      FROM CUSTOMER_CONTACT
+      WHERE id = :contactId AND customer_id = :customerId AND deleted_at IS NULL
+    `;
+    const currentContact = await executeQuerySingle(contactSql, { contactId, customerId });
+
+    if (!currentContact) {
+      return NextResponse.json(
+        { error: 'Contact not found' },
+        { status: 404 }
+      );
+    }
+
+    const updateFields: any = {};
+    const updateColumns: string[] = [];
+    const params: any = { contactId, customerId };
+    const now = new Date();
+    params.now = now;
+
+    if (body.name !== undefined) {
+      const sanitized = sanitizeHtml(body.name.trim());
+      updateFields.name = sanitized;
+      updateColumns.push(`name = :name`);
+      params.name = sanitized;
+    }
+
+    if (body.title !== undefined) {
+      const sanitized = sanitizeHtml(body.title.trim());
+      updateFields.title = sanitized;
+      updateColumns.push(`title = :title`);
+      params.title = sanitized;
+    }
+
+    if (body.department !== undefined) {
+      const sanitized = body.department !== null ? sanitizeHtml(body.department.trim()) : null;
+      updateFields.department = sanitized;
+      updateColumns.push(`department = :department`);
+      params.department = sanitized;
+    }
+
+    if (body.email !== undefined) {
+      const sanitized = body.email.trim();
+      updateFields.email = sanitized;
+      updateColumns.push(`email = :email`);
+      params.email = sanitized;
+    }
+
+    if (body.phone !== undefined) {
+      const sanitized = body.phone.trim();
+      updateFields.phone = sanitized;
+      updateColumns.push(`phone = :phone`);
+      params.phone = sanitized;
+    }
+
+    if (body.description !== undefined) {
+      const sanitized = body.description !== null ? sanitizeHtml(body.description.trim()) : null;
+      updateFields.description = sanitized;
+      updateColumns.push(`description = :description`);
+      params.description = sanitized;
+    }
+
+    if (body.primaryContact !== undefined) {
+      const newPrimaryValue = body.primaryContact === true ? 1 : 0;
+      updateFields.primaryContact = body.primaryContact;
+      updateColumns.push(`primary_contact = :primaryContact`);
+      params.primaryContact = newPrimaryValue;
+
+      if (newPrimaryValue === 1 && (currentContact.primaryContact === 1 || currentContact.primaryContact === true) === false) {
+        const existingPrimary = await executeQuerySingle(
+          `SELECT id FROM CUSTOMER_CONTACT WHERE customer_id = :customerId AND primary_contact = 1 AND deleted_at IS NULL AND id != :contactId`,
+          { customerId, contactId }
         );
-      }
 
-      const contactSql = `
-        SELECT id, name, title, department, email, phone, description, primary_contact as primaryContact,
-               updated_at as updatedAt
-        FROM CUSTOMER_CONTACT
-        WHERE id = :contactId AND customer_id = :customerId AND deleted_at IS NULL
-      `;
-      const contacts = await queryRunner.query(contactSql, { contactId, customerId });
-
-      if (!contacts || contacts.length === 0) {
-        return NextResponse.json(
-          { error: 'Contact not found' },
-          { status: 404 }
-        );
-      }
-
-      const currentContact = contacts[0];
-      const updateFields: any = {};
-      const updateColumns: string[] = [];
-      const params: any = { contactId, customerId };
-      const now = new Date();
-      params.now = now;
-
-      if (body.name !== undefined) {
-        const sanitized = sanitizeHtml(body.name.trim());
-        updateFields.name = sanitized;
-        updateColumns.push(`name = :name`);
-        params.name = sanitized;
-      }
-
-      if (body.title !== undefined) {
-        const sanitized = sanitizeHtml(body.title.trim());
-        updateFields.title = sanitized;
-        updateColumns.push(`title = :title`);
-        params.title = sanitized;
-      }
-
-      if (body.department !== undefined) {
-        const sanitized = body.department !== null ? sanitizeHtml(body.department.trim()) : null;
-        updateFields.department = sanitized;
-        updateColumns.push(`department = :department`);
-        params.department = sanitized;
-      }
-
-      if (body.email !== undefined) {
-        const sanitized = body.email.trim();
-        updateFields.email = sanitized;
-        updateColumns.push(`email = :email`);
-        params.email = sanitized;
-      }
-
-      if (body.phone !== undefined) {
-        const sanitized = body.phone.trim();
-        updateFields.phone = sanitized;
-        updateColumns.push(`phone = :phone`);
-        params.phone = sanitized;
-      }
-
-      if (body.description !== undefined) {
-        const sanitized = body.description !== null ? sanitizeHtml(body.description.trim()) : null;
-        updateFields.description = sanitized;
-        updateColumns.push(`description = :description`);
-        params.description = sanitized;
-      }
-
-      if (body.primaryContact !== undefined) {
-        const newPrimaryValue = body.primaryContact === true ? 1 : 0;
-        updateFields.primaryContact = body.primaryContact;
-        updateColumns.push(`primary_contact = :primaryContact`);
-        params.primaryContact = newPrimaryValue;
-
-        if (newPrimaryValue === 1 && (currentContact.primaryContact === 1 || currentContact.primaryContact === true) === false) {
-          const existingPrimarySql = `
-            SELECT id FROM CUSTOMER_CONTACT
-            WHERE customer_id = :customerId AND primary_contact = 1 AND deleted_at IS NULL AND id != :contactId
-          `;
-          const existingPrimary = await queryRunner.query(existingPrimarySql, {
-            customerId,
-            contactId,
-          });
-
-          if (existingPrimary && existingPrimary.length > 0) {
-            const updatePrimarySql = `
-              UPDATE CUSTOMER_CONTACT
-              SET primary_contact = 0, updated_at = :now
-              WHERE id = :id
-            `;
-            await queryRunner.query(updatePrimarySql, {
-              id: existingPrimary[0].id,
-              now,
-            });
-          }
+        if (existingPrimary) {
+          await executeUpdate(
+            `UPDATE CUSTOMER_CONTACT SET primary_contact = 0, updated_at = :now WHERE id = :id`,
+            { id: existingPrimary.id, now }
+          );
         }
       }
+    }
 
-      if (updateColumns.length === 0) {
-        return NextResponse.json(
-          { data: { id: currentContact.id, customerId, ...currentContact }, message: '업데이트할 내용이 없습니다.' },
-          { status: 200 }
-        );
-      }
+    if (updateColumns.length === 0) {
+      return NextResponse.json(
+        { data: { id: currentContact.id, customerId, ...currentContact }, message: '업데이트할 내용이 없습니다.' },
+        { status: 200 }
+      );
+    }
 
-      updateColumns.push(`updated_at = :now`);
+    updateColumns.push(`updated_at = :now`);
 
-      const updateSql = `
-        UPDATE CUSTOMER_CONTACT
-        SET ${updateColumns.join(', ')}
-        WHERE id = :contactId AND customer_id = :customerId
-      `;
+    const updateSql = `
+      UPDATE CUSTOMER_CONTACT
+      SET ${updateColumns.join(', ')}
+      WHERE id = :contactId AND customer_id = :customerId
+    `;
 
-      await queryRunner.query(updateSql, params);
+    await executeUpdate(updateSql, params);
 
-      const changedFieldsJson: any = {};
+    const changedFieldsJson: any = {};
 
-      if (updateFields.name !== undefined) {
-        changedFieldsJson.name = { before: currentContact.name, after: updateFields.name };
-      }
-      if (updateFields.title !== undefined) {
-        changedFieldsJson.title = { before: currentContact.title, after: updateFields.title };
-      }
-      if (updateFields.department !== undefined) {
-        changedFieldsJson.department = { before: currentContact.department, after: updateFields.department };
-      }
-      if (updateFields.email !== undefined) {
-        changedFieldsJson.email = { before: currentContact.email, after: updateFields.email };
-      }
-      if (updateFields.phone !== undefined) {
-        changedFieldsJson.phone = { before: currentContact.phone, after: updateFields.phone };
-      }
-      if (updateFields.description !== undefined) {
-        changedFieldsJson.description = { before: currentContact.description, after: updateFields.description };
-      }
-      if (updateFields.primaryContact !== undefined) {
-        changedFieldsJson.primaryContact = { before: currentContact.primaryContact === 1 || currentContact.primaryContact === true, after: updateFields.primaryContact };
-      }
+    if (updateFields.name !== undefined) {
+      changedFieldsJson.name = { before: currentContact.name, after: updateFields.name };
+    }
+    if (updateFields.title !== undefined) {
+      changedFieldsJson.title = { before: currentContact.title, after: updateFields.title };
+    }
+    if (updateFields.department !== undefined) {
+      changedFieldsJson.department = { before: currentContact.department, after: updateFields.department };
+    }
+    if (updateFields.email !== undefined) {
+      changedFieldsJson.email = { before: currentContact.email, after: updateFields.email };
+    }
+    if (updateFields.phone !== undefined) {
+      changedFieldsJson.phone = { before: currentContact.phone, after: updateFields.phone };
+    }
+    if (updateFields.description !== undefined) {
+      changedFieldsJson.description = { before: currentContact.description, after: updateFields.description };
+    }
+    if (updateFields.primaryContact !== undefined) {
+      changedFieldsJson.primaryContact = { before: currentContact.primaryContact === 1 || currentContact.primaryContact === true, after: updateFields.primaryContact };
+    }
 
-      if (Object.keys(changedFieldsJson).length > 0) {
-        const historyInsertSql = `
-          INSERT INTO CUSTOMER_HISTORY (
-            customer_id, change_type, changed_fields, changed_by_id, changed_at
-          ) VALUES (
-            :customerId, :changeType, :changedFields, :userId, :now
-          )
-        `;
-
-        await queryRunner.query(historyInsertSql, {
+    if (Object.keys(changedFieldsJson).length > 0) {
+      await executeUpdate(
+        `INSERT INTO CUSTOMER_HISTORY (customer_id, change_type, changed_fields, changed_by_id, changed_at)
+         VALUES (:customerId, :changeType, :changedFields, :userId, :now)`,
+        {
           customerId,
           changeType: 'CONTACT_ADD',
           changedFields: JSON.stringify(changedFieldsJson),
           userId: user.id,
           now,
-        });
-      }
-
-      const updatedContacts = await queryRunner.query(contactSql, { contactId, customerId });
-      const updatedContact = updatedContacts[0];
-
-      return NextResponse.json(
-        { data: { id: updatedContact.id, customerId, ...updatedContact, primaryContact: updatedContact.primaryContact === 1 }, message: '담당자가 수정되었습니다.' },
-        { status: 200 }
+        }
       );
-    } finally {
-      await queryRunner.release();
     }
+
+    const updatedContact = await executeQuerySingle(contactSql, { contactId, customerId });
+
+    return NextResponse.json(
+      { data: { id: updatedContact!.id, customerId, ...updatedContact, primaryContact: updatedContact!.primaryContact === 1 }, message: '담당자가 수정되었습니다.' },
+      { status: 200 }
+    );
   } catch (error) {
     console.error(`PUT /api/customers/${customerId}/contacts/${contactId} error:`, error);
     return NextResponse.json(
@@ -312,86 +289,72 @@ export async function DELETE(
   }
 
   try {
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const customerResult = await executeQuerySingle(
+      `SELECT id FROM CUSTOMER WHERE id = :customerId AND deleted_at IS NULL`,
+      { customerId }
+    );
 
-    try {
-      const customerSql = `
-        SELECT id FROM CUSTOMER
-        WHERE id = :customerId AND deleted_at IS NULL
-      `;
-      const customers = await queryRunner.query(customerSql, { customerId });
+    if (!customerResult) {
+      return NextResponse.json(
+        { error: 'Customer not found' },
+        { status: 404 }
+      );
+    }
 
-      if (!customers || customers.length === 0) {
-        return NextResponse.json(
-          { error: 'Customer not found' },
-          { status: 404 }
-        );
-      }
+    const contactSql = `
+      SELECT id, name FROM CUSTOMER_CONTACT
+      WHERE id = :contactId AND customer_id = :customerId AND deleted_at IS NULL
+    `;
+    const contact = await executeQuerySingle(contactSql, { contactId, customerId });
 
-      const contactSql = `
-        SELECT id, name FROM CUSTOMER_CONTACT
-        WHERE id = :contactId AND customer_id = :customerId AND deleted_at IS NULL
-      `;
-      const contacts = await queryRunner.query(contactSql, { contactId, customerId });
+    if (!contact) {
+      return NextResponse.json(
+        { error: 'Contact not found' },
+        { status: 404 }
+      );
+    }
 
-      if (!contacts || contacts.length === 0) {
-        return NextResponse.json(
-          { error: 'Contact not found' },
-          { status: 404 }
-        );
-      }
+    const now = new Date();
+    const deleteSql = `
+      UPDATE CUSTOMER_CONTACT
+      SET deleted_at = :now, updated_at = :now
+      WHERE id = :contactId AND customer_id = :customerId
+    `;
 
-      const contact = contacts[0];
+    await executeUpdate(deleteSql, {
+      contactId,
+      customerId,
+      now,
+    });
 
-      const now = new Date();
-      const deleteSql = `
-        UPDATE CUSTOMER_CONTACT
-        SET deleted_at = :now, updated_at = :now
-        WHERE id = :contactId AND customer_id = :customerId
-      `;
+    const changedFieldsJson = {
+      deleted_at: { before: null, after: now.toISOString() },
+    };
 
-      await queryRunner.query(deleteSql, {
-        contactId,
-        customerId,
-        now,
-      });
-
-      const changedFieldsJson = {
-        deleted_at: { before: null, after: now.toISOString() },
-      };
-
-      const historyInsertSql = `
-        INSERT INTO CUSTOMER_HISTORY (
-          customer_id, change_type, changed_fields, changed_by_id, changed_at
-        ) VALUES (
-          :customerId, :changeType, :changedFields, :userId, :now
-        )
-      `;
-
-      await queryRunner.query(historyInsertSql, {
+    await executeUpdate(
+      `INSERT INTO CUSTOMER_HISTORY (customer_id, change_type, changed_fields, changed_by_id, changed_at)
+       VALUES (:customerId, :changeType, :changedFields, :userId, :now)`,
+      {
         customerId,
         changeType: 'CONTACT_DELETE',
         changedFields: JSON.stringify(changedFieldsJson),
         userId: user.id,
         now,
-      });
+      }
+    );
 
-      return NextResponse.json(
-        {
-          message: '담당자가 삭제되었습니다.',
-          data: {
-            id: contact.id,
-            customerId,
-            name: contact.name,
-            deletedAt: now.toISOString(),
-          },
+    return NextResponse.json(
+      {
+        message: '담당자가 삭제되었습니다.',
+        data: {
+          id: contact.id,
+          customerId,
+          name: contact.name,
+          deletedAt: now.toISOString(),
         },
-        { status: 200 }
-      );
-    } finally {
-      await queryRunner.release();
-    }
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error(`DELETE /api/customers/${customerId}/contacts/${contactId} error:`, error);
     return NextResponse.json(

@@ -1,16 +1,9 @@
-// Generated: 2026-01-25 16:20:00 KST
-
-// Generated: 2026-01-25 17:10:00 KST
+// Generated: 2026-01-28 00:00:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
-import { Project } from '../../../../entities/Project';
-import { ProjectAttachment } from '../../../../entities/ProjectAttachment';
-import { Customer } from '../../../../entities/Customer';
-import { Employee } from '../../../../entities/Employee';
-import { IsNull, Not } from 'typeorm';
+import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +30,7 @@ interface ProjectChecklistToggleResponse {
 }
 
 // ProjectStage to Database column name mapping
-const STAGE_COLUMN_MAP: Record<string, keyof Project> = {
+const STAGE_COLUMN_MAP: Record<string, string> = {
   MEETING: 'stage_meeting_at',
   PROPOSAL: 'stage_proposal_at',
   QUOTATION: 'stage_quotation_at',
@@ -46,7 +39,7 @@ const STAGE_COLUMN_MAP: Record<string, keyof Project> = {
   DEVELOPMENT: 'stage_development_at',
   DELIVERY: 'stage_delivery_at',
   HANDOVER: 'stage_handover_at',
-} as any;
+};
 
 interface ProjectDetailResponse {
   id: number;
@@ -107,71 +100,53 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
-    const ds = await getDataSource();
-    const projectRepo = ds.getRepository(Project);
-    const attachmentRepo = ds.getRepository(ProjectAttachment);
+    // 프로젝트 조회
+    const projectSql = `
+      SELECT
+        p.id, p.project_code, p.project_name, p.customer_id,
+        c.name AS customer_name, p.employee_id, e.name AS employee_name,
+        e.department_id, p.status, p.start_date, p.end_date,
+        p.contract_amount, p.description,
+        p.stage_meeting_at, p.stage_proposal_at, p.stage_quotation_at,
+        p.stage_contract_at, p.stage_kickoff_at, p.stage_development_at,
+        p.stage_delivery_at, p.stage_handover_at,
+        p.created_at, p.updated_at
+      FROM PROJECT p
+      LEFT JOIN CUSTOMER c ON c.id = p.customer_id AND c.deleted_at IS NULL
+      LEFT JOIN EMPLOYEE e ON e.id = p.employee_id AND e.deleted_at IS NULL
+      WHERE p.id = :id AND p.deleted_at IS NULL
+    `;
 
-    // 프로젝트 조회 - Using QueryBuilder with proper entity references
-    const projectData = await ds
-      .getRepository(Project)
-      .createQueryBuilder('p')
-      .leftJoinAndSelect(Customer, 'c', '"c"."id" = "p"."customer_id"')
-      .leftJoinAndSelect(Employee, 'e', '"e"."id" = "p"."employee_id"')
-      .where('"p"."id" = :id', { id: projectId })
-      .andWhere('"p"."deleted_at" IS NULL')
-      .getRawOne();
+    const projectResult = await executeQuerySingle(projectSql, { id: projectId });
 
-    const project = projectData ? {
-      id: projectData.p_id,
-      project_code: projectData.p_project_code,
-      project_name: projectData.p_project_name,
-      customer_id: projectData.p_customer_id,
-      customer_name: projectData.c_name,
-      employee_id: projectData.p_employee_id,
-      employee_name: projectData.e_name,
-      department_id: projectData.e_department_id,
-      department_name: projectData.e_name, // Fallback
-      status: projectData.p_status,
-      start_date: projectData.p_start_date,
-      end_date: projectData.p_end_date,
-      contract_amount: projectData.p_contract_amount,
-      description: projectData.p_description,
-      stage_meeting_at: projectData.p_stage_meeting_at,
-      stage_proposal_at: projectData.p_stage_proposal_at,
-      stage_quotation_at: projectData.p_stage_quotation_at,
-      stage_contract_at: projectData.p_stage_contract_at,
-      stage_kickoff_at: projectData.p_stage_kickoff_at,
-      stage_development_at: projectData.p_stage_development_at,
-      stage_delivery_at: projectData.p_stage_delivery_at,
-      stage_handover_at: projectData.p_stage_handover_at,
-      created_at: projectData.p_created_at,
-      updated_at: projectData.p_updated_at,
-    } : null;
-
-
-    if (!project) {
+    if (!projectResult) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
+
+    const project = projectResult;
 
     // RBAC 권한 확인
     const user = session.user as any;
     if (user.role === 'MANAGER') {
-      // Note: department_id comes from employee, need to fetch department for MANAGER check
-      // For now, just allow MANAGER to view any project they're assigned to via department
-      // This would require a separate query to get department info
+      if (project.department_id !== user.department) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     } else if (user.role === 'USER') {
-      if (project!.employee_id !== user.id) {
+      if (project.employee_id !== user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
     // ADMIN은 모든 프로젝트 접근 가능
 
     // 첨부파일 조회
-    const attachments = await attachmentRepo.find({
-      where: { project_id: projectId },
-      select: ['id', 'file_name', 'file_size', 'category', 'created_at'],
-      order: { created_at: 'DESC' },
-    });
+    const attachmentsSql = `
+      SELECT id, file_name, file_size, category, created_at
+      FROM PROJECT_ATTACHMENT
+      WHERE project_id = :projectId
+      ORDER BY created_at DESC
+    `;
+
+    const attachmentsResult = await executeQuery(attachmentsSql, { projectId });
 
     // Helper to format dates consistently
     const formatDate = (date: any) => {
@@ -190,36 +165,36 @@ export async function GET(
 
     // 응답 포맷팅
     const response: ProjectDetailResponse = {
-      id: project!.id,
-      project_code: project!.project_code,
-      project_name: project!.project_name,
-      customer_id: project!.customer_id,
-      customer_name: project!.customer_name,
-      employee_id: project!.employee_id,
-      employee_name: project!.employee_name,
-      department_name: project!.department_name,
-      status: project!.status,
-      start_date: formatDate(project!.start_date),
-      end_date: formatDate(project!.end_date),
-      contract_amount: project!.contract_amount,
-      description: project!.description,
-      stage_meeting_at: formatDateTime(project!.stage_meeting_at),
-      stage_proposal_at: formatDateTime(project!.stage_proposal_at),
-      stage_quotation_at: formatDateTime(project!.stage_quotation_at),
-      stage_contract_at: formatDateTime(project!.stage_contract_at),
-      stage_kickoff_at: formatDateTime(project!.stage_kickoff_at),
-      stage_development_at: formatDateTime(project!.stage_development_at),
-      stage_delivery_at: formatDateTime(project!.stage_delivery_at),
-      stage_handover_at: formatDateTime(project!.stage_handover_at),
-      attachments: attachments.map((att: any) => ({
+      id: project.id,
+      project_code: project.project_code,
+      project_name: project.project_name,
+      customer_id: project.customer_id,
+      customer_name: project.customer_name,
+      employee_id: project.employee_id,
+      employee_name: project.employee_name,
+      department_name: project.department_id ? `DEPT_${project.department_id}` : 'Unknown',
+      status: project.status,
+      start_date: formatDate(project.start_date),
+      end_date: formatDate(project.end_date),
+      contract_amount: project.contract_amount,
+      description: project.description,
+      stage_meeting_at: formatDateTime(project.stage_meeting_at),
+      stage_proposal_at: formatDateTime(project.stage_proposal_at),
+      stage_quotation_at: formatDateTime(project.stage_quotation_at),
+      stage_contract_at: formatDateTime(project.stage_contract_at),
+      stage_kickoff_at: formatDateTime(project.stage_kickoff_at),
+      stage_development_at: formatDateTime(project.stage_development_at),
+      stage_delivery_at: formatDateTime(project.stage_delivery_at),
+      stage_handover_at: formatDateTime(project.stage_handover_at),
+      attachments: attachmentsResult.rows.map((att: any) => ({
         id: att.id,
         file_name: att.file_name,
         file_size: att.file_size,
         category: att.category,
-        created_at: att.created_at.toISOString(),
+        created_at: typeof att.created_at === 'string' ? att.created_at : att.created_at?.toISOString?.() || new Date().toISOString(),
       })),
-      created_at: formatDateTime(project!.created_at) || new Date().toISOString(),
-      updated_at: formatDateTime(project!.updated_at) || new Date().toISOString(),
+      created_at: formatDateTime(project.created_at) || new Date().toISOString(),
+      updated_at: formatDateTime(project.updated_at) || new Date().toISOString(),
     };
 
     return NextResponse.json(response);
@@ -249,34 +224,41 @@ export async function PUT(
     }
 
     const body: UpdateProjectRequest = await request.json();
-    const ds = await getDataSource();
-    const projectRepo = ds.getRepository(Project);
-    const customerRepo = ds.getRepository(Customer);
-    const employeeRepo = ds.getRepository(Employee);
 
     // 프로젝트 존재 확인
-    const project = await projectRepo.findOne({
-      where: { id: projectId, deleted_at: IsNull() },
-    });
+    const projectResult = await executeQuerySingle(
+      'SELECT id, employee_id FROM PROJECT WHERE id = :id AND deleted_at IS NULL',
+      { id: projectId }
+    );
 
-    if (!project) {
+    if (!projectResult) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // RBAC 권한 확인
     const user = session.user as any;
     if (user.role === 'MANAGER') {
-      const employee = await employeeRepo.findOne({
-        where: { id: project.employee_id },
-        relations: ['department_id'],
-      });
-      if (employee?.department_id !== user.department) {
+      const employeeResult = await executeQuerySingle(
+        'SELECT department_id FROM EMPLOYEE WHERE id = :id',
+        { id: projectResult.employee_id }
+      );
+      if (employeeResult?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
-      if (project.employee_id !== user.id) {
+      if (projectResult.employee_id !== user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
+    }
+
+    // 프로젝트 현재 상태 조회 (검증에 필요)
+    const currentProjectResult = await executeQuerySingle(
+      'SELECT project_name, project_code, customer_id, employee_id, status, start_date, end_date, contract_amount FROM PROJECT WHERE id = :id',
+      { id: projectId }
+    );
+
+    if (!currentProjectResult) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // 필드별 검증
@@ -291,19 +273,21 @@ export async function PUT(
     }
 
     if (body.project_code !== undefined && body.project_code) {
-      const existingCode = await projectRepo.findOne({
-        where: { project_code: body.project_code, id: Not(projectId) },
-      });
+      const existingCode = await executeQuerySingle(
+        'SELECT id FROM PROJECT WHERE project_code = :code AND id != :id',
+        { code: body.project_code, id: projectId }
+      );
       if (existingCode) {
         errors.project_code = 'Project code already exists';
       }
     }
 
     if (body.customer_id !== undefined) {
-      const customer = await customerRepo.findOne({
-        where: { id: body.customer_id, deleted_at: IsNull() },
-      });
-      if (!customer) {
+      const customerResult = await executeQuerySingle(
+        'SELECT id FROM CUSTOMER WHERE id = :id AND deleted_at IS NULL',
+        { id: body.customer_id }
+      );
+      if (!customerResult) {
         errors.customer_id = 'Customer not found';
       }
     }
@@ -312,14 +296,14 @@ export async function PUT(
       if (user.role === 'USER') {
         errors.employee_id = 'USER role cannot change employee';
       } else {
-        const employee = await employeeRepo.findOne({
-          where: { id: body.employee_id, deleted_at: IsNull() },
-        });
-        if (!employee) {
+        const employeeResult = await executeQuerySingle(
+          'SELECT id, department_id FROM EMPLOYEE WHERE id = :id AND deleted_at IS NULL',
+          { id: body.employee_id }
+        );
+        if (!employeeResult) {
           errors.employee_id = 'Employee not found';
         } else if (user.role === 'MANAGER') {
-          // MANAGER는 같은 부서 직원만 할당 가능
-          if (employee.department_id !== user.department) {
+          if (employeeResult.department_id !== user.department) {
             errors.employee_id = 'Can only assign employees from your department';
           }
         }
@@ -327,8 +311,8 @@ export async function PUT(
     }
 
     // 날짜 순서 검증
-    const startDate = body.start_date !== undefined ? body.start_date : project.start_date;
-    const endDate = body.end_date !== undefined ? body.end_date : project.end_date;
+    const startDate = body.start_date !== undefined ? body.start_date : currentProjectResult.start_date;
+    const endDate = body.end_date !== undefined ? body.end_date : currentProjectResult.end_date;
     if (startDate && endDate && startDate > endDate) {
       errors.end_date = 'End date must be after start date';
     }
@@ -338,11 +322,11 @@ export async function PUT(
     }
 
     // 상태 전이 검증
-    if (body.status !== undefined && body.status !== project.status) {
+    if (body.status !== undefined && body.status !== currentProjectResult.status) {
       if (user.role !== 'ADMIN') {
-        const allowedStatuses = STATUS_TRANSITIONS[project.status];
+        const allowedStatuses = STATUS_TRANSITIONS[currentProjectResult.status];
         if (!allowedStatuses || !allowedStatuses.includes(body.status)) {
-          errors.status = `Invalid status transition from ${project.status} to ${body.status}`;
+          errors.status = `Invalid status transition from ${currentProjectResult.status} to ${body.status}`;
         }
       }
     }
@@ -354,36 +338,54 @@ export async function PUT(
       );
     }
 
-    // 업데이트
+    // 업데이트 준비
+    const updateColumns: string[] = [];
+    const updateParams: any = { id: projectId };
+    const now = new Date();
+    updateParams.now = now;
+
     if (body.project_name !== undefined) {
-      project.project_name = body.project_name.trim();
+      updateColumns.push('project_name = :projectName');
+      updateParams.projectName = body.project_name.trim();
     }
     if (body.project_code !== undefined) {
-      project.project_code = body.project_code || null;
+      updateColumns.push('project_code = :projectCode');
+      updateParams.projectCode = body.project_code || null;
     }
     if (body.customer_id !== undefined) {
-      project.customer_id = body.customer_id;
+      updateColumns.push('customer_id = :customerId');
+      updateParams.customerId = body.customer_id;
     }
     if (body.employee_id !== undefined) {
-      project.employee_id = body.employee_id;
+      updateColumns.push('employee_id = :employeeId');
+      updateParams.employeeId = body.employee_id;
     }
     if (body.status !== undefined) {
-      project.status = body.status as any;
+      updateColumns.push('status = :status');
+      updateParams.status = body.status;
     }
     if (body.start_date !== undefined) {
-      project.start_date = body.start_date ? new Date(body.start_date) : null;
+      updateColumns.push('start_date = :startDate');
+      updateParams.startDate = body.start_date ? new Date(body.start_date) : null;
     }
     if (body.end_date !== undefined) {
-      project.end_date = body.end_date ? new Date(body.end_date) : null;
+      updateColumns.push('end_date = :endDate');
+      updateParams.endDate = body.end_date ? new Date(body.end_date) : null;
     }
     if (body.contract_amount !== undefined) {
-      project.contract_amount = body.contract_amount;
+      updateColumns.push('contract_amount = :contractAmount');
+      updateParams.contractAmount = body.contract_amount;
     }
     if (body.description !== undefined) {
-      project.description = body.description;
+      updateColumns.push('description = :description');
+      updateParams.description = body.description;
     }
 
-    await projectRepo.save(project);
+    if (updateColumns.length > 0) {
+      updateColumns.push('updated_at = :now');
+      const updateSql = `UPDATE PROJECT SET ${updateColumns.join(', ')} WHERE id = :id`;
+      await executeUpdate(updateSql, updateParams);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -411,37 +413,38 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
-    const ds = await getDataSource();
-    const projectRepo = ds.getRepository(Project);
-    const employeeRepo = ds.getRepository(Employee);
-
     // 프로젝트 존재 확인
-    const project = await projectRepo.findOne({
-      where: { id: projectId, deleted_at: IsNull() },
-    });
+    const projectResult = await executeQuerySingle(
+      'SELECT id, employee_id FROM PROJECT WHERE id = :id AND deleted_at IS NULL',
+      { id: projectId }
+    );
 
-    if (!project) {
+    if (!projectResult) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // RBAC 권한 확인
     const user = session.user as any;
     if (user.role === 'MANAGER') {
-      const employee = await employeeRepo.findOne({
-        where: { id: project.employee_id },
-      });
-      if (employee?.department_id !== user.department) {
+      const employeeResult = await executeQuerySingle(
+        'SELECT department_id FROM EMPLOYEE WHERE id = :id',
+        { id: projectResult.employee_id }
+      );
+      if (employeeResult?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
-      if (project.employee_id !== user.id) {
+      if (projectResult.employee_id !== user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
 
     // 소프트 삭제
-    project.deleted_at = new Date();
-    await projectRepo.save(project);
+    const now = new Date();
+    await executeUpdate(
+      'UPDATE PROJECT SET deleted_at = :now WHERE id = :id',
+      { id: projectId, now }
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -482,30 +485,28 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid completed parameter' }, { status: 400 });
     }
 
-    const ds = await getDataSource();
-    const projectRepo = ds.getRepository(Project);
-    const employeeRepo = ds.getRepository(Employee);
-
     // 프로젝트 존재 확인
-    const project = await projectRepo.findOne({
-      where: { id: projectId, deleted_at: IsNull() },
-    });
+    const projectResult = await executeQuerySingle(
+      'SELECT id, employee_id FROM PROJECT WHERE id = :id AND deleted_at IS NULL',
+      { id: projectId }
+    );
 
-    if (!project) {
+    if (!projectResult) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // RBAC 권한 확인 (edit 권한 필요)
     const user = session.user as any;
     if (user.role === 'MANAGER') {
-      const employee = await employeeRepo.findOne({
-        where: { id: project.employee_id },
-      });
-      if (employee?.department_id !== user.department) {
+      const employeeResult = await executeQuerySingle(
+        'SELECT department_id FROM EMPLOYEE WHERE id = :id',
+        { id: projectResult.employee_id }
+      );
+      if (employeeResult?.department_id !== user.department) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else if (user.role === 'USER') {
-      if (project.employee_id !== user.id) {
+      if (projectResult.employee_id !== user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
@@ -513,9 +514,10 @@ export async function PATCH(
     // 체크리스트 항목 업데이트
     const columnName = STAGE_COLUMN_MAP[body.stage];
     const newValue = body.completed ? new Date() : null;
-    (project as any)[columnName] = newValue;
+    const now = new Date();
 
-    await projectRepo.save(project);
+    const updateSql = `UPDATE PROJECT SET ${columnName} = :newValue, updated_at = :now WHERE id = :id`;
+    await executeUpdate(updateSql, { newValue, now, id: projectId });
 
     return NextResponse.json({
       stage: body.stage,

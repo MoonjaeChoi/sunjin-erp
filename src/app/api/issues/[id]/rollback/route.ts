@@ -1,8 +1,8 @@
-// Generated: 2026-01-25 18:55:00 KST
+// Generated: 2026-01-27 23:50:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db-direct';
 import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -45,20 +45,13 @@ export async function PUT(
       );
     }
 
-    // 2. Get datasource and repositories
-    const { Issue } = await import('../../../../../entities/Issue');
-    const { IssueHistory } = await import('../../../../../entities/IssueHistory');
-    const dataSource = await getDataSource();
-    const issueRepo = dataSource.getRepository(Issue);
-    const historyRepo = dataSource.getRepository(IssueHistory);
-
-    // 3. Fetch issue (soft-delete filtered)
-    const issue = await issueRepo.findOne({
-      where: {
-        id: issueId,
-        deleted_at: null as any,
-      },
-    });
+    // 2. Fetch issue (soft-delete filtered)
+    const issueSql = `
+      SELECT id, status, completed_at, updated_at
+      FROM ISSUE
+      WHERE id = :issueId AND deleted_at IS NULL
+    `;
+    const issue = await executeQuerySingle(issueSql, { issueId });
 
     if (!issue) {
       return NextResponse.json(
@@ -67,39 +60,62 @@ export async function PUT(
       );
     }
 
-    // 4. Status validation (only COMPLETED can be rolled back)
-    if (issue.status !== 'COMPLETED') {
+    // 3. Status validation (only COMPLETED can be rolled back)
+    if (issue.STATUS !== 'COMPLETED') {
       return NextResponse.json(
         {
-          message: `Only COMPLETED issues can be rolled back. Current status: ${issue.status}`,
+          message: `Only COMPLETED issues can be rolled back. Current status: ${issue.STATUS}`,
         },
         { status: 400 }
       );
     }
 
-    // 5. Update status
-    issue.status = 'IN_PROGRESS';
-    issue.completed_at = null;
-    await issueRepo.save(issue);
+    // 4. Update status
+    const now = new Date();
+    const updateSql = `
+      UPDATE ISSUE
+      SET status = :status, completed_at = :completedAt, updated_at = :updatedAt
+      WHERE id = :issueId
+    `;
+    await executeUpdate(updateSql, {
+      status: 'IN_PROGRESS',
+      completedAt: null,
+      updatedAt: now,
+      issueId,
+    });
 
-    // 6. Create history record
-    const history = new IssueHistory();
-    history.issue_id = issueId;
-    history.change_type = 'STATUS_ROLLBACK';
-    history.old_value = 'COMPLETED';
-    history.new_value = 'IN_PROGRESS';
-    history.changed_by_id = userId;
-    history.remark = `Rolled back by ADMIN at ${new Date().toISOString()}`;
+    // 5. Create history record
+    const historySeqSql = `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as ID FROM DUAL`;
+    const historySeqResult = await executeQuerySingle(historySeqSql);
+    const historyId = historySeqResult?.ID;
 
-    await historyRepo.save(history);
+    if (historyId) {
+      const historySql = `
+        INSERT INTO ISSUE_HISTORY (
+          id, issue_id, change_type, old_value, new_value, changed_by_id, changed_at, remark
+        ) VALUES (
+          :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
+        )
+      `;
+      await executeUpdate(historySql, {
+        id: historyId,
+        issueId,
+        changeType: 'STATUS_ROLLBACK',
+        oldValue: 'COMPLETED',
+        newValue: 'IN_PROGRESS',
+        changedById: userId,
+        changedAt: now,
+        remark: `Rolled back by ADMIN at ${now.toISOString()}`,
+      });
+    }
 
-    // 7. Response
+    // 6. Response
     return NextResponse.json({
       message: 'Issue status rolled back successfully',
       data: {
-        id: issue.id,
-        status: issue.status,
-        completed_at: issue.completed_at,
+        id: issueId,
+        status: 'IN_PROGRESS',
+        completed_at: null,
       },
     });
   } catch (error) {

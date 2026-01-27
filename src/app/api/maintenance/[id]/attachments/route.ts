@@ -1,10 +1,9 @@
-// Generated: 2026-01-26 23:30:00 KST
-
+// Generated: 2026-01-27 23:45:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../../../lib/auth';
-import { getDataSource } from '../../../../../lib/db';
+import { executeQuerySingle, executeQuery, executeUpdate } from '../../../../../lib/db-direct';
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -45,21 +44,12 @@ export async function GET(
       );
     }
 
-    // 4. 데이터베이스 연결 확인
-    const dataSource = await getDataSource();
-    if (!dataSource.isInitialized) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // 5. 계약 존재 여부 확인
-    const { MaintenanceContractRepository } = await import(
-      '../../../../../lib/maintenance-repository'
+    // 4. 계약 존재 여부 확인
+    const contract = await executeQuerySingle(
+      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
+       WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
+      { id: contractId }
     );
-    const repository = new MaintenanceContractRepository(dataSource);
-    const contract = await repository.findById(contractId);
 
     if (!contract) {
       return NextResponse.json(
@@ -68,28 +58,47 @@ export async function GET(
       );
     }
 
-    // 6. 쿼리 파라미터 파싱
+    // 5. 쿼리 파라미터 파싱
     const searchParams = request.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10')));
 
-    // 7. 첨부파일 조회
-    const attachments = await repository.findAttachments(contractId);
+    // 6. 총 첨부파일 개수 조회
+    const countResult = await executeQuerySingle(
+      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+       WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
+      { contract_id: contractId }
+    );
+    const total = parseInt((countResult as any)?.TOTAL || '0');
 
-    // 8. 페이지네이션 처리 (간단한 인메모리 페이지네이션)
-    const total = attachments.length;
+    // 7. 첨부파일 조회 (페이지네이션)
     const offset = (page - 1) * limit;
-    const paginatedAttachments = attachments.slice(offset, offset + limit);
+    const attachmentsResult = await executeQuery(
+      `SELECT ID, FILE_NAME, FILE_PATH, FILE_SIZE, CREATED_AT, UPLOADED_BY_ID
+       FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+       WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL
+       ORDER BY CREATED_AT DESC
+       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
+      { contract_id: contractId, offset, limit }
+    );
 
-    // 9. 성공 응답
+    // 8. 성공 응답
+    const totalPages = Math.ceil(total / limit);
     return NextResponse.json(
       {
-        data: paginatedAttachments,
+        data: attachmentsResult.rows.map((a: any) => ({
+          id: a.ID,
+          file_name: a.FILE_NAME,
+          file_path: a.FILE_PATH,
+          file_size: a.FILE_SIZE,
+          created_at: a.CREATED_AT,
+          uploaded_by_id: a.UPLOADED_BY_ID,
+        })),
         pagination: {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit),
+          totalPages,
         },
       },
       { status: 200 }
@@ -145,21 +154,12 @@ export async function POST(
       );
     }
 
-    // 4. 데이터베이스 연결 확인
-    const dataSource = await getDataSource();
-    if (!dataSource.isInitialized) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // 5. 계약 존재 여부 확인
-    const { MaintenanceContractRepository } = await import(
-      '../../../../../lib/maintenance-repository'
+    // 4. 계약 존재 여부 확인
+    const contract = await executeQuerySingle(
+      `SELECT MC.ID FROM MAINTENANCE_CONTRACTS MC
+       WHERE MC.ID = :id AND MC.DELETED_AT IS NULL`,
+      { id: contractId }
     );
-    const repository = new MaintenanceContractRepository(dataSource);
-    const contract = await repository.findById(contractId);
 
     if (!contract) {
       return NextResponse.json(
@@ -168,9 +168,15 @@ export async function POST(
       );
     }
 
-    // 6. 현재 첨부파일 개수 확인
-    const existingAttachments = await repository.findAttachments(contractId);
-    if (existingAttachments.length >= 5) {
+    // 5. 현재 첨부파일 개수 확인
+    const countResult = await executeQuerySingle(
+      `SELECT COUNT(*) as TOTAL FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+       WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL`,
+      { contract_id: contractId }
+    );
+    const currentFileCount = parseInt((countResult as any)?.TOTAL || '0');
+
+    if (currentFileCount >= 5) {
       return NextResponse.json(
         {
           error: 'Validation Error',
@@ -180,7 +186,7 @@ export async function POST(
       );
     }
 
-    // 7. FormData 파싱
+    // 6. FormData 파싱
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -191,7 +197,7 @@ export async function POST(
       );
     }
 
-    // 8. 파일 타입 검증 (MIME 타입 + 확장자)
+    // 7. 파일 타입 검증 (MIME 타입 + 확장자)
     const fileExt = path.extname(file.name).toLowerCase();
     const validExtensions = ['.pdf', '.doc', '.docx'];
     const validMimeTypes = [
@@ -220,7 +226,7 @@ export async function POST(
       );
     }
 
-    // 9. 파일 크기 검증 (10MB limit)
+    // 8. 파일 크기 검증 (10MB limit)
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
@@ -232,14 +238,14 @@ export async function POST(
       );
     }
 
-    // 10. 파일 저장
+    // 9. 파일 저장
     const uploadDir = process.env.UPLOAD_DIR || './uploads';
     const maintenanceDir = path.join(uploadDir, 'maintenance');
 
     // 디렉토리 생성
     await fs.mkdir(maintenanceDir, { recursive: true });
 
-    // UUID + 원본 파일명 (fileExt는 이미 위에서 선언됨)
+    // UUID + 원본 파일명
     const uuid = crypto.randomUUID();
     const fileName = `${uuid}${fileExt}`;
     const filePath = path.join(maintenanceDir, fileName);
@@ -249,27 +255,41 @@ export async function POST(
     const buffer = Buffer.from(await file.arrayBuffer());
     await fs.writeFile(filePath, buffer);
 
-    // 11. 데이터베이스에 기록
-    const { MaintenanceContractService } = await import(
-      '../../../../../lib/maintenance-service'
-    );
-    const service = new MaintenanceContractService(dataSource);
+    // 10. 데이터베이스에 기록
     const userId = (session.user as any)?.id as number;
+    const now = new Date();
 
-    const attachment = await service.addAttachment(contractId, {
-      file_name: file.name,
-      file_path: relativeFilePath,
-      file_size: file.size,
-      uploaded_by_id: userId,
-    });
+    const insertResult = await executeUpdate(
+      `INSERT INTO MAINTENANCE_CONTRACT_ATTACHMENTS
+        (ID, MAINTENANCE_CONTRACT_ID, FILE_NAME, FILE_PATH, FILE_SIZE, UPLOADED_BY_ID, CREATED_AT, DELETED_AT)
+        VALUES (SEQ_MAINTENANCE_CONTRACT_ATTACHMENTS.NEXTVAL, :contract_id, :file_name, :file_path, :file_size, :uploaded_by_id, :created_at, NULL)`,
+      {
+        contract_id: contractId,
+        file_name: file.name,
+        file_path: relativeFilePath,
+        file_size: file.size,
+        uploaded_by_id: userId,
+        created_at: now,
+      }
+    );
+
+    // 11. 생성된 첨부파일 ID 조회
+    const attachmentResult = await executeQuerySingle(
+      `SELECT ID, FILE_NAME, FILE_SIZE, CREATED_AT FROM MAINTENANCE_CONTRACT_ATTACHMENTS
+       WHERE MAINTENANCE_CONTRACT_ID = :contract_id AND DELETED_AT IS NULL
+       ORDER BY CREATED_AT DESC FETCH FIRST 1 ROWS ONLY`,
+      { contract_id: contractId }
+    );
+
+    const attachment = attachmentResult as any;
 
     // 12. 성공 응답
     return NextResponse.json(
       {
-        id: attachment.id,
-        file_name: attachment.file_name,
-        file_size: attachment.file_size,
-        created_at: attachment.created_at,
+        id: attachment.ID,
+        file_name: attachment.FILE_NAME,
+        file_size: attachment.FILE_SIZE,
+        created_at: attachment.CREATED_AT,
         message: 'File uploaded successfully',
       },
       { status: 201 }

@@ -1,9 +1,9 @@
-// Generated: 2026-01-27 23:55:00 KST
+// Generated: 2026-01-27 10:30:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,53 +102,45 @@ export async function GET(
   }
 
   try {
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const customerResult = await executeQuerySingle(
+      `SELECT id FROM CUSTOMER WHERE id = :customerId AND deleted_at IS NULL`,
+      { customerId }
+    );
 
-    try {
-      const customerSql = `
-        SELECT id FROM CUSTOMER
-        WHERE id = :customerId AND deleted_at IS NULL
-      `;
-      const customers = await queryRunner.query(customerSql, { customerId });
-
-      if (!customers || customers.length === 0) {
-        return NextResponse.json(
-          { error: 'Customer not found' },
-          { status: 404 }
-        );
-      }
-
-      const sql = `
-        SELECT
-          id, customer_id as customerId, name, title, department, email, phone,
-          description, primary_contact as primaryContact,
-          created_at as createdAt, updated_at as updatedAt
-        FROM CUSTOMER_CONTACT
-        WHERE customer_id = :customerId AND deleted_at IS NULL
-        ORDER BY primary_contact DESC, created_at ASC
-      `;
-
-      const contacts = await queryRunner.query(sql, { customerId });
-
-      const response: ContactResponse[] = contacts.map((contact: any) => ({
-        id: contact.id,
-        customerId: contact.customerId,
-        name: contact.name,
-        title: contact.title,
-        department: contact.department,
-        email: contact.email,
-        phone: contact.phone,
-        description: contact.description,
-        primaryContact: contact.primaryContact === 1 || contact.primaryContact === true,
-        createdAt: contact.createdAt,
-        updatedAt: contact.updatedAt,
-      }));
-
-      return NextResponse.json({ data: response }, { status: 200 });
-    } finally {
-      await queryRunner.release();
+    if (!customerResult) {
+      return NextResponse.json(
+        { error: 'Customer not found' },
+        { status: 404 }
+      );
     }
+
+    const sql = `
+      SELECT
+        id, customer_id as customerId, name, title, department, email, phone,
+        description, primary_contact as primaryContact,
+        created_at as createdAt, updated_at as updatedAt
+      FROM CUSTOMER_CONTACT
+      WHERE customer_id = :customerId AND deleted_at IS NULL
+      ORDER BY primary_contact DESC, created_at ASC
+    `;
+
+    const result = await executeQuery(sql, { customerId });
+
+    const response: ContactResponse[] = result.rows.map((contact: any) => ({
+      id: contact.id,
+      customerId: contact.customerId,
+      name: contact.name,
+      title: contact.title,
+      department: contact.department,
+      email: contact.email,
+      phone: contact.phone,
+      description: contact.description,
+      primaryContact: contact.primaryContact === 1 || contact.primaryContact === true,
+      createdAt: contact.createdAt,
+      updatedAt: contact.updatedAt,
+    }));
+
+    return NextResponse.json({ data: response }, { status: 200 });
   } catch (error) {
     console.error(`GET /api/customers/${customerId}/contacts error:`, error);
     return NextResponse.json(
@@ -204,119 +196,100 @@ export async function POST(
   const primaryContact = body.primaryContact === true ? 1 : 0;
 
   try {
-    const ds = await getDataSource();
-    const queryRunner = ds.createQueryRunner();
+    const customerResult = await executeQuerySingle(
+      `SELECT id FROM CUSTOMER WHERE id = :customerId AND deleted_at IS NULL`,
+      { customerId }
+    );
 
-    try {
-      const customerSql = `
-        SELECT id FROM CUSTOMER
-        WHERE id = :customerId AND deleted_at IS NULL
-      `;
-      const customers = await queryRunner.query(customerSql, { customerId });
+    if (!customerResult) {
+      return NextResponse.json(
+        { error: 'Customer not found' },
+        { status: 404 }
+      );
+    }
 
-      if (!customers || customers.length === 0) {
-        return NextResponse.json(
-          { error: 'Customer not found' },
-          { status: 404 }
+    if (primaryContact === 1) {
+      const existingPrimary = await executeQuerySingle(
+        `SELECT id FROM CUSTOMER_CONTACT WHERE customer_id = :customerId AND primary_contact = 1 AND deleted_at IS NULL`,
+        { customerId }
+      );
+
+      if (existingPrimary) {
+        const now = new Date();
+        await executeUpdate(
+          `UPDATE CUSTOMER_CONTACT SET primary_contact = 0, updated_at = :now WHERE id = :id`,
+          { id: existingPrimary.id, now }
         );
       }
+    }
 
-      if (primaryContact === 1) {
-        const existingPrimarySql = `
-          SELECT id FROM CUSTOMER_CONTACT
-          WHERE customer_id = :customerId AND primary_contact = 1 AND deleted_at IS NULL
-        `;
-        const existingPrimary = await queryRunner.query(existingPrimarySql, {
-          customerId,
-        });
+    const now = new Date();
+    const insertSql = `
+      INSERT INTO CUSTOMER_CONTACT (
+        customer_id, name, title, department, email, phone, description,
+        primary_contact, created_at, updated_at
+      ) VALUES (
+        :customerId, :name, :title, :department, :email, :phone, :description,
+        :primaryContact, :now, :now
+      )
+      RETURNING id, customer_id as customerId, name, title, department, email, phone,
+                description, primary_contact as primaryContact, created_at as createdAt
+    `;
 
-        if (existingPrimary && existingPrimary.length > 0) {
-          const updatePrimarySql = `
-            UPDATE CUSTOMER_CONTACT
-            SET primary_contact = 0, updated_at = :now
-            WHERE id = :id
-          `;
-          await queryRunner.query(updatePrimarySql, {
-            id: existingPrimary[0].id,
-            now: new Date(),
-          });
-        }
-      }
+    const insertResult = await executeQuery(insertSql, {
+      customerId,
+      name: sanitizedName,
+      title: sanitizedTitle,
+      department: sanitizedDepartment,
+      email: sanitizedEmail,
+      phone: sanitizedPhone,
+      description: sanitizedDescription,
+      primaryContact,
+      now,
+    });
 
-      const now = new Date();
-      const insertSql = `
-        INSERT INTO CUSTOMER_CONTACT (
-          customer_id, name, title, department, email, phone, description,
-          primary_contact, created_at, updated_at
-        ) VALUES (
-          :customerId, :name, :title, :department, :email, :phone, :description,
-          :primaryContact, :now, :now
-        )
-        RETURNING id, customer_id as customerId, name, title, department, email, phone,
-                  description, primary_contact as primaryContact, created_at as createdAt
-      `;
+    const newContact = insertResult.rows[0];
 
-      const result = await queryRunner.query(insertSql, {
-        customerId,
-        name: sanitizedName,
-        title: sanitizedTitle,
-        department: sanitizedDepartment,
-        email: sanitizedEmail,
-        phone: sanitizedPhone,
-        description: sanitizedDescription,
-        primaryContact,
-        now,
-      });
+    const changedFieldsJson = {
+      name: { before: null, after: sanitizedName },
+      title: { before: null, after: sanitizedTitle },
+      email: { before: null, after: sanitizedEmail },
+      phone: { before: null, after: sanitizedPhone },
+      ...(sanitizedDepartment && { department: { before: null, after: sanitizedDepartment } }),
+      ...(sanitizedDescription && { description: { before: null, after: sanitizedDescription } }),
+      ...(primaryContact === 1 && { primaryContact: { before: null, after: true } }),
+    };
 
-      const newContact = result[0] || result;
-
-      const changedFieldsJson = {
-        name: { before: null, after: sanitizedName },
-        title: { before: null, after: sanitizedTitle },
-        email: { before: null, after: sanitizedEmail },
-        phone: { before: null, after: sanitizedPhone },
-        ...(sanitizedDepartment && { department: { before: null, after: sanitizedDepartment } }),
-        ...(sanitizedDescription && { description: { before: null, after: sanitizedDescription } }),
-        ...(primaryContact === 1 && { primaryContact: { before: null, after: true } }),
-      };
-
-      const historyInsertSql = `
-        INSERT INTO CUSTOMER_HISTORY (
-          customer_id, change_type, changed_fields, changed_by_id, changed_at
-        ) VALUES (
-          :customerId, :changeType, :changedFields, :userId, :now
-        )
-      `;
-
-      await queryRunner.query(historyInsertSql, {
+    await executeUpdate(
+      `INSERT INTO CUSTOMER_HISTORY (customer_id, change_type, changed_fields, changed_by_id, changed_at)
+       VALUES (:customerId, :changeType, :changedFields, :userId, :now)`,
+      {
         customerId,
         changeType: 'CONTACT_ADD',
         changedFields: JSON.stringify(changedFieldsJson),
         userId: user.id,
         now,
-      });
+      }
+    );
 
-      return NextResponse.json(
-        {
-          data: {
-            id: newContact.id,
-            customerId: newContact.customerId,
-            name: newContact.name,
-            title: newContact.title,
-            department: newContact.department,
-            email: newContact.email,
-            phone: newContact.phone,
-            description: newContact.description,
-            primaryContact: newContact.primaryContact === 1 || newContact.primaryContact === true,
-            createdAt: newContact.createdAt,
-          },
-          message: '담당자가 추가되었습니다.',
+    return NextResponse.json(
+      {
+        data: {
+          id: newContact.id,
+          customerId: newContact.customerId,
+          name: newContact.name,
+          title: newContact.title,
+          department: newContact.department,
+          email: newContact.email,
+          phone: newContact.phone,
+          description: newContact.description,
+          primaryContact: newContact.primaryContact === 1 || newContact.primaryContact === true,
+          createdAt: newContact.createdAt,
         },
-        { status: 201 }
-      );
-    } finally {
-      await queryRunner.release();
-    }
+        message: '담당자가 추가되었습니다.',
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error(`POST /api/customers/${customerId}/contacts error:`, error);
     return NextResponse.json(

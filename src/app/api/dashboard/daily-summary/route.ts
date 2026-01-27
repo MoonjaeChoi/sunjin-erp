@@ -1,9 +1,9 @@
-// Generated: 2026-01-24 23:30:00 KST
+// Generated: 2026-01-27 10:30:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getDataSource } from '@/lib/db';
+import { executeQuery } from '@/lib/db-direct';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,50 +26,44 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 3. Task 조회 (raw SQL to avoid ORM metadata issues)
-    const ds = await getDataSource();
+    // 3. Task 조회
     const user = session.user as any;
 
     // Build SQL query with RBAC filtering
     let sql = `
-      SELECT "id", "title", "task_type", "work_type", "status", "start_time", "end_time", "employee_id"
+      SELECT id, title, task_type, work_type, status, start_time, end_time, employee_id
       FROM TASK
-      WHERE TRUNC("task_date") = TO_DATE(:date, 'YYYY-MM-DD')
-        AND "deleted_at" IS NULL
+      WHERE TRUNC(task_date) = TO_DATE(:date, 'YYYY-MM-DD')
+        AND deleted_at IS NULL
     `;
     const params: any = { date };
 
     // RBAC filtering
     if (user.role === 'USER' || user.role === 'MANAGER') {
-      sql += ` AND "employee_id" = :userId`;
+      sql += ` AND employee_id = :userId`;
       params.userId = user.id;
     }
     // ADMIN: no additional filtering
 
-    sql += ` ORDER BY "start_time" ASC`;
+    sql += ` ORDER BY start_time ASC`;
 
-    const queryRunner = ds.createQueryRunner();
-    try {
-      const tasks = await queryRunner.query(sql, params);
+    const result = await executeQuery(sql, params);
 
-      // 4. 응답 구성
-      return NextResponse.json({
-        date,
-        tasks: tasks.map((task: any) => ({
-          id: task.id,
-          title: task.title,
-          task_type: task.task_type,
-          work_type: task.work_type,
-          status: task.status,
-          start_time: task.start_time,
-          end_time: task.end_time,
-          customer_name: null, // Phase 1 완료 후 JOIN
-        })),
-        techSupports: [], // Phase 3 전까지 빈 배열
-      });
-    } finally {
-      await queryRunner.release();
-    }
+    // 4. 응답 구성
+    return NextResponse.json({
+      date,
+      tasks: result.rows.map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        task_type: task.task_type,
+        work_type: task.work_type,
+        status: task.status,
+        start_time: task.start_time,
+        end_time: task.end_time,
+        customer_name: null, // Phase 1 완료 후 JOIN
+      })),
+      techSupports: [], // Phase 3 전까지 빈 배열
+    });
   } catch (error) {
     console.error('GET /api/dashboard/daily-summary error:', error);
     if (error instanceof Error) {

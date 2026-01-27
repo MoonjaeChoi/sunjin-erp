@@ -1,8 +1,8 @@
-// Generated: 2026-01-25 21:00:00 KST
+// Generated: 2026-01-27 23:52:00 KST
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { getDataSource } from '@/lib/db';
+import { executeQuery, executeUpdate, executeQuerySingle } from '@/lib/db-direct';
 import { authOptions } from '@/lib/auth';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
@@ -40,6 +40,69 @@ interface RouteParams {
   };
 }
 
+export async function GET(
+  req: NextRequest,
+  { params }: RouteParams
+): Promise<NextResponse> {
+  try {
+    // 1. Session validation
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const issueId = parseInt(params.id);
+
+    if (isNaN(issueId)) {
+      return NextResponse.json(
+        { message: 'Invalid issue ID' },
+        { status: 400 }
+      );
+    }
+
+    // 2. Verify issue exists
+    const issueSql = `SELECT id FROM ISSUE WHERE id = :issueId AND deleted_at IS NULL`;
+    const issue = await executeQuerySingle(issueSql, { issueId });
+
+    if (!issue) {
+      return NextResponse.json(
+        { message: 'Issue not found' },
+        { status: 404 }
+      );
+    }
+
+    // 3. Fetch all attachments for this issue
+    const attachmentsSql = `
+      SELECT id, file_name, file_size, uploaded_by_id, created_at
+      FROM ISSUE_ATTACHMENT
+      WHERE issue_id = :issueId AND deleted_at IS NULL
+      ORDER BY created_at DESC
+    `;
+    const attachmentsResult = await executeQuery(attachmentsSql, { issueId });
+
+    // 4. Response
+    return NextResponse.json({
+      message: 'Attachments retrieved successfully',
+      data: attachmentsResult.rows.map((row: any) => ({
+        id: row.ID,
+        file_name: row.FILE_NAME,
+        file_size: row.FILE_SIZE,
+        uploaded_by_id: row.UPLOADED_BY_ID,
+        created_at: row.CREATED_AT,
+      })),
+    });
+  } catch (error) {
+    console.error('GET /api/issues/[id]/attachments error:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(
   req: NextRequest,
   { params }: RouteParams
@@ -64,20 +127,9 @@ export async function POST(
       );
     }
 
-    // 2. Get datasource and repositories
-    const dataSource = await getDataSource();
-    const { Issue } = await import('../../../../../entities/Issue');
-    const { IssueAttachment } = await import('../../../../../entities/IssueAttachment');
-    const issueRepo = dataSource.getRepository(Issue);
-    const attachmentRepo = dataSource.getRepository(IssueAttachment);
-
-    // 3. Fetch issue
-    const issue = await issueRepo.findOne({
-      where: {
-        id: issueId,
-        deleted_at: null as any,
-      },
-    });
+    // 2. Verify issue exists
+    const issueSql = `SELECT id FROM ISSUE WHERE id = :issueId AND deleted_at IS NULL`;
+    const issue = await executeQuerySingle(issueSql, { issueId });
 
     if (!issue) {
       return NextResponse.json(
@@ -86,13 +138,14 @@ export async function POST(
       );
     }
 
-    // 4. Check current file count
-    const currentFileCount = await attachmentRepo.count({
-      where: {
-        issue_id: issueId,
-        deleted_at: null as any,
-      },
-    });
+    // 3. Check current file count
+    const countSql = `
+      SELECT COUNT(*) as file_count
+      FROM ISSUE_ATTACHMENT
+      WHERE issue_id = :issueId AND deleted_at IS NULL
+    `;
+    const countResult = await executeQuerySingle(countSql, { issueId });
+    const currentFileCount = countResult?.FILE_COUNT || 0;
 
     if (currentFileCount >= MAX_FILES_PER_ISSUE) {
       return NextResponse.json(
@@ -104,7 +157,7 @@ export async function POST(
       );
     }
 
-    // 5. Parse form data
+    // 4. Parse form data
     const formData = await req.formData();
     const file = formData.get('file') as File;
 
@@ -115,7 +168,7 @@ export async function POST(
       );
     }
 
-    // 6. Validate file (server-side re-validation)
+    // 5. Validate file (server-side re-validation)
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
@@ -152,44 +205,79 @@ export async function POST(
       );
     }
 
-    // 7. Save file
+    // 6. Save file
     await mkdir(UPLOAD_DIR, { recursive: true });
     const fileName = `${issueId}_${Date.now()}_${uuidv4()}${fileExtension}`;
     const filePath = join(UPLOAD_DIR, fileName);
     const buffer = await file.arrayBuffer();
     await writeFile(filePath, Buffer.from(buffer));
 
-    // 8. Create IssueAttachment entity
-    const attachment = new IssueAttachment();
-    attachment.issue_id = issueId;
-    attachment.file_name = file.name;
-    attachment.file_path = filePath;
-    attachment.file_size = file.size;
-    attachment.uploaded_by_id = userId;
+    // 7. Create attachment record in database
+    const attachmentSeqSql = `SELECT ISSUE_ATTACHMENT_SEQ.NEXTVAL as ID FROM DUAL`;
+    const attachmentSeqResult = await executeQuerySingle(attachmentSeqSql);
+    const attachmentId = attachmentSeqResult?.ID;
 
-    await attachmentRepo.save(attachment);
+    if (!attachmentId) {
+      return NextResponse.json(
+        { message: 'Failed to generate attachment ID' },
+        { status: 500 }
+      );
+    }
 
-    // 9. Record ATTACHMENT_UPLOADED history
-    const { IssueHistory } = await import('../../../../../entities/IssueHistory');
-    const historyRepo = dataSource.getRepository(IssueHistory);
-    const history = new IssueHistory();
-    history.issue_id = issueId;
-    history.change_type = 'ATTACHMENT_UPLOADED';
-    history.old_value = null;
-    history.new_value = file.name;
-    history.changed_by_id = userId;
+    const now = new Date();
+    const insertSql = `
+      INSERT INTO ISSUE_ATTACHMENT (
+        id, issue_id, file_name, file_path, file_size, uploaded_by_id, created_at, updated_at, deleted_at
+      ) VALUES (
+        :id, :issueId, :fileName, :filePath, :fileSize, :uploadedById, :createdAt, :updatedAt, :deletedAt
+      )
+    `;
+    await executeUpdate(insertSql, {
+      id: attachmentId,
+      issueId,
+      fileName: file.name,
+      filePath,
+      fileSize: file.size,
+      uploadedById: userId,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    });
 
-    await historyRepo.save(history);
+    // 8. Record ATTACHMENT_UPLOADED history
+    const historySeqSql = `SELECT ISSUE_HISTORY_SEQ.NEXTVAL as ID FROM DUAL`;
+    const historySeqResult = await executeQuerySingle(historySeqSql);
+    const historyId = historySeqResult?.ID;
 
-    // 10. Response
+    if (historyId) {
+      const historySql = `
+        INSERT INTO ISSUE_HISTORY (
+          id, issue_id, change_type, old_value, new_value, changed_by_id, changed_at, remark
+        ) VALUES (
+          :id, :issueId, :changeType, :oldValue, :newValue, :changedById, :changedAt, :remark
+        )
+      `;
+      await executeUpdate(historySql, {
+        id: historyId,
+        issueId,
+        changeType: 'ATTACHMENT_UPLOADED',
+        oldValue: null,
+        newValue: file.name,
+        changedById: userId,
+        changedAt: now,
+        remark: null,
+      });
+    }
+
+    // 9. Response
     return NextResponse.json(
       {
         message: 'File uploaded successfully',
         data: {
-          id: attachment.id,
-          file_name: attachment.file_name,
-          file_size: attachment.file_size,
-          created_at: attachment.created_at,
+          id: attachmentId,
+          file_name: file.name,
+          file_size: file.size,
+          created_at: now,
         },
       },
       { status: 201 }
