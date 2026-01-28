@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 30pt 35pt;
+  box-sizing: border-box;
+}
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15pt;
+}
+.page-num {
+  background: #1ABC9C;
+  color: #FFFFFF;
+  font-size: 12pt;
+  font-weight: bold;
+  padding: 6pt 12pt;
+  border-radius: 4pt;
+  margin-right: 12pt;
+}
+h1 {
+  color: #1C2833;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0;
+}
+.two-col {
+  display: flex;
+  gap: 20pt;
+}
+.col {
+  flex: 1;
+}
+.section-title-done {
+  background: #D5F5E3;
+  padding: 8pt 12pt;
+  border-radius: 4pt;
+  margin-bottom: 10pt;
+}
+.section-title-done p {
+  color: #1E8449;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.section-title-pending {
+  background: #FADBD8;
+  padding: 8pt 12pt;
+  border-radius: 4pt;
+  margin-bottom: 10pt;
+}
+.section-title-pending p {
+  color: #C0392B;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.table-wrap {
+  background: #F8F9FA;
+  border-radius: 6pt;
+  padding: 8pt;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9pt;
+}
+th {
+  background: #2E4053;
+  color: #FFFFFF;
+  padding: 5pt 6pt;
+  text-align: left;
+  font-weight: bold;
+}
+td {
+  padding: 4pt 6pt;
+  border-bottom: 1pt solid #DEE2E6;
+  color: #2E4053;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <div class="header">
+    <div class="page-num"><p>Page 3</p></div>
+    <h1>업무 검색 (PRD 2021)</h1>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="section-title-done"><p>Phase 1 구현 완료</p></div>
+      <div class="table-wrap">
+        <table>
+          <tr><th>항목</th><th>구현 내용</th></tr>
+          <tr><td>업무 신규 등록</td><td>TaskForm 완전 구현</td></tr>
+          <tr><td>업무 삭제</td><td>Soft Delete 구현</td></tr>
+          <tr><td>단일 컬럼 정렬</td><td>date/title/status</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="col">
+      <div class="section-title-pending"><p>Out-of-Scope (Phase 2)</p></div>
+      <div class="table-wrap">
+        <table>
+          <tr><th>항목</th><th>비고</th></tr>
+          <tr><td>검색 페이지 삭제</td><td>TaskDetailDialog</td></tr>
+          <tr><td>기술지원 통합 조회</td><td>통합 검색 API 필요</td></tr>
+          <tr><td>Excel 내보내기</td><td>xlsx 미구현</td></tr>
+          <tr><td>CSV 내보내기</td><td>기본 내보내기 없음</td></tr>
+          <tr><td>검색 조건 저장</td><td>DB 저장 미구현</td></tr>
+          <tr><td>대량 일괄 수정</td><td>다중 선택 미구현</td></tr>
+          <tr><td>다중 컬럼 정렬</td><td>단일 정렬만 지원</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

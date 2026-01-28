@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 30pt 50pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 26pt;
+  font-weight: bold;
+  margin: 15pt 0 20pt 0;
+}
+.content-box {
+  display: flex;
+  gap: 30pt;
+}
+.left-col {
+  flex: 1;
+}
+.right-col {
+  flex: 1;
+}
+.section-header {
+  background: #1ABC9C;
+  padding: 8pt 12pt;
+  border-radius: 4pt;
+  margin-bottom: 12pt;
+}
+.section-header p {
+  color: #FFFFFF;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0;
+}
+ul {
+  margin: 0;
+  padding-left: 20pt;
+  color: #2E4053;
+  font-size: 11pt;
+  line-height: 1.7;
+}
+li {
+  margin-bottom: 4pt;
+}
+.highlight {
+  background: #E8F8F5;
+  padding: 12pt;
+  border-radius: 6pt;
+  margin-top: 15pt;
+}
+.highlight p {
+  color: #1C2833;
+  font-size: 10pt;
+  margin: 0;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>문서 개요</h1>
+  <div class="content-box">
+    <div class="left-col">
+      <div class="section-header"><p>목적</p></div>
+      <ul>
+        <li>Phase 1 구현 완료 항목 정리</li>
+        <li>Out-of-Scope 항목 정리</li>
+        <li>Phase 2 로드맵 수립 기초 자료</li>
+      </ul>
+      <div class="highlight">
+        <p><b>대상 시스템:</b> 선진인포텍 ERP V1.0<br>
+        <b>작성일:</b> 2026-01-28<br>
+        <b>버전:</b> v1.0</p>
+      </div>
+    </div>
+    <div class="right-col">
+      <div class="section-header"><p>구성 (11개 모듈)</p></div>
+      <ul>
+        <li>전체 레이아웃 설정</li>
+        <li>대시보드 및 일정관리</li>
+        <li>업무 검색</li>
+        <li>기술지원 관리</li>
+        <li>프로젝트 관리 (영업 파이프라인)</li>
+        <li>장애 현황 관리</li>
+        <li>재고 관리</li>
+        <li>유지보수 고객 관리</li>
+        <li>고객 등록 및 조회 (CRM)</li>
+        <li>직원 관리 (인사)</li>
+        <li>공지사항 (게시판)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>

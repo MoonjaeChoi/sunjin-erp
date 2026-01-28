@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 30pt 35pt;
+  box-sizing: border-box;
+}
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15pt;
+}
+.page-num {
+  background: #1ABC9C;
+  color: #FFFFFF;
+  font-size: 12pt;
+  font-weight: bold;
+  padding: 6pt 12pt;
+  border-radius: 4pt;
+  margin-right: 12pt;
+}
+h1 {
+  color: #1C2833;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0;
+}
+.two-col {
+  display: flex;
+  gap: 20pt;
+}
+.col {
+  flex: 1;
+}
+.section-title-done {
+  background: #D5F5E3;
+  padding: 8pt 12pt;
+  border-radius: 4pt;
+  margin-bottom: 10pt;
+}
+.section-title-done p {
+  color: #1E8449;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.section-title-pending {
+  background: #FADBD8;
+  padding: 8pt 12pt;
+  border-radius: 4pt;
+  margin-bottom: 10pt;
+}
+.section-title-pending p {
+  color: #C0392B;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.table-wrap {
+  background: #F8F9FA;
+  border-radius: 6pt;
+  padding: 8pt;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8pt;
+}
+th {
+  background: #2E4053;
+  color: #FFFFFF;
+  padding: 4pt 5pt;
+  text-align: left;
+  font-weight: bold;
+}
+td {
+  padding: 3pt 5pt;
+  border-bottom: 1pt solid #DEE2E6;
+  color: #2E4053;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <div class="header">
+    <div class="page-num"><p>Page 11</p></div>
+    <h1>공지사항 - 게시판 (PRD 2101)</h1>
+  </div>
+  <div class="two-col">
+    <div class="col">
+      <div class="section-title-done"><p>Phase 1 구현 완료</p></div>
+      <div class="table-wrap">
+        <table>
+          <tr><th>항목</th><th>구현 내용</th></tr>
+          <tr><td>공지사항 CRUD</td><td>생성/조회/수정/삭제</td></tr>
+          <tr><td>게시물 유형</td><td>공지/공유/지시/건의/자유</td></tr>
+          <tr><td>댓글 기능</td><td>트리 구조, 2단계 깊이</td></tr>
+          <tr><td>첨부파일 관리</td><td>매직 바이트, 10MB/5개</td></tr>
+          <tr><td>검색/필터링</td><td>제목/내용, 유형/작성자</td></tr>
+          <tr><td>조회수 추적</td><td>상세 조회 시 증가</td></tr>
+          <tr><td>Draft 자동 저장</td><td>localStorage 30초</td></tr>
+          <tr><td>RBAC 권한</td><td>MANAGER+(작성)</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="col">
+      <div class="section-title-pending"><p>Out-of-Scope (Phase 2)</p></div>
+      <div class="table-wrap">
+        <table>
+          <tr><th>항목</th><th>비고</th></tr>
+          <tr><td>좋아요/싫어요</td><td>LIKE 테이블 없음</td></tr>
+          <tr><td>카테고리 추가</td><td>5가지 고정만</td></tr>
+          <tr><td>알림 시스템</td><td>알림 테이블 없음</td></tr>
+          <tr><td>대량 import/export</td><td>CSV/Excel 없음</td></tr>
+          <tr><td>WYSIWYG 에디터</td><td>Textarea만</td></tr>
+          <tr><td>댓글 좋아요</td><td>COMMENT_LIKE 없음</td></tr>
+          <tr><td>게시물 핀 고정</td><td>pinned_at 없음</td></tr>
+          <tr><td>태그 시스템</td><td>TAG 테이블 없음</td></tr>
+          <tr><td>클라우드 스토리지</td><td>로컬 파일만</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
