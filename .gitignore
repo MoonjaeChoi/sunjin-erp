@@ -37,3 +37,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# workspace dependencies (PPT generation, etc.)
+workspace/**/node_modules
+workspace/**/package-lock.json
