@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 15pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 15pt 35pt;
+}
+.subtitle {
+  color: #1C2833;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0 0 15pt 0;
+}
+.grid {
+  display: flex;
+  gap: 15pt;
+  margin-bottom: 15pt;
+}
+.challenge-card {
+  flex: 1;
+  background: #FEF9E7;
+  border-top: 3pt solid #F39C12;
+  padding: 12pt;
+}
+.challenge-icon {
+  color: #F39C12;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0 0 8pt 0;
+}
+.challenge-title {
+  color: #1C2833;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.challenge-text {
+  color: #5D6D7E;
+  font-size: 9pt;
+  margin: 0;
+  line-height: 1.4;
+}
+.arrow-section {
+  text-align: center;
+  padding: 10pt 0;
+}
+.arrow {
+  color: #3498DB;
+  font-size: 16pt;
+  margin: 0;
+}
+.solution-box {
+  background: #E8F8F5;
+  padding: 10pt;
+  border-radius: 6pt;
+  text-align: center;
+}
+.solution-text {
+  color: #1C2833;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">01</p>
+  <p class="section-title">현재 업무 환경의 과제</p>
+</div>
+<div class="content">
+  <p class="subtitle">다양한 사업부 운영에 따른 업무 비효율 발생</p>
+  <div class="grid">
+    <div class="challenge-card">
+      <p class="challenge-icon">!</p>
+      <p class="challenge-title">데이터 분산 관리</p>
+      <p class="challenge-text">부서별 개별 시스템 운영으로 데이터 일관성 부족</p>
+    </div>
+    <div class="challenge-card">
+      <p class="challenge-icon">!</p>
+      <p class="challenge-title">업무 프로세스 단절</p>
+      <p class="challenge-text">영업-기술-경영지원 간 정보 흐름 지연</p>
+    </div>
+    <div class="challenge-card">
+      <p class="challenge-icon">!</p>
+      <p class="challenge-title">수작업 의존도 높음</p>
+      <p class="challenge-text">Excel 기반 업무로 인한 데이터 오류 발생</p>
+    </div>
+    <div class="challenge-card">
+      <p class="challenge-icon">!</p>
+      <p class="challenge-title">실시간 현황 파악 한계</p>
+      <p class="challenge-text">프로젝트, 재고, 매출 현황 모니터링 불가</p>
+    </div>
+  </div>
+  <div class="arrow-section">
+    <p class="arrow">▼</p>
+  </div>
+  <div class="solution-box">
+    <p class="solution-text">통합 ERP 시스템 도입을 통한 업무 혁신 필요</p>
+  </div>
+</div>
+</body>
+</html>

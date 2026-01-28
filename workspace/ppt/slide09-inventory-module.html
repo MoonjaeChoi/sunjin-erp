@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 15pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 15pt 35pt;
+  display: flex;
+  gap: 15pt;
+}
+.module-card {
+  flex: 1;
+}
+.card-header {
+  padding: 10pt 12pt;
+  border-radius: 4pt 4pt 0 0;
+}
+.inventory-header { background: #E67E22; }
+.purchase-header { background: #8E44AD; }
+.card-header p {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.card-body {
+  background: #F8F9FA;
+  border: 1pt solid #E5E8E8;
+  border-top: none;
+  border-radius: 0 0 4pt 4pt;
+  padding: 10pt;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 5pt;
+}
+.bullet-orange {
+  color: #E67E22;
+  font-size: 9pt;
+  margin-right: 6pt;
+  font-weight: bold;
+}
+.bullet-purple {
+  color: #8E44AD;
+  font-size: 9pt;
+  margin-right: 6pt;
+  font-weight: bold;
+}
+.feature-text {
+  color: #1C2833;
+  font-size: 8pt;
+  margin: 0;
+  line-height: 1.3;
+}
+.flow-section {
+  width: 180pt;
+}
+.flow-title {
+  color: #1C2833;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0 0 10pt 0;
+  text-align: center;
+}
+.flow-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5pt;
+}
+.flow-box {
+  width: 100%;
+  padding: 8pt;
+  border-radius: 4pt;
+  text-align: center;
+}
+.flow-purchase { background: #F5EEF8; border: 1pt solid #8E44AD; }
+.flow-receive { background: #FEF5E7; border: 1pt solid #E67E22; }
+.flow-stock { background: #E8F8F5; border: 1pt solid #1ABC9C; }
+.flow-issue { background: #EBF5FB; border: 1pt solid #3498DB; }
+.flow-box p {
+  margin: 0;
+  font-size: 8pt;
+  font-weight: bold;
+}
+.flow-box .sub {
+  font-weight: normal;
+  color: #5D6D7E;
+  font-size: 7pt;
+  margin-top: 2pt;
+}
+.flow-arrow {
+  color: #95A5A6;
+  font-size: 10pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">03</p>
+  <p class="section-title">핵심 모듈 - 재고/구매 관리</p>
+</div>
+<div class="content">
+  <div class="module-card">
+    <div class="card-header inventory-header">
+      <p>재고관리</p>
+    </div>
+    <div class="card-body">
+      <div class="feature-item">
+        <p class="bullet-orange">▸</p>
+        <p class="feature-text">품목 마스터 및 분류 체계</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-orange">▸</p>
+        <p class="feature-text">입출고 이력 실시간 추적</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-orange">▸</p>
+        <p class="feature-text">재고 실사 및 조정 기능</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-orange">▸</p>
+        <p class="feature-text">안전재고 알림 설정</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-orange">▸</p>
+        <p class="feature-text">창고/위치별 재고 현황</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-orange">▸</p>
+        <p class="feature-text">시리얼/LOT 번호 관리</p>
+      </div>
+    </div>
+  </div>
+  <div class="module-card">
+    <div class="card-header purchase-header">
+      <p>구매관리</p>
+    </div>
+    <div class="card-body">
+      <div class="feature-item">
+        <p class="bullet-purple">▸</p>
+        <p class="feature-text">구매요청 및 승인 워크플로우</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-purple">▸</p>
+        <p class="feature-text">발주서 생성 및 전송</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-purple">▸</p>
+        <p class="feature-text">협력업체 정보 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-purple">▸</p>
+        <p class="feature-text">입고 검수 및 품질 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-purple">▸</p>
+        <p class="feature-text">구매 단가 히스토리</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-purple">▸</p>
+        <p class="feature-text">월별 구매 실적 분석</p>
+      </div>
+    </div>
+  </div>
+  <div class="flow-section">
+    <p class="flow-title">재고/구매 프로세스</p>
+    <div class="flow-diagram">
+      <div class="flow-box flow-purchase">
+        <p>구매요청/발주</p>
+        <p class="sub">승인 워크플로우</p>
+      </div>
+      <p class="flow-arrow">▼</p>
+      <div class="flow-box flow-receive">
+        <p>입고/검수</p>
+        <p class="sub">품질 확인</p>
+      </div>
+      <p class="flow-arrow">▼</p>
+      <div class="flow-box flow-stock">
+        <p>재고 등록</p>
+        <p class="sub">위치 배정</p>
+      </div>
+      <p class="flow-arrow">▼</p>
+      <div class="flow-box flow-issue">
+        <p>출고/사용</p>
+        <p class="sub">프로젝트 연계</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

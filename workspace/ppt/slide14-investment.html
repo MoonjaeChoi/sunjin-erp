@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 15pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 15pt 35pt;
+  display: flex;
+  gap: 20pt;
+}
+.left-col {
+  flex: 1.2;
+}
+.right-col {
+  flex: 0.8;
+}
+.table-container {
+  background: #F8F9FA;
+  border-radius: 4pt;
+  overflow: hidden;
+}
+.table-header {
+  display: flex;
+  background: #1C2833;
+  padding: 8pt 12pt;
+}
+.th-item {
+  color: #FFFFFF;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0;
+}
+.th-1 { flex: 2; }
+.th-2 { flex: 1; text-align: right; }
+.th-3 { flex: 1.5; text-align: right; }
+.table-row {
+  display: flex;
+  padding: 8pt 12pt;
+  border-bottom: 1pt solid #E5E8E8;
+}
+.table-row:last-child {
+  border-bottom: none;
+}
+.td-item {
+  color: #1C2833;
+  font-size: 9pt;
+  margin: 0;
+}
+.td-1 { flex: 2; }
+.td-2 { flex: 1; text-align: right; }
+.td-3 { flex: 1.5; text-align: right; font-weight: bold; }
+.total-row {
+  background: #EBF5FB;
+}
+.total-row .td-item {
+  font-weight: bold;
+  color: #2980B9;
+}
+.note {
+  color: #7F8C8D;
+  font-size: 7pt;
+  margin: 8pt 0 0 0;
+  font-style: italic;
+}
+.chart-title {
+  color: #1C2833;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0 0 10pt 0;
+  text-align: center;
+}
+.legend {
+  margin-top: 10pt;
+  display: flex;
+  flex-direction: column;
+  gap: 6pt;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8pt;
+}
+.legend-color {
+  width: 12pt;
+  height: 12pt;
+  border-radius: 2pt;
+}
+.color-sw { background: #3498DB; }
+.color-hw { background: #27AE60; }
+.color-impl { background: #E67E22; }
+.color-train { background: #9B59B6; }
+.color-maint { background: #E74C3C; }
+.legend-text {
+  color: #1C2833;
+  font-size: 9pt;
+  margin: 0;
+  flex: 1;
+}
+.legend-pct {
+  color: #5D6D7E;
+  font-size: 9pt;
+  margin: 0;
+}
+.total-box {
+  margin-top: 15pt;
+  background: #1C2833;
+  border-radius: 4pt;
+  padding: 12pt;
+  text-align: center;
+}
+.total-label {
+  color: #AAB7B8;
+  font-size: 8pt;
+  margin: 0;
+}
+.total-value {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 5pt 0 0 0;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">05</p>
+  <p class="section-title">투자 비용 (안)</p>
+</div>
+<div class="content">
+  <div class="left-col">
+    <div class="table-container">
+      <div class="table-header">
+        <p class="th-item th-1">항목</p>
+        <p class="th-item th-2">비율</p>
+        <p class="th-item th-3">비용 (백만원)</p>
+      </div>
+      <div class="table-row">
+        <p class="td-item td-1">소프트웨어 개발</p>
+        <p class="td-item td-2">40%</p>
+        <p class="td-item td-3">120</p>
+      </div>
+      <div class="table-row">
+        <p class="td-item td-1">하드웨어/인프라</p>
+        <p class="td-item td-2">20%</p>
+        <p class="td-item td-3">60</p>
+      </div>
+      <div class="table-row">
+        <p class="td-item td-1">구축 컨설팅</p>
+        <p class="td-item td-2">15%</p>
+        <p class="td-item td-3">45</p>
+      </div>
+      <div class="table-row">
+        <p class="td-item td-1">교육/변화관리</p>
+        <p class="td-item td-2">15%</p>
+        <p class="td-item td-3">45</p>
+      </div>
+      <div class="table-row">
+        <p class="td-item td-1">유지보수 (연간)</p>
+        <p class="td-item td-2">10%</p>
+        <p class="td-item td-3">30</p>
+      </div>
+      <div class="table-row total-row">
+        <p class="td-item td-1">총 투자 비용</p>
+        <p class="td-item td-2">100%</p>
+        <p class="td-item td-3">300</p>
+      </div>
+    </div>
+    <p class="note">상기 금액은 예시이며, 상세 견적은 요구사항 분석 후 확정됩니다.</p>
+  </div>
+  <div class="right-col">
+    <p class="chart-title">투자 비용 구성</p>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color color-sw"></div>
+        <p class="legend-text">SW 개발</p>
+        <p class="legend-pct">40%</p>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color color-hw"></div>
+        <p class="legend-text">HW/인프라</p>
+        <p class="legend-pct">20%</p>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color color-impl"></div>
+        <p class="legend-text">컨설팅</p>
+        <p class="legend-pct">15%</p>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color color-train"></div>
+        <p class="legend-text">교육</p>
+        <p class="legend-pct">15%</p>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color color-maint"></div>
+        <p class="legend-text">유지보수</p>
+        <p class="legend-pct">10%</p>
+      </div>
+    </div>
+    <div class="total-box">
+      <p class="total-label">Total Investment</p>
+      <p class="total-value">300M</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

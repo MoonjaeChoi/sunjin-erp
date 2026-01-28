@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 15pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 15pt 35pt;
+  display: flex;
+  gap: 15pt;
+}
+.col {
+  flex: 1;
+}
+.module-header {
+  padding: 10pt 12pt;
+  border-radius: 4pt 4pt 0 0;
+}
+.hr-header { background: #16A085; }
+.payroll-header { background: #C0392B; }
+.module-header p {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.module-body {
+  background: #F8F9FA;
+  border: 1pt solid #E5E8E8;
+  border-top: none;
+  border-radius: 0 0 4pt 4pt;
+  padding: 10pt;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 5pt;
+}
+.bullet-teal {
+  color: #16A085;
+  font-size: 9pt;
+  margin-right: 6pt;
+  font-weight: bold;
+}
+.bullet-red {
+  color: #C0392B;
+  font-size: 9pt;
+  margin-right: 6pt;
+  font-weight: bold;
+}
+.feature-text {
+  color: #1C2833;
+  font-size: 8pt;
+  margin: 0;
+  line-height: 1.3;
+}
+.center-col {
+  width: 150pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.cycle-title {
+  color: #1C2833;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0 0 10pt 0;
+  text-align: center;
+}
+.cycle-list {
+  background: #F8F9FA;
+  border-radius: 4pt;
+  padding: 10pt;
+}
+.cycle-item {
+  display: flex;
+  align-items: center;
+  gap: 8pt;
+  margin-bottom: 6pt;
+}
+.cycle-num {
+  background: #1C2833;
+  color: #FFFFFF;
+  width: 18pt;
+  height: 18pt;
+  border-radius: 9pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8pt;
+  font-weight: bold;
+}
+.cycle-text {
+  color: #1C2833;
+  font-size: 9pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">03</p>
+  <p class="section-title">핵심 모듈 - 인사/급여</p>
+</div>
+<div class="content">
+  <div class="col">
+    <div class="module-header hr-header">
+      <p>인사관리</p>
+    </div>
+    <div class="module-body">
+      <div class="feature-item">
+        <p class="bullet-teal">▸</p>
+        <p class="feature-text">사원 정보 및 인사 카드 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-teal">▸</p>
+        <p class="feature-text">조직도 및 부서 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-teal">▸</p>
+        <p class="feature-text">근태 관리 (출퇴근/휴가/연차)</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-teal">▸</p>
+        <p class="feature-text">경력 및 자격 이력 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-teal">▸</p>
+        <p class="feature-text">성과 평가 및 목표 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-teal">▸</p>
+        <p class="feature-text">교육 훈련 이력 관리</p>
+      </div>
+    </div>
+  </div>
+  <div class="center-col">
+    <p class="cycle-title">인사 라이프사이클</p>
+    <div class="cycle-list">
+      <div class="cycle-item">
+        <div class="cycle-num"><p>1</p></div>
+        <p class="cycle-text">채용</p>
+      </div>
+      <div class="cycle-item">
+        <div class="cycle-num"><p>2</p></div>
+        <p class="cycle-text">배치</p>
+      </div>
+      <div class="cycle-item">
+        <div class="cycle-num"><p>3</p></div>
+        <p class="cycle-text">평가</p>
+      </div>
+      <div class="cycle-item">
+        <div class="cycle-num"><p>4</p></div>
+        <p class="cycle-text">보상</p>
+      </div>
+      <div class="cycle-item">
+        <div class="cycle-num"><p>5</p></div>
+        <p class="cycle-text">육성</p>
+      </div>
+      <div class="cycle-item">
+        <div class="cycle-num"><p>6</p></div>
+        <p class="cycle-text">유지</p>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="module-header payroll-header">
+      <p>급여관리</p>
+    </div>
+    <div class="module-body">
+      <div class="feature-item">
+        <p class="bullet-red">▸</p>
+        <p class="feature-text">급여 항목 및 계산식 설정</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-red">▸</p>
+        <p class="feature-text">월급여 자동 계산</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-red">▸</p>
+        <p class="feature-text">4대보험 자동 산출</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-red">▸</p>
+        <p class="feature-text">소득세/지방세 계산</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-red">▸</p>
+        <p class="feature-text">급여명세서 발급</p>
+      </div>
+      <div class="feature-item">
+        <p class="bullet-red">▸</p>
+        <p class="feature-text">연말정산 지원</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

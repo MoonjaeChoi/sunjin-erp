@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+}
+.sidebar {
+  width: 200pt;
+  background: #1C2833;
+  padding: 40pt 25pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.sidebar-title {
+  color: #3498DB;
+  font-size: 12pt;
+  text-transform: uppercase;
+  letter-spacing: 2pt;
+  margin-bottom: 15pt;
+}
+.sidebar-heading {
+  color: #FFFFFF;
+  font-size: 24pt;
+  font-weight: bold;
+  line-height: 1.3;
+}
+.main {
+  flex: 1;
+  padding: 40pt 35pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.agenda-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 22pt;
+}
+.number {
+  background: #3498DB;
+  color: #FFFFFF;
+  font-size: 14pt;
+  font-weight: bold;
+  width: 28pt;
+  height: 28pt;
+  border-radius: 14pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15pt;
+  flex-shrink: 0;
+}
+.item-content {
+  padding-top: 3pt;
+}
+.item-title {
+  color: #1C2833;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.item-desc {
+  color: #7F8C8D;
+  font-size: 11pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <p class="sidebar-title">Contents</p>
+  <p class="sidebar-heading">목차</p>
+</div>
+<div class="main">
+  <div class="agenda-item">
+    <div class="number"><p>1</p></div>
+    <div class="item-content">
+      <p class="item-title">회사 현황 분석</p>
+      <p class="item-desc">선진인포텍 비즈니스 환경 및 요구사항 분석</p>
+    </div>
+  </div>
+  <div class="agenda-item">
+    <div class="number"><p>2</p></div>
+    <div class="item-content">
+      <p class="item-title">ERP 도입 필요성</p>
+      <p class="item-desc">통합 경영 시스템의 전략적 가치</p>
+    </div>
+  </div>
+  <div class="agenda-item">
+    <div class="number"><p>3</p></div>
+    <div class="item-content">
+      <p class="item-title">시스템 구성 및 기능</p>
+      <p class="item-desc">핵심 모듈 및 주요 기능 소개</p>
+    </div>
+  </div>
+  <div class="agenda-item">
+    <div class="number"><p>4</p></div>
+    <div class="item-content">
+      <p class="item-title">구축 방법론</p>
+      <p class="item-desc">단계별 추진 전략 및 일정</p>
+    </div>
+  </div>
+  <div class="agenda-item">
+    <div class="number"><p>5</p></div>
+    <div class="item-content">
+      <p class="item-title">투자 비용 및 기대효과</p>
+      <p class="item-desc">ROI 분석 및 정량적 효과</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

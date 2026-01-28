@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 20pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 20pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 20pt 35pt;
+}
+.subtitle {
+  color: #1C2833;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 15pt 0;
+  text-align: center;
+}
+.architecture {
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+.layer {
+  display: flex;
+  gap: 8pt;
+  justify-content: center;
+}
+.layer-label {
+  width: 80pt;
+  background: #2E4053;
+  color: #FFFFFF;
+  font-size: 10pt;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4pt;
+  padding: 8pt;
+}
+.modules {
+  display: flex;
+  gap: 8pt;
+  flex: 1;
+}
+.module {
+  flex: 1;
+  background: #E8F4FD;
+  border: 1pt solid #3498DB;
+  border-radius: 4pt;
+  padding: 10pt;
+  text-align: center;
+}
+.module-title {
+  color: #1C2833;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0 0 4pt 0;
+}
+.module-desc {
+  color: #5D6D7E;
+  font-size: 8pt;
+  margin: 0;
+}
+.core-layer .module {
+  background: #3498DB;
+  border-color: #2980B9;
+}
+.core-layer .module-title {
+  color: #FFFFFF;
+}
+.core-layer .module-desc {
+  color: #E8F4FD;
+}
+.infra-layer .module {
+  background: #1C2833;
+  border-color: #1C2833;
+}
+.infra-layer .module-title {
+  color: #FFFFFF;
+}
+.infra-layer .module-desc {
+  color: #AAB7B8;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">03</p>
+  <p class="section-title">시스템 구성 개요</p>
+</div>
+<div class="content">
+  <p class="subtitle">선진인포텍 맞춤형 ERP 시스템 아키텍처</p>
+  <div class="architecture">
+    <div class="layer">
+      <div class="layer-label"><p>사용자</p></div>
+      <div class="modules">
+        <div class="module">
+          <p class="module-title">웹 브라우저</p>
+          <p class="module-desc">PC/노트북 접속</p>
+        </div>
+        <div class="module">
+          <p class="module-title">모바일 앱</p>
+          <p class="module-desc">스마트폰/태블릿</p>
+        </div>
+        <div class="module">
+          <p class="module-title">대시보드</p>
+          <p class="module-desc">경영진 현황판</p>
+        </div>
+      </div>
+    </div>
+    <div class="layer core-layer">
+      <div class="layer-label"><p>핵심 모듈</p></div>
+      <div class="modules">
+        <div class="module">
+          <p class="module-title">영업관리</p>
+          <p class="module-desc">견적/수주/고객</p>
+        </div>
+        <div class="module">
+          <p class="module-title">프로젝트관리</p>
+          <p class="module-desc">일정/인력/진척</p>
+        </div>
+        <div class="module">
+          <p class="module-title">재고/구매</p>
+          <p class="module-desc">자재/발주/입출고</p>
+        </div>
+        <div class="module">
+          <p class="module-title">회계/재무</p>
+          <p class="module-desc">전표/결산/원가</p>
+        </div>
+        <div class="module">
+          <p class="module-title">인사/급여</p>
+          <p class="module-desc">근태/급여/평가</p>
+        </div>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-label"><p>지원 모듈</p></div>
+      <div class="modules">
+        <div class="module">
+          <p class="module-title">기술지원</p>
+          <p class="module-desc">AS/유지보수</p>
+        </div>
+        <div class="module">
+          <p class="module-title">전자결재</p>
+          <p class="module-desc">워크플로우</p>
+        </div>
+        <div class="module">
+          <p class="module-title">문서관리</p>
+          <p class="module-desc">도면/계약서</p>
+        </div>
+        <div class="module">
+          <p class="module-title">알림/공지</p>
+          <p class="module-desc">메일/SMS</p>
+        </div>
+      </div>
+    </div>
+    <div class="layer infra-layer">
+      <div class="layer-label"><p>인프라</p></div>
+      <div class="modules">
+        <div class="module">
+          <p class="module-title">Oracle Database</p>
+          <p class="module-desc">데이터 저장/관리</p>
+        </div>
+        <div class="module">
+          <p class="module-title">Next.js Server</p>
+          <p class="module-desc">웹 애플리케이션</p>
+        </div>
+        <div class="module">
+          <p class="module-title">REST API</p>
+          <p class="module-desc">시스템 연동</p>
+        </div>
+        <div class="module">
+          <p class="module-title">클라우드/온프레미스</p>
+          <p class="module-desc">유연한 배포</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

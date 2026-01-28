@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 15pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 15pt 35pt;
+}
+.subtitle {
+  color: #1C2833;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0 0 12pt 0;
+  text-align: center;
+}
+.timeline-container {
+  position: relative;
+}
+.month-header {
+  display: flex;
+  border-bottom: 2pt solid #1C2833;
+  padding-bottom: 6pt;
+  margin-bottom: 10pt;
+}
+.month-label {
+  flex: 1;
+  text-align: center;
+  color: #1C2833;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0;
+}
+.phase-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8pt;
+}
+.phase-label {
+  width: 60pt;
+  color: #1C2833;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0;
+}
+.phase-bar-container {
+  flex: 1;
+  height: 20pt;
+  position: relative;
+  display: flex;
+}
+.month-slot {
+  flex: 1;
+  border-left: 1pt dashed #E5E8E8;
+}
+.phase-bar {
+  position: absolute;
+  height: 16pt;
+  top: 2pt;
+  border-radius: 3pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bar-analysis { background: #3498DB; left: 0%; width: 16.66%; }
+.bar-design { background: #9B59B6; left: 12.5%; width: 20.83%; }
+.bar-dev { background: #27AE60; left: 25%; width: 37.5%; }
+.bar-test { background: #E67E22; left: 54.16%; width: 20.83%; }
+.bar-stabilize { background: #E74C3C; left: 70.83%; width: 29.17%; }
+.phase-bar p {
+  color: #FFFFFF;
+  font-size: 7pt;
+  font-weight: bold;
+  margin: 0;
+}
+.milestone-section {
+  margin-top: 12pt;
+  display: flex;
+  gap: 10pt;
+}
+.milestone {
+  flex: 1;
+  background: #F8F9FA;
+  border-radius: 4pt;
+  padding: 8pt;
+  text-align: center;
+  border-top: 2pt solid #1C2833;
+}
+.milestone-date {
+  color: #3498DB;
+  font-size: 8pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.milestone-name {
+  color: #1C2833;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0 0 2pt 0;
+}
+.milestone-desc {
+  color: #5D6D7E;
+  font-size: 7pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">04</p>
+  <p class="section-title">프로젝트 일정</p>
+</div>
+<div class="content">
+  <p class="subtitle">총 6개월 구축 일정 (예시)</p>
+  <div class="timeline-container">
+    <div class="month-header">
+      <p class="month-label">1개월</p>
+      <p class="month-label">2개월</p>
+      <p class="month-label">3개월</p>
+      <p class="month-label">4개월</p>
+      <p class="month-label">5개월</p>
+      <p class="month-label">6개월</p>
+    </div>
+    <div class="phase-row">
+      <p class="phase-label">분석</p>
+      <div class="phase-bar-container">
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="phase-bar bar-analysis"><p>요구분석</p></div>
+      </div>
+    </div>
+    <div class="phase-row">
+      <p class="phase-label">설계</p>
+      <div class="phase-bar-container">
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="phase-bar bar-design"><p>시스템 설계</p></div>
+      </div>
+    </div>
+    <div class="phase-row">
+      <p class="phase-label">개발</p>
+      <div class="phase-bar-container">
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="phase-bar bar-dev"><p>모듈 개발</p></div>
+      </div>
+    </div>
+    <div class="phase-row">
+      <p class="phase-label">검증</p>
+      <div class="phase-bar-container">
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="phase-bar bar-test"><p>테스트</p></div>
+      </div>
+    </div>
+    <div class="phase-row">
+      <p class="phase-label">안정화</p>
+      <div class="phase-bar-container">
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="month-slot"></div>
+        <div class="phase-bar bar-stabilize"><p>오픈</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="milestone-section">
+    <div class="milestone">
+      <p class="milestone-date">M+1</p>
+      <p class="milestone-name">착수 보고</p>
+      <p class="milestone-desc">프로젝트 킥오프</p>
+    </div>
+    <div class="milestone">
+      <p class="milestone-date">M+2</p>
+      <p class="milestone-name">설계 완료</p>
+      <p class="milestone-desc">요구사항 확정</p>
+    </div>
+    <div class="milestone">
+      <p class="milestone-date">M+4</p>
+      <p class="milestone-name">개발 완료</p>
+      <p class="milestone-desc">통합 테스트</p>
+    </div>
+    <div class="milestone">
+      <p class="milestone-date">M+5</p>
+      <p class="milestone-name">UAT 완료</p>
+      <p class="milestone-desc">사용자 승인</p>
+    </div>
+    <div class="milestone">
+      <p class="milestone-date">M+6</p>
+      <p class="milestone-name">Grand Open</p>
+      <p class="milestone-desc">본격 운영</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

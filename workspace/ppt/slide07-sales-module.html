@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 15pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 15pt 35pt;
+  display: flex;
+  gap: 20pt;
+}
+.left-col {
+  flex: 1;
+}
+.module-header {
+  background: #3498DB;
+  color: #FFFFFF;
+  padding: 10pt 12pt;
+  border-radius: 4pt 4pt 0 0;
+}
+.module-name {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.module-body {
+  background: #F8F9FA;
+  border: 1pt solid #E5E8E8;
+  border-top: none;
+  border-radius: 0 0 4pt 4pt;
+  padding: 10pt;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 6pt;
+}
+.feature-bullet {
+  color: #3498DB;
+  font-size: 9pt;
+  margin-right: 6pt;
+  font-weight: bold;
+}
+.feature-text {
+  color: #1C2833;
+  font-size: 9pt;
+  margin: 0;
+  line-height: 1.3;
+}
+.right-col {
+  flex: 1;
+}
+.process-title {
+  color: #1C2833;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0 0 10pt 0;
+}
+.process-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 6pt;
+}
+.process-step {
+  display: flex;
+  align-items: center;
+  gap: 8pt;
+}
+.step-num {
+  background: #1C2833;
+  color: #FFFFFF;
+  width: 18pt;
+  height: 18pt;
+  border-radius: 9pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9pt;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+.step-box {
+  flex: 1;
+  background: #E8F4FD;
+  border-left: 2pt solid #3498DB;
+  padding: 6pt 10pt;
+}
+.step-title {
+  color: #1C2833;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0;
+}
+.step-desc {
+  color: #5D6D7E;
+  font-size: 8pt;
+  margin: 2pt 0 0 0;
+}
+.arrow-down {
+  text-align: center;
+  color: #3498DB;
+  font-size: 10pt;
+  margin: 0;
+  padding-left: 18pt;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">03</p>
+  <p class="section-title">핵심 모듈 - 영업관리</p>
+</div>
+<div class="content">
+  <div class="left-col">
+    <div class="module-header">
+      <p class="module-name">영업관리 모듈</p>
+    </div>
+    <div class="module-body">
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">고객정보 통합 관리 (거래처, 담당자)</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">견적서 작성 및 버전 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">수주 등록 및 계약 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">영업기회 파이프라인 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">매출 목표 대비 실적 모니터링</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">영업사원별 실적 분석 리포트</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">자동 알림 (납기, 계약만료)</p>
+      </div>
+    </div>
+  </div>
+  <div class="right-col">
+    <p class="process-title">영업 프로세스 흐름</p>
+    <div class="process-flow">
+      <div class="process-step">
+        <div class="step-num"><p>1</p></div>
+        <div class="step-box">
+          <p class="step-title">영업기회 등록</p>
+          <p class="step-desc">잠재고객 발굴</p>
+        </div>
+      </div>
+      <p class="arrow-down">▼</p>
+      <div class="process-step">
+        <div class="step-num"><p>2</p></div>
+        <div class="step-box">
+          <p class="step-title">견적 제출</p>
+          <p class="step-desc">견적서 작성</p>
+        </div>
+      </div>
+      <p class="arrow-down">▼</p>
+      <div class="process-step">
+        <div class="step-num"><p>3</p></div>
+        <div class="step-box">
+          <p class="step-title">수주 확정</p>
+          <p class="step-desc">계약 체결</p>
+        </div>
+      </div>
+      <p class="arrow-down">▼</p>
+      <div class="process-step">
+        <div class="step-num"><p>4</p></div>
+        <div class="step-box">
+          <p class="step-title">프로젝트 연계</p>
+          <p class="step-desc">PM 모듈 연동</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 15pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 15pt 35pt;
+}
+.subtitle {
+  color: #1C2833;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0 0 12pt 0;
+  text-align: center;
+}
+.phases {
+  display: flex;
+  gap: 8pt;
+  margin-bottom: 12pt;
+}
+.phase {
+  flex: 1;
+  text-align: center;
+}
+.phase-header {
+  padding: 8pt;
+  border-radius: 4pt 4pt 0 0;
+}
+.phase-1 { background: #3498DB; }
+.phase-2 { background: #9B59B6; }
+.phase-3 { background: #27AE60; }
+.phase-4 { background: #E67E22; }
+.phase-5 { background: #E74C3C; }
+.phase-header p {
+  color: #FFFFFF;
+  margin: 0;
+}
+.phase-num {
+  font-size: 8pt;
+  opacity: 0.8;
+}
+.phase-name {
+  font-size: 10pt;
+  font-weight: bold;
+}
+.phase-body {
+  background: #F8F9FA;
+  border: 1pt solid #E5E8E8;
+  border-top: none;
+  border-radius: 0 0 4pt 4pt;
+  padding: 8pt;
+  min-height: 70pt;
+}
+.phase-item {
+  color: #1C2833;
+  font-size: 7pt;
+  margin: 0 0 4pt 0;
+  text-align: left;
+  padding-left: 8pt;
+  position: relative;
+}
+.phase-item::before {
+  content: "-";
+  position: absolute;
+  left: 0;
+  color: #5D6D7E;
+}
+.success-factors {
+  background: #E8F8F5;
+  border-radius: 4pt;
+  padding: 10pt 15pt;
+  display: flex;
+  justify-content: space-around;
+}
+.factor {
+  text-align: center;
+}
+.factor-text {
+  color: #1C2833;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0;
+}
+.factor-sub {
+  color: #5D6D7E;
+  font-size: 7pt;
+  margin: 2pt 0 0 0;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">04</p>
+  <p class="section-title">구축 방법론</p>
+</div>
+<div class="content">
+  <p class="subtitle">Agile 기반 단계적 구축 방법론</p>
+  <div class="phases">
+    <div class="phase">
+      <div class="phase-header phase-1">
+        <p class="phase-num">PHASE 1</p>
+        <p class="phase-name">분석</p>
+      </div>
+      <div class="phase-body">
+        <p class="phase-item">현행 업무 분석</p>
+        <p class="phase-item">요구사항 정의</p>
+        <p class="phase-item">To-Be 프로세스 설계</p>
+        <p class="phase-item">데이터 표준화</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-header phase-2">
+        <p class="phase-num">PHASE 2</p>
+        <p class="phase-name">설계</p>
+      </div>
+      <div class="phase-body">
+        <p class="phase-item">시스템 아키텍처</p>
+        <p class="phase-item">화면/리포트 설계</p>
+        <p class="phase-item">인터페이스 정의</p>
+        <p class="phase-item">보안 체계 수립</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-header phase-3">
+        <p class="phase-num">PHASE 3</p>
+        <p class="phase-name">개발</p>
+      </div>
+      <div class="phase-body">
+        <p class="phase-item">모듈별 개발</p>
+        <p class="phase-item">단위 테스트</p>
+        <p class="phase-item">데이터 마이그레이션</p>
+        <p class="phase-item">통합 테스트</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-header phase-4">
+        <p class="phase-num">PHASE 4</p>
+        <p class="phase-name">검증</p>
+      </div>
+      <div class="phase-body">
+        <p class="phase-item">사용자 테스트</p>
+        <p class="phase-item">성능 최적화</p>
+        <p class="phase-item">보안 점검</p>
+        <p class="phase-item">사용자 교육</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-header phase-5">
+        <p class="phase-num">PHASE 5</p>
+        <p class="phase-name">안정화</p>
+      </div>
+      <div class="phase-body">
+        <p class="phase-item">시스템 오픈</p>
+        <p class="phase-item">병행 운영</p>
+        <p class="phase-item">이슈 대응</p>
+        <p class="phase-item">운영 이관</p>
+      </div>
+    </div>
+  </div>
+  <div class="success-factors">
+    <div class="factor">
+      <p class="factor-text">경영진 지원</p>
+      <p class="factor-sub">Top-down 의사결정</p>
+    </div>
+    <div class="factor">
+      <p class="factor-text">현업 참여</p>
+      <p class="factor-sub">실사용자 피드백 반영</p>
+    </div>
+    <div class="factor">
+      <p class="factor-text">변화관리</p>
+      <p class="factor-sub">교육 및 커뮤니케이션</p>
+    </div>
+    <div class="factor">
+      <p class="factor-text">품질관리</p>
+      <p class="factor-sub">단계별 검증</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

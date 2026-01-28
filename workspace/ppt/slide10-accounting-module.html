@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  background: #1C2833;
+  padding: 15pt 35pt;
+  display: flex;
+  align-items: center;
+}
+.section-num {
+  color: #3498DB;
+  font-size: 12pt;
+  font-weight: bold;
+  margin-right: 15pt;
+}
+.section-title {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+}
+.content {
+  flex: 1;
+  padding: 15pt 35pt;
+  display: flex;
+  gap: 20pt;
+}
+.left-col {
+  flex: 1;
+}
+.right-col {
+  flex: 1;
+}
+.module-header {
+  background: #2980B9;
+  color: #FFFFFF;
+  padding: 10pt 12pt;
+  border-radius: 4pt 4pt 0 0;
+}
+.module-name {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.module-body {
+  background: #F8F9FA;
+  border: 1pt solid #E5E8E8;
+  border-top: none;
+  border-radius: 0 0 4pt 4pt;
+  padding: 10pt;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 6pt;
+}
+.feature-bullet {
+  color: #2980B9;
+  font-size: 9pt;
+  margin-right: 6pt;
+  font-weight: bold;
+}
+.feature-text {
+  color: #1C2833;
+  font-size: 9pt;
+  margin: 0;
+  line-height: 1.3;
+}
+.reports-title {
+  color: #1C2833;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0 0 10pt 0;
+}
+.report-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8pt;
+}
+.report-card {
+  flex: 1 1 calc(50% - 4pt);
+  background: #EBF5FB;
+  border-radius: 4pt;
+  padding: 10pt;
+  text-align: center;
+}
+.report-name {
+  color: #1C2833;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0 0 3pt 0;
+}
+.report-desc {
+  color: #5D6D7E;
+  font-size: 8pt;
+  margin: 0;
+}
+.integration-note {
+  margin-top: 12pt;
+  background: #FCF3CF;
+  border-left: 3pt solid #F1C40F;
+  padding: 8pt;
+}
+.integration-note p {
+  color: #1C2833;
+  font-size: 8pt;
+  margin: 0;
+  line-height: 1.4;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="section-num">03</p>
+  <p class="section-title">핵심 모듈 - 회계/재무</p>
+</div>
+<div class="content">
+  <div class="left-col">
+    <div class="module-header">
+      <p class="module-name">회계/재무 모듈</p>
+    </div>
+    <div class="module-body">
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">전표 입력 및 자동 분개</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">매출/매입 세금계산서 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">채권/채무 관리 및 잔액 조회</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">자금 계획 및 현금 흐름 관리</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">프로젝트별 원가 집계</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">결산 마감 및 재무제표 생성</p>
+      </div>
+      <div class="feature-item">
+        <p class="feature-bullet">▸</p>
+        <p class="feature-text">부가세/원천세 신고 지원</p>
+      </div>
+    </div>
+  </div>
+  <div class="right-col">
+    <p class="reports-title">경영 분석 리포트</p>
+    <div class="report-grid">
+      <div class="report-card">
+        <p class="report-name">손익계산서</p>
+        <p class="report-desc">월별/분기별 손익 분석</p>
+      </div>
+      <div class="report-card">
+        <p class="report-name">재무상태표</p>
+        <p class="report-desc">자산/부채 현황</p>
+      </div>
+      <div class="report-card">
+        <p class="report-name">현금흐름표</p>
+        <p class="report-desc">자금 운용 현황</p>
+      </div>
+      <div class="report-card">
+        <p class="report-name">원가분석표</p>
+        <p class="report-desc">프로젝트 수익성</p>
+      </div>
+    </div>
+    <div class="integration-note">
+      <p>연동 포인트: 영업 수주, 구매 발주, 프로젝트 비용이 자동으로 회계 전표에 반영되어 이중 입력 없이 실시간 재무 현황 파악 가능</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
