@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 25pt 40pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 24pt;
+  font-weight: bold;
+  margin: 12pt 0 20pt 0;
+}
+.deploy-grid {
+  display: flex;
+  gap: 25pt;
+}
+.deploy-col {
+  flex: 1;
+}
+.section-title {
+  color: #1ABC9C;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 12pt 0;
+}
+.url-box {
+  background: #1C2833;
+  padding: 15pt;
+  border-radius: 8pt;
+  margin-bottom: 12pt;
+}
+.url-label {
+  color: #AAB7B8;
+  font-size: 10pt;
+  margin: 0 0 5pt 0;
+}
+.url-value {
+  color: #1ABC9C;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0;
+}
+.info-box {
+  background: #F8F9FA;
+  padding: 15pt;
+  border-radius: 8pt;
+  border-left: 5pt solid #1ABC9C;
+}
+.info-item {
+  margin-bottom: 10pt;
+}
+.info-label {
+  color: #7F8C8D;
+  font-size: 10pt;
+  margin: 0;
+}
+.info-value {
+  color: #1C2833;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 3pt 0 0 0;
+}
+.docker-box {
+  background: #2E4053;
+  padding: 12pt;
+  border-radius: 6pt;
+  margin-top: 12pt;
+}
+.docker-box p {
+  color: #FFFFFF;
+  font-size: 10pt;
+  margin: 4pt 0;
+  font-family: 'Courier New', monospace;
+}
+.note-box {
+  background: #FEF9E7;
+  padding: 10pt;
+  border-radius: 6pt;
+  margin-top: 12pt;
+  border-left: 4pt solid #F1C40F;
+}
+.note-box p {
+  color: #7D6608;
+  font-size: 10pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>배포 환경</h1>
+  <div class="deploy-grid">
+    <div class="deploy-col">
+      <p class="section-title">스테이징 서버</p>
+      <div class="url-box">
+        <p class="url-label">내부 접속</p>
+        <p class="url-value">http://192.168.75.194:3200</p>
+      </div>
+      <div class="url-box">
+        <p class="url-label">외부 접속 (테스트)</p>
+        <p class="url-value">http://58.227.121.8:3200</p>
+      </div>
+      <div class="note-box">
+        <p>외부 접속은 개발/테스트 목적으로 제공됩니다. 프로덕션 환경에서는 HTTPS 및 도메인 적용이 필요합니다.</p>
+      </div>
+    </div>
+    <div class="deploy-col">
+      <p class="section-title">인프라 구성</p>
+      <div class="info-box">
+        <div class="info-item">
+          <p class="info-label">컨테이너</p>
+          <p class="info-value">Docker + Docker Compose</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">네트워크</p>
+          <p class="info-value">sunjin-network (172.22.0.0/16)</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">데이터베이스</p>
+          <p class="info-value">Oracle XE 21c (sunjin_admin)</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">배포 유연성</p>
+          <p class="info-value">온프레미스 / 클라우드</p>
+        </div>
+      </div>
+      <div class="docker-box">
+        <p>docker-compose up -d</p>
+        <p>app: 3200, db: 1521</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

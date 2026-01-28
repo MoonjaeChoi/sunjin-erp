@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 20pt 35pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 24pt;
+  font-weight: bold;
+  margin: 10pt 0 15pt 0;
+}
+.stats-grid {
+  display: flex;
+  gap: 15pt;
+}
+.stats-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12pt;
+}
+.stat-box {
+  background: #F8F9FA;
+  border-radius: 8pt;
+  padding: 15pt;
+  text-align: center;
+  border-bottom: 4pt solid #1ABC9C;
+}
+.stat-number {
+  color: #1ABC9C;
+  font-size: 28pt;
+  font-weight: bold;
+  margin: 0;
+}
+.stat-label {
+  color: #1C2833;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 6pt 0 0 0;
+}
+.stat-box-alt {
+  background: #1C2833;
+  border-radius: 8pt;
+  padding: 15pt;
+  text-align: center;
+}
+.stat-number-alt {
+  color: #1ABC9C;
+  font-size: 28pt;
+  font-weight: bold;
+  margin: 0;
+}
+.stat-label-alt {
+  color: #FFFFFF;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 6pt 0 0 0;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>개발 통계</h1>
+  <div class="stats-grid">
+    <div class="stats-col">
+      <div class="stat-box">
+        <p class="stat-number">421</p>
+        <p class="stat-label">총 소스 파일</p>
+      </div>
+      <div class="stat-box">
+        <p class="stat-number">61</p>
+        <p class="stat-label">API 엔드포인트</p>
+      </div>
+      <div class="stat-box-alt">
+        <p class="stat-number-alt">16</p>
+        <p class="stat-label-alt">DB 엔티티</p>
+      </div>
+    </div>
+    <div class="stats-col">
+      <div class="stat-box">
+        <p class="stat-number">24</p>
+        <p class="stat-label">UI 컴포넌트</p>
+      </div>
+      <div class="stat-box">
+        <p class="stat-number">16</p>
+        <p class="stat-label">Custom Hooks</p>
+      </div>
+      <div class="stat-box-alt">
+        <p class="stat-number-alt">11</p>
+        <p class="stat-label-alt">핵심 모듈</p>
+      </div>
+    </div>
+    <div class="stats-col">
+      <div class="stat-box">
+        <p class="stat-number">9</p>
+        <p class="stat-label">Feature Pages</p>
+      </div>
+      <div class="stat-box-alt">
+        <p class="stat-number-alt">100%</p>
+        <p class="stat-label-alt">Phase 1 완료</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

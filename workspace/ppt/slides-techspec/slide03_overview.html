@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 30pt 40pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 26pt;
+  font-weight: bold;
+  margin: 15pt 0 20pt 0;
+}
+.content-grid {
+  display: flex;
+  gap: 25pt;
+}
+.left-col {
+  flex: 1;
+}
+.right-col {
+  flex: 1;
+}
+.section-title {
+  color: #1ABC9C;
+  font-size: 14pt;
+  font-weight: bold;
+  margin: 0 0 12pt 0;
+}
+.purpose-box {
+  background: #1C2833;
+  padding: 20pt;
+  border-radius: 8pt;
+  margin-bottom: 15pt;
+}
+.purpose-box p {
+  color: #FFFFFF;
+  font-size: 14pt;
+  margin: 0;
+  line-height: 1.6;
+}
+.feature-list {
+  background: #F8F9FA;
+  padding: 15pt 20pt;
+  border-radius: 8pt;
+}
+.feature-list ul {
+  margin: 0;
+  padding-left: 18pt;
+  color: #2E4053;
+  font-size: 12pt;
+  line-height: 2.0;
+}
+.feature-item {
+  color: #2E4053;
+  font-size: 12pt;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>시스템 개요</h1>
+  <div class="content-grid">
+    <div class="left-col">
+      <p class="section-title">목적</p>
+      <div class="purpose-box">
+        <p>영업, 기술지원, 고객관리 업무를 하나의 통합 플랫폼에서 관리하여 업무 효율성 극대화</p>
+      </div>
+      <p class="section-title">대상 사용자</p>
+      <div class="feature-list">
+        <ul>
+          <li>영업팀 - 프로젝트/고객 관리</li>
+          <li>기술팀 - 기술지원/장애 관리</li>
+          <li>관리팀 - 재고/유지보수 관리</li>
+          <li>경영진 - 대시보드 현황 파악</li>
+        </ul>
+      </div>
+    </div>
+    <div class="right-col">
+      <p class="section-title">주요 특징</p>
+      <div class="feature-list">
+        <ul>
+          <li>풀스택 단일 프로젝트 (별도 서버 불필요)</li>
+          <li>엔터프라이즈급 Oracle DB</li>
+          <li>역할 기반 접근 제어 (RBAC)</li>
+          <li>Docker 컨테이너 배포</li>
+          <li>반응형 웹 디자인</li>
+          <li>실시간 데이터 동기화</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 25pt 35pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 24pt;
+  font-weight: bold;
+  margin: 12pt 0 20pt 0;
+}
+.roadmap-grid {
+  display: flex;
+  gap: 15pt;
+}
+.priority-col {
+  flex: 1;
+}
+.priority-header-high {
+  background: #E74C3C;
+  padding: 10pt;
+  border-radius: 6pt 6pt 0 0;
+  text-align: center;
+}
+.priority-header-high p {
+  color: #FFFFFF;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.priority-header-medium {
+  background: #F39C12;
+  padding: 10pt;
+  border-radius: 6pt 6pt 0 0;
+  text-align: center;
+}
+.priority-header-medium p {
+  color: #FFFFFF;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.priority-header-low {
+  background: #3498DB;
+  padding: 10pt;
+  border-radius: 6pt 6pt 0 0;
+  text-align: center;
+}
+.priority-header-low p {
+  color: #FFFFFF;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.priority-content {
+  background: #F8F9FA;
+  padding: 12pt;
+  border-radius: 0 0 6pt 6pt;
+}
+.feature-item {
+  background: #FFFFFF;
+  padding: 10pt;
+  border-radius: 4pt;
+  margin-bottom: 8pt;
+  border-left: 4pt solid #1ABC9C;
+}
+.feature-name {
+  color: #1C2833;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.feature-desc {
+  color: #7F8C8D;
+  font-size: 9pt;
+  margin: 4pt 0 0 0;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>Phase 2 로드맵</h1>
+  <div class="roadmap-grid">
+    <div class="priority-col">
+      <div class="priority-header-high"><p>우선순위 높음</p></div>
+      <div class="priority-content">
+        <div class="feature-item">
+          <p class="feature-name">알림 시스템</p>
+          <p class="feature-desc">WebSocket/SSE 실시간 알림</p>
+        </div>
+        <div class="feature-item">
+          <p class="feature-name">부서별 권한 스코핑</p>
+          <p class="feature-desc">세분화된 접근 제어</p>
+        </div>
+        <div class="feature-item">
+          <p class="feature-name">이메일/SMS 알림</p>
+          <p class="feature-desc">외부 알림 연동</p>
+        </div>
+      </div>
+    </div>
+    <div class="priority-col">
+      <div class="priority-header-medium"><p>우선순위 중간</p></div>
+      <div class="priority-content">
+        <div class="feature-item">
+          <p class="feature-name">외부 캘린더 연동</p>
+          <p class="feature-desc">Google, Outlook</p>
+        </div>
+        <div class="feature-item">
+          <p class="feature-name">통계/분석 대시보드</p>
+          <p class="feature-desc">Recharts 시각화</p>
+        </div>
+        <div class="feature-item">
+          <p class="feature-name">대량 import/export</p>
+          <p class="feature-desc">CSV, Excel 지원</p>
+        </div>
+      </div>
+    </div>
+    <div class="priority-col">
+      <div class="priority-header-low"><p>우선순위 낮음</p></div>
+      <div class="priority-content">
+        <div class="feature-item">
+          <p class="feature-name">다국어 지원</p>
+          <p class="feature-desc">i18n 프레임워크</p>
+        </div>
+        <div class="feature-item">
+          <p class="feature-name">WYSIWYG 에디터</p>
+          <p class="feature-desc">리치 텍스트 편집</p>
+        </div>
+        <div class="feature-item">
+          <p class="feature-name">클라우드 스토리지</p>
+          <p class="feature-desc">S3 연동</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

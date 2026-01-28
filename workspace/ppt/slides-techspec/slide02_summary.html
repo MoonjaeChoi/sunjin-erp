@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 30pt 40pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 26pt;
+  font-weight: bold;
+  margin: 15pt 0 25pt 0;
+}
+.highlight-box {
+  background: #1ABC9C;
+  padding: 15pt 25pt;
+  border-radius: 8pt;
+  margin-bottom: 25pt;
+}
+.highlight-box p {
+  color: #FFFFFF;
+  font-size: 18pt;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+.stats-grid {
+  display: flex;
+  gap: 20pt;
+}
+.stat-card {
+  flex: 1;
+  background: #F8F9FA;
+  padding: 20pt;
+  border-radius: 8pt;
+  border-left: 5pt solid #1ABC9C;
+}
+.stat-number {
+  color: #1C2833;
+  font-size: 32pt;
+  font-weight: bold;
+  margin: 0 0 5pt 0;
+}
+.stat-label {
+  color: #7F8C8D;
+  font-size: 11pt;
+  margin: 0;
+}
+.bottom-note {
+  margin-top: 20pt;
+  background: #E8F6F3;
+  padding: 12pt 20pt;
+  border-radius: 6pt;
+}
+.bottom-note p {
+  color: #1E8449;
+  font-size: 12pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>Executive Summary</h1>
+  <div class="highlight-box">
+    <p>Phase 1 개발 100% 완료</p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <p class="stat-number">11</p>
+      <p class="stat-label">핵심 모듈 구현</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-number">421</p>
+      <p class="stat-label">소스 파일</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-number">61</p>
+      <p class="stat-label">API 엔드포인트</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-number">16</p>
+      <p class="stat-label">DB 엔티티</p>
+    </div>
+  </div>
+  <div class="bottom-note">
+    <p>스테이징 서버 운영 중 - 외부 접속 가능 (테스트 환경)</p>
+  </div>
+</div>
+</body>
+</html>

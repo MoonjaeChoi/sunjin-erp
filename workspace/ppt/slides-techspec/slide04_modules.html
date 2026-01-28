@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 25pt 35pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 24pt;
+  font-weight: bold;
+  margin: 12pt 0 18pt 0;
+}
+.modules-grid {
+  display: flex;
+  gap: 15pt;
+}
+.module-col {
+  flex: 1;
+}
+.category-header {
+  background: #1C2833;
+  padding: 8pt 12pt;
+  border-radius: 4pt;
+  margin-bottom: 8pt;
+}
+.category-header p {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.module-list {
+  background: #F8F9FA;
+  padding: 10pt 12pt;
+  border-radius: 6pt;
+}
+.module-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8pt;
+}
+.module-icon {
+  width: 24pt;
+  height: 24pt;
+  background: #1ABC9C;
+  border-radius: 4pt;
+  margin-right: 10pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.module-icon p {
+  color: #FFFFFF;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+}
+.module-text p {
+  color: #2E4053;
+  font-size: 10pt;
+  margin: 0;
+  line-height: 1.3;
+}
+.module-desc {
+  color: #7F8C8D;
+  font-size: 8pt;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>핵심 모듈 (11개)</h1>
+  <div class="modules-grid">
+    <div class="module-col">
+      <div class="category-header"><p>업무 관리</p></div>
+      <div class="module-list">
+        <div class="module-item">
+          <div class="module-icon"><p>1</p></div>
+          <div class="module-text">
+            <p><b>대시보드</b></p>
+            <p class="module-desc">캘린더, 일일 요약</p>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon"><p>2</p></div>
+          <div class="module-text">
+            <p><b>업무 검색</b></p>
+            <p class="module-desc">필터, 정렬, 페이지네이션</p>
+          </div>
+        </div>
+      </div>
+      <div class="category-header" style="margin-top: 10pt;"><p>고객 관리</p></div>
+      <div class="module-list">
+        <div class="module-item">
+          <div class="module-icon"><p>3</p></div>
+          <div class="module-text">
+            <p><b>고객 등록/조회</b></p>
+            <p class="module-desc">CRM, 담당자, 분류, 이력</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="module-col">
+      <div class="category-header"><p>영업 지원</p></div>
+      <div class="module-list">
+        <div class="module-item">
+          <div class="module-icon"><p>4</p></div>
+          <div class="module-text">
+            <p><b>프로젝트 관리</b></p>
+            <p class="module-desc">Sales Pipeline, 8단계 체크리스트</p>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon"><p>5</p></div>
+          <div class="module-text">
+            <p><b>기술지원</b></p>
+            <p class="module-desc">현장/원격/전화 지원</p>
+          </div>
+        </div>
+      </div>
+      <div class="category-header" style="margin-top: 10pt;"><p>조직 관리</p></div>
+      <div class="module-list">
+        <div class="module-item">
+          <div class="module-icon"><p>6</p></div>
+          <div class="module-text">
+            <p><b>직원 관리</b></p>
+            <p class="module-desc">부서/직급, 권한 관리</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="module-col">
+      <div class="category-header"><p>운영 관리</p></div>
+      <div class="module-list">
+        <div class="module-item">
+          <div class="module-icon"><p>7</p></div>
+          <div class="module-text">
+            <p><b>장애 관리</b></p>
+            <p class="module-desc">심각도, 담당자 할당, 이력</p>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon"><p>8</p></div>
+          <div class="module-text">
+            <p><b>재고 관리</b></p>
+            <p class="module-desc">입출고, 반납, 위치 관리</p>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-icon"><p>9</p></div>
+          <div class="module-text">
+            <p><b>유지보수</b></p>
+            <p class="module-desc">계약 관리, 갱신, 만료 알림</p>
+          </div>
+        </div>
+      </div>
+      <div class="category-header" style="margin-top: 10pt;"><p>커뮤니케이션</p></div>
+      <div class="module-list">
+        <div class="module-item">
+          <div class="module-icon"><p>10</p></div>
+          <div class="module-text">
+            <p><b>공지사항</b></p>
+            <p class="module-desc">댓글, 첨부파일</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 25pt 35pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 24pt;
+  font-weight: bold;
+  margin: 12pt 0 15pt 0;
+}
+.status-grid {
+  display: flex;
+  gap: 12pt;
+}
+.status-col {
+  flex: 1;
+}
+.module-row {
+  display: flex;
+  align-items: center;
+  background: #F8F9FA;
+  padding: 10pt 12pt;
+  border-radius: 6pt;
+  margin-bottom: 8pt;
+}
+.check-icon {
+  width: 22pt;
+  height: 22pt;
+  background: #1ABC9C;
+  border-radius: 50%;
+  margin-right: 10pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.check-icon p {
+  color: #FFFFFF;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.module-info {
+  flex: 1;
+}
+.module-name {
+  color: #1C2833;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.module-features {
+  color: #7F8C8D;
+  font-size: 9pt;
+  margin: 2pt 0 0 0;
+}
+.status-badge {
+  background: #D5F5E3;
+  padding: 4pt 8pt;
+  border-radius: 4pt;
+}
+.status-badge p {
+  color: #1E8449;
+  font-size: 9pt;
+  font-weight: bold;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>모듈별 구현 현황</h1>
+  <div class="status-grid">
+    <div class="status-col">
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">인증</p>
+          <p class="module-features">JWT 세션, 로그인/로그아웃</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">직원 관리</p>
+          <p class="module-features">CRUD, 부서/직급, RBAC</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">고객 관리</p>
+          <p class="module-features">CRM, 담당자, 분류, 이력</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">대시보드</p>
+          <p class="module-features">캘린더, 일일 요약, 업무 등록</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">업무 검색</p>
+          <p class="module-features">필터, 정렬, 페이지네이션</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">기술지원</p>
+          <p class="module-features">CRUD, 상태 관리, 첨부파일</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+    </div>
+    <div class="status-col">
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">프로젝트</p>
+          <p class="module-features">8단계 체크리스트, 첨부파일</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">장애 관리</p>
+          <p class="module-features">심각도, 담당자 할당, 이력</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">재고 관리</p>
+          <p class="module-features">입출고, 반납, 위치 관리</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">유지보수</p>
+          <p class="module-features">계약 관리, 갱신, 만료 알림</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+      <div class="module-row">
+        <div class="check-icon"><p>✓</p></div>
+        <div class="module-info">
+          <p class="module-name">공지사항</p>
+          <p class="module-features">CRUD, 댓글, 첨부, 조회수</p>
+        </div>
+        <div class="status-badge"><p>완료</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

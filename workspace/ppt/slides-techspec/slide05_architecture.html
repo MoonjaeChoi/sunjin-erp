@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 25pt 40pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 24pt;
+  font-weight: bold;
+  margin: 12pt 0 20pt 0;
+}
+.arch-diagram {
+  display: flex;
+  gap: 15pt;
+  align-items: stretch;
+}
+.layer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.layer-header {
+  background: #1C2833;
+  padding: 10pt;
+  border-radius: 6pt 6pt 0 0;
+  text-align: center;
+}
+.layer-header p {
+  color: #FFFFFF;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.layer-content {
+  background: #F8F9FA;
+  padding: 12pt;
+  border-radius: 0 0 6pt 6pt;
+  flex: 1;
+}
+.tech-item {
+  background: #FFFFFF;
+  border-left: 4pt solid #1ABC9C;
+  padding: 8pt 10pt;
+  margin-bottom: 8pt;
+  border-radius: 0 4pt 4pt 0;
+}
+.tech-name {
+  color: #1C2833;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
+.tech-desc {
+  color: #7F8C8D;
+  font-size: 9pt;
+  margin: 3pt 0 0 0;
+}
+.arrow-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25pt;
+}
+.arrow {
+  color: #1ABC9C;
+  font-size: 20pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>기술 아키텍처</h1>
+  <div class="arch-diagram">
+    <div class="layer">
+      <div class="layer-header"><p>Frontend</p></div>
+      <div class="layer-content">
+        <div class="tech-item">
+          <p class="tech-name">Next.js 14</p>
+          <p class="tech-desc">App Router + TypeScript</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">shadcn/ui</p>
+          <p class="tech-desc">24개 UI 컴포넌트</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">Tailwind CSS</p>
+          <p class="tech-desc">유틸리티 CSS</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">TanStack Query</p>
+          <p class="tech-desc">서버 상태 관리</p>
+        </div>
+      </div>
+    </div>
+    <div class="arrow-container">
+      <p class="arrow">→</p>
+    </div>
+    <div class="layer">
+      <div class="layer-header"><p>Backend</p></div>
+      <div class="layer-content">
+        <div class="tech-item">
+          <p class="tech-name">API Routes</p>
+          <p class="tech-desc">61개 REST API</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">NextAuth.js</p>
+          <p class="tech-desc">JWT 인증</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">TypeORM</p>
+          <p class="tech-desc">타입 안전 ORM</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">Zod</p>
+          <p class="tech-desc">스키마 검증</p>
+        </div>
+      </div>
+    </div>
+    <div class="arrow-container">
+      <p class="arrow">→</p>
+    </div>
+    <div class="layer">
+      <div class="layer-header"><p>Database</p></div>
+      <div class="layer-content">
+        <div class="tech-item">
+          <p class="tech-name">Oracle XE 21c</p>
+          <p class="tech-desc">엔터프라이즈 RDBMS</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">16 Entities</p>
+          <p class="tech-desc">정규화된 스키마</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">Soft Delete</p>
+          <p class="tech-desc">데이터 안전성</p>
+        </div>
+        <div class="tech-item">
+          <p class="tech-name">Audit Trail</p>
+          <p class="tech-desc">변경 이력 추적</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

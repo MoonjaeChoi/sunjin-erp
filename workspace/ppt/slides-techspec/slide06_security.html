@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  font-family: 'Pretendard', Arial, sans-serif;
+  display: flex;
+  background: #FFFFFF;
+}
+.accent-bar {
+  position: absolute; top: 0; left: 0;
+  width: 720pt; height: 6pt;
+  background: #1ABC9C;
+}
+.container {
+  width: 100%; height: 100%;
+  padding: 20pt 35pt;
+  box-sizing: border-box;
+}
+h1 {
+  color: #1C2833;
+  font-size: 24pt;
+  font-weight: bold;
+  margin: 12pt 0 20pt 0;
+}
+.content-grid {
+  display: flex;
+  gap: 25pt;
+}
+.left-section {
+  flex: 1;
+}
+.right-section {
+  flex: 1.5;
+}
+.section-title {
+  color: #1ABC9C;
+  font-size: 13pt;
+  font-weight: bold;
+  margin: 0 0 12pt 0;
+}
+.auth-box {
+  background: #1C2833;
+  padding: 12pt;
+  border-radius: 8pt;
+  margin-bottom: 10pt;
+}
+.auth-box p {
+  color: #FFFFFF;
+  font-size: 11pt;
+  margin: 5pt 0;
+  line-height: 1.5;
+}
+.role-card {
+  background: #F8F9FA;
+  border-radius: 8pt;
+  padding: 10pt;
+  margin-bottom: 8pt;
+  border-left: 5pt solid #1ABC9C;
+}
+.role-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6pt;
+}
+.role-badge {
+  background: #1ABC9C;
+  padding: 4pt 10pt;
+  border-radius: 4pt;
+  margin-right: 10pt;
+}
+.role-badge p {
+  color: #FFFFFF;
+  font-size: 10pt;
+  font-weight: bold;
+  margin: 0;
+}
+.role-title {
+  color: #1C2833;
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 0;
+}
+.role-desc {
+  color: #7F8C8D;
+  font-size: 10pt;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="accent-bar"></div>
+<div class="container">
+  <h1>보안 및 권한</h1>
+  <div class="content-grid">
+    <div class="left-section">
+      <p class="section-title">인증 시스템</p>
+      <div class="auth-box">
+        <p><b>NextAuth.js (Auth.js v5)</b></p>
+        <p>JWT 기반 세션 관리</p>
+        <p>bcrypt 비밀번호 해싱</p>
+        <p>세션 만료 자동 갱신</p>
+        <p>보안 쿠키 설정</p>
+      </div>
+      <p class="section-title">데이터 보안</p>
+      <div class="auth-box">
+        <p>Soft Delete (물리 삭제 금지)</p>
+        <p>변경 이력 자동 추적</p>
+        <p>API 입력 검증 (Zod)</p>
+      </div>
+    </div>
+    <div class="right-section">
+      <p class="section-title">역할 기반 접근 제어 (RBAC)</p>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-badge"><p>ADMIN</p></div>
+          <p class="role-title">시스템 관리자</p>
+        </div>
+        <p class="role-desc">전체 기능 접근 + 직원/부서 관리 + 시스템 설정</p>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-badge"><p>MANAGER</p></div>
+          <p class="role-title">부서 관리자</p>
+        </div>
+        <p class="role-desc">부서 내 데이터 조회/편집 + 팀원 업무 관리</p>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-badge"><p>USER</p></div>
+          <p class="role-title">일반 사용자</p>
+        </div>
+        <p class="role-desc">본인 데이터 관리 + 공용 데이터 읽기 권한</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
