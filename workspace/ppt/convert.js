@@ -1,6 +1,7 @@
-// Generated: 2026-01-28 17:00:00 KST
+// Generated: 2026-01-28 11:30:00 KST
 /**
  * Convert HTML slides to PPTX using html2pptx library
+ * Uses Pretendard font for all text
  */
 
 const pptxgen = require('pptxgenjs');
@@ -21,6 +22,7 @@ async function main() {
   pptx.title = '선진인포텍 ERP 시스템 구축 제안서';
   pptx.author = 'ERP 구축팀';
   pptx.company = '선진인포텍(주)';
+  pptx.subject = 'ERP 시스템 구축 제안';
 
   for (const slideFile of slideFiles) {
     const htmlPath = path.join(__dirname, slideFile);
@@ -40,6 +42,8 @@ async function main() {
   const outputPath = path.join(__dirname, '선진인포텍_ERP_제안서.pptx');
   await pptx.writeFile({ fileName: outputPath });
   console.log(`\n✓ PPTX saved to: ${outputPath}`);
+  console.log('\nTo embed fonts, run:');
+  console.log(`  python3 .claude/scripts/ppt/embed_font.py "${outputPath}"`);
 }
 
 main().catch(console.error);
