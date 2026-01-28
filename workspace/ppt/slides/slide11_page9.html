@@ -2,10 +2,12 @@
 <html>
 <head>
 <style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
 html { background: #ffffff; }
 body {
   width: 720pt; height: 405pt; margin: 0; padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   display: flex;
   background: #FFFFFF;
 }
@@ -16,26 +18,29 @@ body {
 }
 .container {
   width: 100%; height: 100%;
-  padding: 30pt 35pt;
+  padding: 25pt 35pt;
   box-sizing: border-box;
 }
 .header {
   display: flex;
   align-items: center;
-  margin-bottom: 15pt;
+  margin-bottom: 12pt;
 }
 .page-num {
   background: #1ABC9C;
-  color: #FFFFFF;
-  font-size: 12pt;
-  font-weight: bold;
   padding: 6pt 12pt;
   border-radius: 4pt;
   margin-right: 12pt;
 }
+.page-num p {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
 h1 {
   color: #1C2833;
-  font-size: 20pt;
+  font-size: 18pt;
   font-weight: bold;
   margin: 0;
 }
@@ -48,52 +53,46 @@ h1 {
 }
 .section-title-done {
   background: #D5F5E3;
-  padding: 8pt 12pt;
+  padding: 6pt 10pt;
   border-radius: 4pt;
-  margin-bottom: 10pt;
+  margin-bottom: 8pt;
 }
 .section-title-done p {
   color: #1E8449;
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: bold;
   margin: 0;
 }
 .section-title-pending {
   background: #FADBD8;
-  padding: 8pt 12pt;
+  padding: 6pt 10pt;
   border-radius: 4pt;
-  margin-bottom: 10pt;
+  margin-bottom: 8pt;
 }
 .section-title-pending p {
   color: #C0392B;
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: bold;
   margin: 0;
 }
-.table-wrap {
+.list-wrap {
   background: #F8F9FA;
   border-radius: 6pt;
-  padding: 8pt;
+  padding: 10pt;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
+ul {
+  margin: 0;
+  padding-left: 16pt;
   font-size: 8pt;
-}
-th {
-  background: #2E4053;
-  color: #FFFFFF;
-  padding: 4pt 5pt;
-  text-align: left;
-  font-weight: bold;
-}
-td {
-  padding: 3pt 5pt;
-  border-bottom: 1pt solid #DEE2E6;
   color: #2E4053;
+  line-height: 1.5;
 }
-tr:last-child td {
-  border-bottom: none;
+li {
+  margin-bottom: 2pt;
+}
+.item-title {
+  font-weight: bold;
+  color: #1C2833;
 }
 </style>
 </head>
@@ -107,34 +106,32 @@ tr:last-child td {
   <div class="two-col">
     <div class="col">
       <div class="section-title-done"><p>Phase 1 구현 완료</p></div>
-      <div class="table-wrap">
-        <table>
-          <tr><th>항목</th><th>구현 내용</th></tr>
-          <tr><td>고객 CRUD</td><td>생성/조회/수정/삭제</td></tr>
-          <tr><td>고객 분류</td><td>4가지 분류 관리</td></tr>
-          <tr><td>담당자 관리</td><td>다중 연락처, 주담당자</td></tr>
-          <tr><td>검색/필터링</td><td>이름/코드, 분류/담당자</td></tr>
-          <tr><td>고객 이력 추적</td><td>변경 기록</td></tr>
-          <tr><td>역할 기반 제어</td><td>USER/MANAGER/ADMIN</td></tr>
-          <tr><td>의존성 검증</td><td>삭제 전 참조 확인</td></tr>
-        </table>
+      <div class="list-wrap">
+        <ul>
+          <li><span class="item-title">고객 CRUD:</span> 생성/조회/수정/삭제</li>
+          <li><span class="item-title">고객 분류:</span> 4가지 분류 관리</li>
+          <li><span class="item-title">담당자 관리:</span> 다중 연락처, 주담당자</li>
+          <li><span class="item-title">검색/필터링:</span> 이름/코드, 분류/담당자</li>
+          <li><span class="item-title">고객 이력 추적:</span> 변경 기록</li>
+          <li><span class="item-title">역할 기반 제어:</span> USER/MANAGER/ADMIN</li>
+          <li><span class="item-title">의존성 검증:</span> 삭제 전 참조 확인</li>
+        </ul>
       </div>
     </div>
     <div class="col">
       <div class="section-title-pending"><p>Out-of-Scope (Phase 2)</p></div>
-      <div class="table-wrap">
-        <table>
-          <tr><th>항목</th><th>비고</th></tr>
-          <tr><td>감정 추적</td><td>memo 필드만</td></tr>
-          <tr><td>산업 분야/매출</td><td>추가 필드 미구현</td></tr>
-          <tr><td>고객사 로고</td><td>Attachment 없음</td></tr>
-          <tr><td>분류별 동적 폼</td><td>필드 변경 없음</td></tr>
-          <tr><td>지역 기반 분류</td><td>address만</td></tr>
-          <tr><td>대량 import/export</td><td>CSV/Excel 없음</td></tr>
-          <tr><td>신용 등급 관리</td><td>필드 없음</td></tr>
-          <tr><td>삭제 고객 복구</td><td>Soft delete만</td></tr>
-          <tr><td>문서 첨부</td><td>첨부 기능 없음</td></tr>
-        </table>
+      <div class="list-wrap">
+        <ul>
+          <li><span class="item-title">감정 추적:</span> memo 필드만</li>
+          <li><span class="item-title">산업 분야/매출:</span> 추가 필드 미구현</li>
+          <li><span class="item-title">고객사 로고:</span> Attachment 없음</li>
+          <li><span class="item-title">분류별 동적 폼:</span> 필드 변경 없음</li>
+          <li><span class="item-title">지역 기반 분류:</span> address만</li>
+          <li><span class="item-title">대량 import/export:</span> CSV/Excel 없음</li>
+          <li><span class="item-title">신용 등급 관리:</span> 필드 없음</li>
+          <li><span class="item-title">삭제 고객 복구:</span> Soft delete만</li>
+          <li><span class="item-title">문서 첨부:</span> 첨부 기능 없음</li>
+        </ul>
       </div>
     </div>
   </div>

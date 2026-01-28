@@ -2,10 +2,12 @@
 <html>
 <head>
 <style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
 html { background: #ffffff; }
 body {
   width: 720pt; height: 405pt; margin: 0; padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   display: flex;
   background: #FFFFFF;
 }
@@ -16,26 +18,29 @@ body {
 }
 .container {
   width: 100%; height: 100%;
-  padding: 30pt 35pt;
+  padding: 25pt 35pt;
   box-sizing: border-box;
 }
 .header {
   display: flex;
   align-items: center;
-  margin-bottom: 15pt;
+  margin-bottom: 12pt;
 }
 .page-num {
   background: #1ABC9C;
-  color: #FFFFFF;
-  font-size: 12pt;
-  font-weight: bold;
   padding: 6pt 12pt;
   border-radius: 4pt;
   margin-right: 12pt;
 }
+.page-num p {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
 h1 {
   color: #1C2833;
-  font-size: 20pt;
+  font-size: 18pt;
   font-weight: bold;
   margin: 0;
 }
@@ -48,52 +53,46 @@ h1 {
 }
 .section-title-done {
   background: #D5F5E3;
-  padding: 8pt 12pt;
+  padding: 6pt 10pt;
   border-radius: 4pt;
-  margin-bottom: 10pt;
+  margin-bottom: 8pt;
 }
 .section-title-done p {
   color: #1E8449;
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: bold;
   margin: 0;
 }
 .section-title-pending {
   background: #FADBD8;
-  padding: 8pt 12pt;
+  padding: 6pt 10pt;
   border-radius: 4pt;
-  margin-bottom: 10pt;
+  margin-bottom: 8pt;
 }
 .section-title-pending p {
   color: #C0392B;
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: bold;
   margin: 0;
 }
-.table-wrap {
+.list-wrap {
   background: #F8F9FA;
   border-radius: 6pt;
-  padding: 8pt;
+  padding: 10pt;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
+ul {
+  margin: 0;
+  padding-left: 16pt;
   font-size: 8pt;
-}
-th {
-  background: #2E4053;
-  color: #FFFFFF;
-  padding: 4pt 5pt;
-  text-align: left;
-  font-weight: bold;
-}
-td {
-  padding: 3pt 5pt;
-  border-bottom: 1pt solid #DEE2E6;
   color: #2E4053;
+  line-height: 1.5;
 }
-tr:last-child td {
-  border-bottom: none;
+li {
+  margin-bottom: 2pt;
+}
+.item-title {
+  font-weight: bold;
+  color: #1C2833;
 }
 </style>
 </head>
@@ -107,35 +106,33 @@ tr:last-child td {
   <div class="two-col">
     <div class="col">
       <div class="section-title-done"><p>Phase 1 구현 완료</p></div>
-      <div class="table-wrap">
-        <table>
-          <tr><th>항목</th><th>구현 내용</th></tr>
-          <tr><td>재고 CRUD</td><td>입고/조회/수정/삭제</td></tr>
-          <tr><td>상태 관리</td><td>재고-출고-폐기</td></tr>
-          <tr><td>이력 추적</td><td>입고/출고/반납 기록</td></tr>
-          <tr><td>출고/반납 처리</td><td>사용처, 반납 예정일</td></tr>
-          <tr><td>위치 변경</td><td>이전/새 위치 이력</td></tr>
-          <tr><td>통계 조회</td><td>상태별 카운트</td></tr>
-          <tr><td>필터/검색/정렬</td><td>카테고리, 상태, 위치</td></tr>
-          <tr><td>역할 기반 제어</td><td>ADMIN/MANAGER/USER</td></tr>
-        </table>
+      <div class="list-wrap">
+        <ul>
+          <li><span class="item-title">재고 CRUD:</span> 입고/조회/수정/삭제</li>
+          <li><span class="item-title">상태 관리:</span> 재고-출고-폐기</li>
+          <li><span class="item-title">이력 추적:</span> 입고/출고/반납 기록</li>
+          <li><span class="item-title">출고/반납 처리:</span> 사용처, 반납 예정일</li>
+          <li><span class="item-title">위치 변경:</span> 이전/새 위치 이력</li>
+          <li><span class="item-title">통계 조회:</span> 상태별 카운트</li>
+          <li><span class="item-title">필터/검색/정렬:</span> 카테고리, 상태, 위치</li>
+          <li><span class="item-title">역할 기반 제어:</span> ADMIN/MANAGER/USER</li>
+        </ul>
       </div>
     </div>
     <div class="col">
       <div class="section-title-pending"><p>Out-of-Scope (Phase 2)</p></div>
-      <div class="table-wrap">
-        <table>
-          <tr><th>항목</th><th>비고</th></tr>
-          <tr><td>바코드/QR 스캔</td><td>수동 입력만</td></tr>
-          <tr><td>자동 알림</td><td>과기 집계만</td></tr>
-          <tr><td>장비 예약 시스템</td><td>Phase 2</td></tr>
-          <tr><td>승인 워크플로우</td><td>즉시 실행만</td></tr>
-          <tr><td>장비 모니터링</td><td>Phase 2</td></tr>
-          <tr><td>외부 ERP 연동</td><td>Phase 2</td></tr>
-          <tr><td>감가상각 계산</td><td>로직 없음</td></tr>
-          <tr><td>전문검색(FTS)</td><td>LIKE만</td></tr>
-          <tr><td>부서별 권한</td><td>전사 접근만</td></tr>
-        </table>
+      <div class="list-wrap">
+        <ul>
+          <li><span class="item-title">바코드/QR 스캔:</span> 수동 입력만</li>
+          <li><span class="item-title">자동 알림:</span> 과기 집계만</li>
+          <li><span class="item-title">장비 예약 시스템:</span> Phase 2</li>
+          <li><span class="item-title">승인 워크플로우:</span> 즉시 실행만</li>
+          <li><span class="item-title">장비 모니터링:</span> Phase 2</li>
+          <li><span class="item-title">외부 ERP 연동:</span> Phase 2</li>
+          <li><span class="item-title">감가상각 계산:</span> 로직 없음</li>
+          <li><span class="item-title">전문검색(FTS):</span> LIKE만</li>
+          <li><span class="item-title">부서별 권한:</span> 전사 접근만</li>
+        </ul>
       </div>
     </div>
   </div>

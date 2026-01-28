@@ -2,10 +2,12 @@
 <html>
 <head>
 <style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
 html { background: #ffffff; }
 body {
   width: 720pt; height: 405pt; margin: 0; padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   display: flex;
   background: #FFFFFF;
 }
@@ -16,26 +18,29 @@ body {
 }
 .container {
   width: 100%; height: 100%;
-  padding: 30pt 35pt;
+  padding: 25pt 35pt;
   box-sizing: border-box;
 }
 .header {
   display: flex;
   align-items: center;
-  margin-bottom: 15pt;
+  margin-bottom: 12pt;
 }
 .page-num {
   background: #1ABC9C;
-  color: #FFFFFF;
-  font-size: 12pt;
-  font-weight: bold;
   padding: 6pt 12pt;
   border-radius: 4pt;
   margin-right: 12pt;
 }
+.page-num p {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
 h1 {
   color: #1C2833;
-  font-size: 18pt;
+  font-size: 16pt;
   font-weight: bold;
   margin: 0;
 }
@@ -48,52 +53,46 @@ h1 {
 }
 .section-title-done {
   background: #D5F5E3;
-  padding: 8pt 12pt;
+  padding: 6pt 10pt;
   border-radius: 4pt;
-  margin-bottom: 10pt;
+  margin-bottom: 8pt;
 }
 .section-title-done p {
   color: #1E8449;
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: bold;
   margin: 0;
 }
 .section-title-pending {
   background: #FADBD8;
-  padding: 8pt 12pt;
+  padding: 6pt 10pt;
   border-radius: 4pt;
-  margin-bottom: 10pt;
+  margin-bottom: 8pt;
 }
 .section-title-pending p {
   color: #C0392B;
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: bold;
   margin: 0;
 }
-.table-wrap {
+.list-wrap {
   background: #F8F9FA;
   border-radius: 6pt;
-  padding: 8pt;
+  padding: 10pt;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
+ul {
+  margin: 0;
+  padding-left: 16pt;
   font-size: 9pt;
-}
-th {
-  background: #2E4053;
-  color: #FFFFFF;
-  padding: 5pt 6pt;
-  text-align: left;
-  font-weight: bold;
-}
-td {
-  padding: 4pt 6pt;
-  border-bottom: 1pt solid #DEE2E6;
   color: #2E4053;
+  line-height: 1.6;
 }
-tr:last-child td {
-  border-bottom: none;
+li {
+  margin-bottom: 3pt;
+}
+.item-title {
+  font-weight: bold;
+  color: #1C2833;
 }
 </style>
 </head>
@@ -107,32 +106,30 @@ tr:last-child td {
   <div class="two-col">
     <div class="col">
       <div class="section-title-done"><p>Phase 1 구현 완료</p></div>
-      <div class="table-wrap">
-        <table>
-          <tr><th>항목</th><th>구현 내용</th></tr>
-          <tr><td>프로젝트 CRUD</td><td>생성/조회/수정/삭제</td></tr>
-          <tr><td>8단계 체크리스트</td><td>MEETING-HANDOVER</td></tr>
-          <tr><td>고객사 연동</td><td>FK, Combobox 검색</td></tr>
-          <tr><td>다중 첨부파일</td><td>카테고리별 분류</td></tr>
-          <tr><td>필터/검색/정렬</td><td>복수 필터링</td></tr>
-          <tr><td>RBAC 권한</td><td>ADMIN/MANAGER/USER</td></tr>
-          <tr><td>요약 배지</td><td>상태별 카운트</td></tr>
-        </table>
+      <div class="list-wrap">
+        <ul>
+          <li><span class="item-title">프로젝트 CRUD:</span> 생성/조회/수정/삭제</li>
+          <li><span class="item-title">8단계 체크리스트:</span> MEETING-HANDOVER</li>
+          <li><span class="item-title">고객사 연동:</span> FK, Combobox 검색</li>
+          <li><span class="item-title">다중 첨부파일:</span> 카테고리별 분류</li>
+          <li><span class="item-title">필터/검색/정렬:</span> 복수 필터링</li>
+          <li><span class="item-title">RBAC 권한:</span> ADMIN/MANAGER/USER</li>
+          <li><span class="item-title">요약 배지:</span> 상태별 카운트</li>
+        </ul>
       </div>
     </div>
     <div class="col">
       <div class="section-title-pending"><p>Out-of-Scope (Phase 2)</p></div>
-      <div class="table-wrap">
-        <table>
-          <tr><th>항목</th><th>비고</th></tr>
-          <tr><td>하위 태스크 관리</td><td>PROJECT_TASK 미구현</td></tr>
-          <tr><td>간트 차트 뷰</td><td>UI 미구현</td></tr>
-          <tr><td>수익/비용 분석</td><td>원가/이윤 필드 없음</td></tr>
-          <tr><td>복수 담당자</td><td>단일 담당자만</td></tr>
-          <tr><td>알림/리마인더</td><td>Phase 2</td></tr>
-          <tr><td>캘린더 연동</td><td>Phase 2</td></tr>
-          <tr><td>확률(Win Rate)</td><td>필드 미구현</td></tr>
-        </table>
+      <div class="list-wrap">
+        <ul>
+          <li><span class="item-title">하위 태스크 관리:</span> PROJECT_TASK 미구현</li>
+          <li><span class="item-title">간트 차트 뷰:</span> UI 미구현</li>
+          <li><span class="item-title">수익/비용 분석:</span> 원가/이윤 필드 없음</li>
+          <li><span class="item-title">복수 담당자:</span> 단일 담당자만</li>
+          <li><span class="item-title">알림/리마인더:</span> Phase 2</li>
+          <li><span class="item-title">캘린더 연동:</span> Phase 2</li>
+          <li><span class="item-title">확률(Win Rate):</span> 필드 미구현</li>
+        </ul>
       </div>
     </div>
   </div>

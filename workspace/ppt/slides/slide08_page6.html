@@ -2,10 +2,12 @@
 <html>
 <head>
 <style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
 html { background: #ffffff; }
 body {
   width: 720pt; height: 405pt; margin: 0; padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   display: flex;
   background: #FFFFFF;
 }
@@ -16,26 +18,29 @@ body {
 }
 .container {
   width: 100%; height: 100%;
-  padding: 30pt 35pt;
+  padding: 25pt 35pt;
   box-sizing: border-box;
 }
 .header {
   display: flex;
   align-items: center;
-  margin-bottom: 15pt;
+  margin-bottom: 12pt;
 }
 .page-num {
   background: #1ABC9C;
-  color: #FFFFFF;
-  font-size: 12pt;
-  font-weight: bold;
   padding: 6pt 12pt;
   border-radius: 4pt;
   margin-right: 12pt;
 }
+.page-num p {
+  color: #FFFFFF;
+  font-size: 11pt;
+  font-weight: bold;
+  margin: 0;
+}
 h1 {
   color: #1C2833;
-  font-size: 20pt;
+  font-size: 18pt;
   font-weight: bold;
   margin: 0;
 }
@@ -48,52 +53,46 @@ h1 {
 }
 .section-title-done {
   background: #D5F5E3;
-  padding: 8pt 12pt;
+  padding: 6pt 10pt;
   border-radius: 4pt;
-  margin-bottom: 10pt;
+  margin-bottom: 8pt;
 }
 .section-title-done p {
   color: #1E8449;
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: bold;
   margin: 0;
 }
 .section-title-pending {
   background: #FADBD8;
-  padding: 8pt 12pt;
+  padding: 6pt 10pt;
   border-radius: 4pt;
-  margin-bottom: 10pt;
+  margin-bottom: 8pt;
 }
 .section-title-pending p {
   color: #C0392B;
-  font-size: 12pt;
+  font-size: 11pt;
   font-weight: bold;
   margin: 0;
 }
-.table-wrap {
+.list-wrap {
   background: #F8F9FA;
   border-radius: 6pt;
-  padding: 8pt;
+  padding: 10pt;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
+ul {
+  margin: 0;
+  padding-left: 16pt;
   font-size: 8pt;
-}
-th {
-  background: #2E4053;
-  color: #FFFFFF;
-  padding: 4pt 5pt;
-  text-align: left;
-  font-weight: bold;
-}
-td {
-  padding: 3pt 5pt;
-  border-bottom: 1pt solid #DEE2E6;
   color: #2E4053;
+  line-height: 1.5;
 }
-tr:last-child td {
-  border-bottom: none;
+li {
+  margin-bottom: 2pt;
+}
+.item-title {
+  font-weight: bold;
+  color: #1C2833;
 }
 </style>
 </head>
@@ -107,35 +106,33 @@ tr:last-child td {
   <div class="two-col">
     <div class="col">
       <div class="section-title-done"><p>Phase 1 구현 완료</p></div>
-      <div class="table-wrap">
-        <table>
-          <tr><th>항목</th><th>구현 내용</th></tr>
-          <tr><td>장애 CRUD</td><td>생성/조회/수정/삭제</td></tr>
-          <tr><td>상태 관리</td><td>INTAKE-COMPLETED</td></tr>
-          <tr><td>심각도 관리</td><td>4단계 우선순위</td></tr>
-          <tr><td>고객사 연동</td><td>FK, 필터링</td></tr>
-          <tr><td>담당자 할당</td><td>권한별 제약</td></tr>
-          <tr><td>첨부파일 관리</td><td>다중 파일, 10MB</td></tr>
-          <tr><td>변경 이력</td><td>상태/담당자 기록</td></tr>
-          <tr><td>요약 API</td><td>상태별 카운트</td></tr>
-          <tr><td>RBAC 권한</td><td>ADMIN/MANAGER/USER</td></tr>
-        </table>
+      <div class="list-wrap">
+        <ul>
+          <li><span class="item-title">장애 CRUD:</span> 생성/조회/수정/삭제</li>
+          <li><span class="item-title">상태 관리:</span> INTAKE-COMPLETED</li>
+          <li><span class="item-title">심각도 관리:</span> 4단계 우선순위</li>
+          <li><span class="item-title">고객사 연동:</span> FK, 필터링</li>
+          <li><span class="item-title">담당자 할당:</span> 권한별 제약</li>
+          <li><span class="item-title">첨부파일 관리:</span> 다중 파일, 10MB</li>
+          <li><span class="item-title">변경 이력:</span> 상태/담당자 기록</li>
+          <li><span class="item-title">요약 API:</span> 상태별 카운트</li>
+          <li><span class="item-title">RBAC 권한:</span> ADMIN/MANAGER/USER</li>
+        </ul>
       </div>
     </div>
     <div class="col">
       <div class="section-title-pending"><p>Out-of-Scope (Phase 2)</p></div>
-      <div class="table-wrap">
-        <table>
-          <tr><th>항목</th><th>비고</th></tr>
-          <tr><td>실시간 알림</td><td>WebSocket/SSE 필요</td></tr>
-          <tr><td>메일 발송</td><td>nodemailer 미연동</td></tr>
-          <tr><td>대시보드 차트</td><td>Recharts 미구현</td></tr>
-          <tr><td>다국어 지원</td><td>한글만</td></tr>
-          <tr><td>모바일 전용 UI</td><td>반응형만</td></tr>
-          <tr><td>댓글/코멘트</td><td>이력만 기록</td></tr>
-          <tr><td>SLA 자동 계산</td><td>RTO/RTR 미구현</td></tr>
-          <tr><td>Excel/PDF 리포트</td><td>Phase 2</td></tr>
-        </table>
+      <div class="list-wrap">
+        <ul>
+          <li><span class="item-title">실시간 알림:</span> WebSocket/SSE 필요</li>
+          <li><span class="item-title">메일 발송:</span> nodemailer 미연동</li>
+          <li><span class="item-title">대시보드 차트:</span> Recharts 미구현</li>
+          <li><span class="item-title">다국어 지원:</span> 한글만</li>
+          <li><span class="item-title">모바일 전용 UI:</span> 반응형만</li>
+          <li><span class="item-title">댓글/코멘트:</span> 이력만 기록</li>
+          <li><span class="item-title">SLA 자동 계산:</span> RTO/RTR 미구현</li>
+          <li><span class="item-title">Excel/PDF 리포트:</span> Phase 2</li>
+        </ul>
       </div>
     </div>
   </div>
