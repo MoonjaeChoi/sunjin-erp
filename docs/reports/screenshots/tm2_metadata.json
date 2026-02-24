@@ -1,0 +1,71 @@
+{
+  "tm": "TM2",
+  "modules": [
+    {
+      "id": "attendance",
+      "title": "출결",
+      "description": "교인의 예배 출석 여부를 기록하고 조회하는 모듈입니다. 연도·단기·예배별 필터로 출결 데이터를 검색하고, 주간 단위 출결 관리, 결석자 조회, 출석 통계, QR/바코드 스캔 출결, 헌금 출결 기능을 제공합니다.",
+      "screenshots": [
+        {
+          "file": "attendance/01_manage.png",
+          "caption": "출결 관리"
+        },
+        {
+          "file": "attendance/02_manageWeek.png",
+          "caption": "출결 관리(주간)"
+        },
+        {
+          "file": "attendance/03_absence.png",
+          "caption": "결석자 조회"
+        },
+        {
+          "file": "attendance/04_statistics.png",
+          "caption": "출석 통계"
+        },
+        {
+          "file": "attendance/05_scan.png",
+          "caption": "QR/바코드 출결"
+        },
+        {
+          "file": "attendance/06_cashScan.png",
+          "caption": "헌금 출결"
+        }
+      ]
+    },
+    {
+      "id": "report",
+      "title": "보고",
+      "description": "교역자 및 소그룹 리더의 사역 활동을 보고하고 조회하는 모듈입니다. 사역보고(개인·주간), 구역보고서, 교회학교 보고서를 단계별 입력 폼(기본 정보 → 추가 정보 → 등록 완료)으로 등록하고, 기간·조직·담당자별 조건 검색으로 보고서를 조회할 수 있습니다.",
+      "screenshots": [
+        {
+          "file": "report/01_workAdd.png",
+          "caption": "사역보고 등록"
+        },
+        {
+          "file": "report/02_workManage.png",
+          "caption": "사역보고 조회"
+        },
+        {
+          "file": "report/03_workWeek.png",
+          "caption": "주간사역보고 조회"
+        },
+        {
+          "file": "report/04_meetingAdd.png",
+          "caption": "구역보고서 등록"
+        },
+        {
+          "file": "report/05_meetingManage.png",
+          "caption": "구역보고서 조회"
+        },
+        {
+          "file": "report/06_schoolAdd.png",
+          "caption": "교회학교 보고서 등록"
+        },
+        {
+          "file": "report/07_schoolManage.png",
+          "caption": "교회학교 보고서 조회"
+        }
+      ]
+    }
+  ]
+}

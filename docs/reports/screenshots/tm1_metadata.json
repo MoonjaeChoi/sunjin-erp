@@ -1,0 +1,32 @@
+{
+  "tm": "TM1",
+  "modules": [
+    {
+      "id": "home",
+      "title": "처음 화면",
+      "description": "로그인 후 가장 먼저 표시되는 홈 화면으로, 교인 이름·아이디·핸드폰 번호로 빠르게 교인을 검색할 수 있는 검색창과 교인 등록·교인 검색·심방 등록·심방 조회·기도 제목·프로그램 설정 등 자주 사용하는 메뉴의 바로가기 아이콘이 제공됩니다. 하단에는 전체 메뉴, 업데이트 내역, 동영상 매뉴얼, A/S 지원 링크가 안내됩니다.",
+      "screenshots": [
+        {"file": "auth/01_login.png", "caption": "로그인"},
+        {"file": "home/01_home.png", "caption": "처음 화면"},
+        {"file": "home/02_sitemap.png", "caption": "사이트맵"},
+        {"file": "home/03_update.png", "caption": "업데이트 내역"}
+      ]
+    },
+    {
+      "id": "person",
+      "title": "교인",
+      "description": "교인 정보를 등록·검색·조회·관리하는 핵심 모듈입니다. 교인 등록(3단계 마법사), 다양한 조건의 교인 검색, 전체 교인 목록 조회, 그룹 관리, 저장된 검색조건 목록, 최근 등록된 교인 확인, 새가족 스마트 성도 앱 등록요청, 교인정보 수정요청 처리, 제적 처리된 교인 목록 등의 기능을 제공합니다.",
+      "screenshots": [
+        {"file": "person/01_add.png", "caption": "교인 등록"},
+        {"file": "person/02_search.png", "caption": "교인 검색"},
+        {"file": "person/03_list.png", "caption": "교인 목록"},
+        {"file": "person/04_group.png", "caption": "교인 그룹"},
+        {"file": "person/05_condition.png", "caption": "검색조건 목록"},
+        {"file": "person/06_recent.png", "caption": "최근 등록 교인"},
+        {"file": "person/07_newSaint.png", "caption": "새가족 등록요청"},
+        {"file": "person/08_request.png", "caption": "교인정보 수정요청"},
+        {"file": "person/09_deleted.png", "caption": "제적 목록"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "tm": "TM3",
+  "modules": [
+    {
+      "id": "visit",
+      "title": "심방",
+      "description": "교인 심방을 등록하고 조회하는 기능을 제공합니다. 심방 등록 시 대상자, 심방일, 심방 구분, 심방 종류, 심방자 정보를 단계별로 입력하며, 심방 조회에서는 대상자·심방자·조직·심방 구분·종류·기간·내용 등 다양한 조건으로 검색할 수 있습니다. 미심방 세대 검색을 통해 특정 기간 동안 심방받지 못한 세대를 확인할 수 있으며, 기도 제목 기능으로 교인의 기도 제목을 등록하고 관리할 수 있습니다.",
+      "screenshots": [
+        {"file": "visit/01_add.png", "caption": "심방 등록"},
+        {"file": "visit/02_manage.png", "caption": "심방 조회"},
+        {"file": "visit/03_nonvisitSearch.png", "caption": "미심방 세대 검색"},
+        {"file": "visit/04_prayTitle.png", "caption": "기도 제목"}
+      ]
+    },
+    {
+      "id": "education",
+      "title": "교육",
+      "description": "교인의 교육 이력을 등록하고 조회하는 기능을 제공합니다. 교육 등록 시 대상자, 교육일(시작~종료), 교육명, 수료 여부를 단계별로 입력하며, 교육 조회에서는 등록된 교육 이력을 목록으로 확인하고 교인명·기간·조직·교육명 등의 조건으로 검색할 수 있습니다.",
+      "screenshots": [
+        {"file": "education/01_add.png", "caption": "교육 등록"},
+        {"file": "education/02_manage.png", "caption": "교육 조회"}
+      ]
+    },
+    {
+      "id": "serve",
+      "title": "봉사",
+      "description": "교회 봉사자를 등록하고 조회하는 기능을 제공합니다. 봉사자 등록 시 교인 이름, 임명일, 연도, 조직, 직책, 활동 여부를 입력하여 저장하며, 봉사자 조회에서는 연도·조직·교인 이름·직책·활동 여부 등의 조건으로 검색하고 봉사자 목록(사진·이름·연도·조직·직책·활동 여부·임명일)을 테이블 형태로 확인할 수 있습니다.",
+      "screenshots": [
+        {"file": "serve/01_add.png", "caption": "봉사자 등록"},
+        {"file": "serve/02_manage.png", "caption": "봉사자 조회"}
+      ]
+    },
+    {
+      "id": "statistics",
+      "title": "통계",
+      "description": "교회 운영 전반에 걸친 다양한 통계를 제공합니다. 전체 통계에서는 출석률 원형 차트, 연도별 새신자 현황, 주일예배 평균 출석수, 새신자 정착 통계 등을 시각화하여 확인할 수 있습니다. 예배 통계는 조직·예배 구분·기간별 출석 데이터를 조직항목별·조직 출결·세부 출결·개인별 탭으로 제공합니다. 연간 월별 교인수 통계(베타)는 연도와 통계 항목을 선택해 월별 교인수 변화를 조회하며, 새신자 통계는 기간·조직·교인 구분·신급·직분 조건으로 등록된 새신자 현황을 검색합니다. 장년 통계는 출결·심방·교육·봉사 탭으로 구분되어 장년 교인 활동 현황을 종합 제공하며, 심방 종류별 통계는 심방자별 심방 유형(개업·결혼·기타·병문·복지구제·입학·출업·위로·이사·출산·장례·추도·축하 등)을 테이블로 확인합니다. 월별 심방 통계는 심방자별 월별 심방 횟수를 연간 12개월 표로 제공하고, 접속 환경 통계는 운영체제와 브라우저 조합별 접속 수·비율·마지막 접속 일시를 목록으로 보여줍니다.",
+      "screenshots": [
+        {"file": "statistics/01_personal.png", "caption": "전체 통계"},
+        {"file": "statistics/02_worship.png", "caption": "예배 통계"},
+        {"file": "statistics/03_yearMonth.png", "caption": "연간 월별 교인수 통계"},
+        {"file": "statistics/04_newBeliever.png", "caption": "새신자 통계"},
+        {"file": "statistics/05_kyoku.png", "caption": "장년 통계"},
+        {"file": "statistics/06_visitKind.png", "caption": "심방 종류 통계"},
+        {"file": "statistics/07_visitMonth.png", "caption": "월별 심방 통계"},
+        {"file": "statistics/08_environment.png", "caption": "접속 환경 통계"}
+      ]
+    }
+  ]
+}
