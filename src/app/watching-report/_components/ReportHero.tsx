@@ -42,7 +42,7 @@ export function ReportHero() {
             </div>
 
             <div className="flex flex-wrap gap-1.5 mt-4">
-              {['교인관리', '출결', '심방', '보고', '통계', '가정교회', 'SMS', '게시판'].map(
+              {['교인관리', '출결', '심방', '보고', '통계', '교구사역', 'SMS', '게시판'].map(
                 (tag) => (
                   <Badge
                     key={tag}

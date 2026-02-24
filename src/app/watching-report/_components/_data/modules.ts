@@ -43,7 +43,7 @@ export const WATCHING_MODULES: WatchingModule[] = [
       {
         id: '1-3',
         title: '사이트맵',
-        description: '프로그램 전체 메뉴를 한눈에 확인할 수 있는 카드형 목록 화면입니다. 교인·출결·보고·심방·교육·봉사·통계·일괄처리·문자·게시판·가정교회 등 모든 기능 항목이 카테고리별로 정렬되어 있어 원하는 메뉴로 빠르게 이동할 수 있습니다.',
+        description: '프로그램 전체 메뉴를 한눈에 확인할 수 있는 카드형 목록 화면입니다. 교인·출결·보고·심방·교육·봉사·통계·일괄처리·문자·게시판·교구사역 등 모든 기능 항목이 카테고리별로 정렬되어 있어 원하는 메뉴로 빠르게 이동할 수 있습니다.',
         screenshotPath: 'home/02_sitemap.png',
       },
       {
@@ -194,7 +194,7 @@ export const WATCHING_MODULES: WatchingModule[] = [
       {
         id: '4-4',
         title: '구역보고서 등록',
-        description: '3단계 위저드(기본 정보 → 추가 정보 → 등록 완료)로 구역 모임 보고서를 작성합니다. 조직, 모임 일자, 인도자, 장소, 참석자 수, 목장일기 등을 입력합니다.',
+        description: '3단계 위저드(기본 정보 → 추가 정보 → 등록 완료)로 구역 모임 보고서를 작성합니다. 조직, 모임 일자, 인도자, 장소, 참석자 수, 구역일기 등을 입력합니다.',
         screenshotPath: 'report/04_meetingAdd.png',
       },
       {
@@ -454,28 +454,28 @@ export const WATCHING_MODULES: WatchingModule[] = [
   {
     id: 'mokjang',
     number: 12,
-    title: '가정교회',
+    title: '교구사역',
     icon: 'Church',
     color: 'bg-violet-500',
-    summary: '목장 운영 지원. 목장보고서 등록·조회, 목원 은사 등록·관리 (베타)',
+    summary: '구역 운영 지원. 구역보고서 등록·조회, 목원 은사 등록·관리 (베타)',
     isBeta: true,
     sections: [
       {
         id: '12-1',
         title: '일반사항',
-        description: '조직을 선택하면 해당 목장의 기본 정보(목장명·목자·예비목자·어린이목자·초원·평원·소속 목원 수·목장진도 대상자·미성년자 현황)를 조회합니다.',
+        description: '조직을 선택하면 해당 구역의 기본 정보(구역명·목자·예비목자·어린이목자·초원·평원·소속 목원 수·구역진도 대상자·미성년자 현황)를 조회합니다.',
         screenshotPath: 'mokjang/01_info.png',
       },
       {
         id: '12-2',
-        title: '목장보고서 등록',
-        description: '조직, 모임 일자, 인도자, 장소, 기도, 새가족, 참석 가정 수, 사역 신청, 목장일기 항목을 단계별로 입력하여 목장(구역) 모임 보고서를 등록합니다.',
+        title: '구역보고서 등록',
+        description: '조직, 모임 일자, 인도자, 장소, 기도, 새가족, 참석 가정 수, 사역 신청, 구역일기 항목을 단계별로 입력하여 구역(구역) 모임 보고서를 등록합니다.',
         screenshotPath: 'mokjang/02_meetingAdd.png',
       },
       {
         id: '12-3',
-        title: '목장보고서 조회',
-        description: '연도·조직·모임 일자·교인 구분 조건으로 등록된 목장보고서 목록을 검색하고 조회합니다.',
+        title: '구역보고서 조회',
+        description: '연도·조직·모임 일자·교인 구분 조건으로 등록된 구역보고서 목록을 검색하고 조회합니다.',
         screenshotPath: 'mokjang/03_meetingManage.png',
       },
       {
@@ -503,7 +503,7 @@ export const WATCHING_MODULES: WatchingModule[] = [
       {
         id: '13-1',
         title: '설정 메인',
-        description: '일반 설정(교회 설정), 주요 설정(조직·교육·항목 정의 등), 가정교회 설정 항목을 카드 형태로 나열한 설정 진입 화면입니다.',
+        description: '일반 설정(교회 설정), 주요 설정(조직·교육·항목 정의 등), 교구사역 설정 항목을 카드 형태로 나열한 설정 진입 화면입니다.',
         screenshotPath: 'setting/01_index.png',
       },
       {
@@ -539,7 +539,7 @@ export const WATCHING_MODULES: WatchingModule[] = [
       {
         id: '13-7',
         title: '사용자 그룹 권한',
-        description: '교인·출결·보고·심방·교육·봉사·통계·일괄처리·문자·게시판·가정교회 등 메뉴별 기능 항목에 대한 사용자 그룹별 접근 권한을 매핑 테이블 형태로 관리합니다.',
+        description: '교인·출결·보고·심방·교육·봉사·통계·일괄처리·문자·게시판·교구사역 등 메뉴별 기능 항목에 대한 사용자 그룹별 접근 권한을 매핑 테이블 형태로 관리합니다.',
         screenshotPath: 'setting/07_auth.png',
       },
     ],
