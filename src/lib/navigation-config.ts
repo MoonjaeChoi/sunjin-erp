@@ -55,7 +55,7 @@ export const navigationGroups: NavigationGroup[] = [
   {
     // 그룹 5: 문서/보고서
     items: [
-      { label: 'watching 보고서', href: '/watching-report', icon: BookOpen, requiredRole: 'USER' as UserRole },
+      { label: 'streamwood 보고서', href: '/streamwood-report', icon: BookOpen, requiredRole: 'USER' as UserRole },
     ],
   },
 ];
