@@ -11,6 +11,7 @@ import {
   Building2,
   Users,
   Bell,
+  BookOpen,
 } from 'lucide-react';
 import { NavigationGroup, UserRole } from '@/types/navigation';
 
@@ -49,6 +50,12 @@ export const navigationGroups: NavigationGroup[] = [
       { label: '고객 관리', href: '/customers', icon: Building2, requiredRole: 'USER' },
       { label: '직원 관리', href: '/employees', icon: Users, requiredRole: 'MANAGER' },
       { label: '공지사항', href: '/notices', icon: Bell, requiredRole: 'USER' },
+    ],
+  },
+  {
+    // 그룹 5: 문서/보고서
+    items: [
+      { label: 'watching 보고서', href: '/watching-report', icon: BookOpen, requiredRole: 'USER' as UserRole },
     ],
   },
 ];
