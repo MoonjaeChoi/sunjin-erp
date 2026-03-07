@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
             connection = await oracledb.getConnection({
               user: process.env.ORACLE_USERNAME || 'sunjin_admin',
               password: process.env.ORACLE_PASSWORD || '',
-              connectionString: `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'XEPDB1'}`,
+              connectionString: `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'FREEPDB1'}`,
             });
             console.log('[Auth] Connection established, querying employee...');
 

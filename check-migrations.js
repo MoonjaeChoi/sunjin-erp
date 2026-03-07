@@ -9,7 +9,7 @@ async function checkMigrationsStatus() {
     connection = await oracledb.getConnection({
       user: process.env.ORACLE_USERNAME || 'sunjin_admin',
       password: process.env.ORACLE_PASSWORD || '',
-      connectionString: `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'XEPDB1'}`
+      connectionString: `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'FREEPDB1'}`
     });
 
     console.log('✅ Connected to Oracle');
@@ -31,7 +31,7 @@ async function checkMigrationsStatus() {
         console.log('\n📝 To apply migrations, run from development machine:');
         console.log('   export ORACLE_HOST=192.168.75.194');
         console.log('   export ORACLE_PORT=1521');
-        console.log('   export ORACLE_SERVICE_NAME=XEPDB1');
+        console.log('   export ORACLE_SERVICE_NAME=FREEPDB1');
         console.log('   export ORACLE_USERNAME=sunjin_admin');
         console.log('   export ORACLE_PASSWORD=sunjin1234');
         console.log('   npx typeorm migration:run --dataSource ormconfig.ts');

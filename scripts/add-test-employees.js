@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
     conn = await oracledb.getConnection({
       user: "sunjin_admin",
       password: "sunjin1234",
-      connectionString: "192.168.75.194:1521/XEPDB1"
+      connectionString: "192.168.75.194:1521/FREEPDB1"
     });
 
     const hash = await bcrypt.hash("password123", 10);

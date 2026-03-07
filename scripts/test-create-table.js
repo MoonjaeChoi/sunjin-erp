@@ -9,7 +9,7 @@ async function testCreateTable() {
     conn = await oracledb.getConnection({
       user: process.env.ORACLE_USERNAME || 'sunjin_admin',
       password: process.env.ORACLE_PASSWORD || 'sunjin1234',
-      connectString: `${process.env.ORACLE_HOST || '192.168.75.194'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'XEPDB1'}`,
+      connectString: `${process.env.ORACLE_HOST || '192.168.75.194'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'FREEPDB1'}`,
     });
     console.log('✓ Connection successful!');
 

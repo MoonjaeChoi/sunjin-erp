@@ -258,7 +258,7 @@ const nextConfig = {
 # /home/pro301/sunjin-erp/.env (서버에서 직접 생성, git에 포함하지 않음)
 ORACLE_HOST=192.168.75.194
 ORACLE_PORT=1521
-ORACLE_SERVICE_NAME=XEPDB1
+ORACLE_SERVICE_NAME=FREEPDB1
 ORACLE_USERNAME=sunjin_admin
 ORACLE_PASSWORD=<password>
 NEXTAUTH_SECRET=<openssl rand -base64 32 결과>

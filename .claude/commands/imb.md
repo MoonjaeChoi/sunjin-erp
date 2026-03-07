@@ -28,7 +28,7 @@ PRD(Product Requirement Document)를 실행 가능한 구현 태스크로 분해
 ### 1. 기술 스택 표준 (Technology Stack)
 - **Framework**: Next.js 14 (App Router) — Full-stack single project
 - **Language**: TypeScript (strict mode)
-- **Database**: Oracle XE 21c (XEPDB1) + TypeORM
+- **Database**: Oracle 23ai Free (FREEPDB1) + TypeORM
 - **Auth**: NextAuth.js (Auth.js v5) — RBAC (ADMIN/MANAGER/USER)
 - **Server State**: TanStack Query (@tanstack/react-query)
 - **Client State**: Zustand (UI 상태만)
@@ -312,7 +312,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 - 404: Not Found (데이터 없음)
 - 500: Internal Server Error (서버 오류)
 
-### 3. 데이터베이스 규칙 (Oracle XE 21c + TypeORM)
+### 3. 데이터베이스 규칙 (Oracle 23ai Free + TypeORM)
 
 **참고**: `docs/operation/011_데이터베이스연결.md` 참조
 
@@ -320,8 +320,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
 | 항목 | 값 |
 |------|-----|
-| 데이터베이스 | Oracle XE 21c |
-| 서비스명 | XEPDB1 |
+| 데이터베이스 | Oracle 23ai Free |
+| 서비스명 | FREEPDB1 |
 | 스키마 | `sunjin_admin` |
 | 로컬 호스트 | localhost:1521 |
 | 스테이징 | 192.168.75.194:1521 |
@@ -330,7 +330,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 # .env 설정
 ORACLE_HOST=localhost
 ORACLE_PORT=1521
-ORACLE_SERVICE_NAME=XEPDB1
+ORACLE_SERVICE_NAME=FREEPDB1
 ORACLE_USERNAME=sunjin_admin
 ORACLE_PASSWORD=<password>
 ```

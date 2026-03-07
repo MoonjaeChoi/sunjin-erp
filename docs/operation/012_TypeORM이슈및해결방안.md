@@ -556,7 +556,7 @@ export async function getConnection(options?: ConnectionOptions) {
   const oracledb = await import('oracledb');
   return await oracledb.getConnection({
     // 풀링이 자동으로 활성화됨
-    connectionString: '192.168.75.194:1521/XEPDB1',
+    connectionString: '192.168.75.194:1521/FREEPDB1',
     // ...
   });
 }

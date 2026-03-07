@@ -5,7 +5,7 @@ async function testIssueTable() {
     type: 'oracle',
     host: process.env.ORACLE_HOST || '192.168.75.194',
     port: Number(process.env.ORACLE_PORT) || 1521,
-    serviceName: process.env.ORACLE_SERVICE_NAME || 'XEPDB1',
+    serviceName: process.env.ORACLE_SERVICE_NAME || 'FREEPDB1',
     username: process.env.ORACLE_USERNAME || 'sunjin_admin',
     password: process.env.ORACLE_PASSWORD || 'oracle',
     logging: false,

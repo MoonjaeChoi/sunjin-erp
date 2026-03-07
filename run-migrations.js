@@ -22,7 +22,7 @@ async function runMigrations() {
   console.log('Configuration:');
   console.log(`  Host: ${process.env.ORACLE_HOST}`);
   console.log(`  Port: ${process.env.ORACLE_PORT || 1521}`);
-  console.log(`  Service: ${process.env.ORACLE_SERVICE_NAME || 'XEPDB1'}`);
+  console.log(`  Service: ${process.env.ORACLE_SERVICE_NAME || 'FREEPDB1'}`);
   console.log(`  User: ${process.env.ORACLE_USERNAME}`);
   console.log('');
 
@@ -42,7 +42,7 @@ async function runMigrations() {
     type: 'oracle',
     host: process.env.ORACLE_HOST || 'localhost',
     port: Number(process.env.ORACLE_PORT) || 1521,
-    serviceName: process.env.ORACLE_SERVICE_NAME || 'XEPDB1',
+    serviceName: process.env.ORACLE_SERVICE_NAME || 'FREEPDB1',
     username: process.env.ORACLE_USERNAME || 'sunjin_admin',
     password: process.env.ORACLE_PASSWORD || '',
     migrations: [migrationsPath],

@@ -20,12 +20,12 @@ npx typeorm migration:run                          # Run migrations
 npx typeorm migration:revert                       # Rollback last migration
 
 # Docker
-docker-compose up -d             # Start app (port 3000) + Oracle XE (port 1521)
+docker-compose up -d             # Start app (port 3000) + Oracle 23ai (port 1521)
 ```
 
 ## Architecture Overview
 
-### Full-Stack Next.js 14 (App Router) + Oracle XE 21c
+### Full-Stack Next.js 14 (App Router) + Oracle 23ai Free
 
 This is a single full-stack project: Next.js handles both frontend rendering and backend API routes. No separate backend server.
 
@@ -75,7 +75,7 @@ src/app/
 [Notice] ──── [NoticeComment]
 ```
 
-## Database Rules (Oracle XE 21c)
+## Database Rules (Oracle 23ai Free)
 
 ### Oracle-Specific Types
 
@@ -107,7 +107,7 @@ NextAuth.js (Auth.js v5) with session + JWT.
 # .env (required)
 ORACLE_HOST=localhost
 ORACLE_PORT=1521
-ORACLE_SERVICE_NAME=XEPDB1
+ORACLE_SERVICE_NAME=FREEPDB1
 ORACLE_USERNAME=sunjin_admin
 ORACLE_PASSWORD=<password>
 

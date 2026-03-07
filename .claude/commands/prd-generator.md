@@ -53,7 +53,7 @@ The user will provide:
         - **Frontend:** React Server Components + Client Components (use `"use client"` directive when needed)
         - **Backend:** Next.js Route Handlers (`src/app/api/`)
         - **Rendering:** SSR/SSG where appropriate, client-side for interactive UI
-    *   **Database:** Oracle XE 21c (`XEPDB1`, TypeORM entities, `ON DELETE RESTRICT`, soft delete, no CASCADE DELETE).
+    *   **Database:** Oracle 23ai Free (`FREEPDB1`, TypeORM entities, `ON DELETE RESTRICT`, soft delete, no CASCADE DELETE).
     *   **Tech Stack:** Next.js 14, TypeScript, Tailwind CSS, shadcn/ui, Zustand, TanStack Query, TypeORM, NextAuth.js.
     *   **State Management:**
         - **Client State:** Zustand stores

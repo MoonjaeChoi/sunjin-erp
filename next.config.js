@@ -3,6 +3,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  basePath: '/sunjin',
+  assetPrefix: '/sunjin',
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.ignoreWarnings = [

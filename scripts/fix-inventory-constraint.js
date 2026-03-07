@@ -6,7 +6,7 @@ async function fixConstraint() {
     connection = await oracledb.getConnection({
       user: 'sunjin_admin',
       password: 'sunjin1234',
-      connectionString: '192.168.75.194:1521/XEPDB1'
+      connectionString: '192.168.75.194:1521/FREEPDB1'
     });
 
     console.log('\n🔧 Fixing INVENTORY_STATUS constraint...\n');

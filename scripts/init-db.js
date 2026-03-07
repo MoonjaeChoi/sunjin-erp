@@ -11,7 +11,7 @@ const path = require("path");
     conn = await oracledb.getConnection({
       user: "sunjin_admin",
       password: "sunjin1234",
-      connectionString: "192.168.75.194:1521/XEPDB1"
+      connectionString: "192.168.75.194:1521/FREEPDB1"
     });
 
     const sqlFile = path.join(__dirname, "init-database.sql");

@@ -106,7 +106,7 @@ export async function getConnection(options?: ConnectionOptions) {
   const oracledb = await import('oracledb');
 
   const connectionString = options?.connectionString ||
-    `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'XEPDB1'}`;
+    `${process.env.ORACLE_HOST || 'localhost'}:${process.env.ORACLE_PORT || 1521}/${process.env.ORACLE_SERVICE_NAME || 'FREEPDB1'}`;
 
   const connection = await oracledb.getConnection({
     user: options?.user || process.env.ORACLE_USERNAME || 'sunjin_admin',
