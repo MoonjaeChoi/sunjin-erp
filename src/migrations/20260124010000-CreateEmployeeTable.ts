@@ -88,15 +88,7 @@ export class CreateEmployeeTable20260125020000 implements MigrationInterface {
       `ALTER TABLE EMPLOYEE ADD CONSTRAINT UQ_EMPLOYEE_USERNAME UNIQUE ("username")`
     );
 
-    // 5. Indexes
-    await queryRunner.createIndex(
-      'EMPLOYEE',
-      new TableIndex({
-        name: 'IDX_EMPLOYEE_USERNAME',
-        columnNames: ['username'],
-        isUnique: true,
-      })
-    );
+    // 5. Indexes (IDX_EMPLOYEE_USERNAME skipped: UNIQUE constraint already creates an index)
     await queryRunner.createIndex(
       'EMPLOYEE',
       new TableIndex({
@@ -108,7 +100,6 @@ export class CreateEmployeeTable20260125020000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropIndex('EMPLOYEE', 'IDX_EMPLOYEE_DELETED_AT');
-    await queryRunner.dropIndex('EMPLOYEE', 'IDX_EMPLOYEE_USERNAME');
     await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT UQ_EMPLOYEE_USERNAME`);
     await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT FK_EMPLOYEE_DEPARTMENT`);
     await queryRunner.dropTable('EMPLOYEE');
