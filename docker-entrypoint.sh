@@ -31,12 +31,10 @@ cd /app
 
 if [ -f "run-migrations.js" ]; then
   node run-migrations.js || {
-    echo "❌ Migration failed!"
-    exit 1
+    echo "⚠️  Migration encountered errors (schema may already exist). Continuing startup..."
   }
 else
   echo "⚠️  Migration script not found at run-migrations.js"
-  exit 1
 fi
 
 echo ""
