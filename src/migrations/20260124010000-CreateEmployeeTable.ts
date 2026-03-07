@@ -1,108 +1,53 @@
-// Generated: 2026-01-25 02:00:00 KST
+// Generated: 2026-01-24 01:00:00 KST
 
-import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
+// UPPERCASE columns (raw SQL) — employee/auth APIs use unquoted uppercase identifiers
+// POSITION must exist before this migration (position_id FK)
 export class CreateEmployeeTable20260125020000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 1. Sequence
-    await queryRunner.query(
-      `CREATE SEQUENCE EMPLOYEE_ID_SEQ START WITH 1 INCREMENT BY 1 NOCACHE`
-    );
+    await queryRunner.query(`CREATE SEQUENCE EMPLOYEE_ID_SEQ START WITH 1 INCREMENT BY 1 NOCACHE`);
 
-    // 2. Table
-    await queryRunner.createTable(
-      new Table({
-        name: 'EMPLOYEE',
-        columns: [
-          {
-            name: 'id',
-            type: 'NUMBER',
-            isPrimary: true,
-            default: 'EMPLOYEE_ID_SEQ.NEXTVAL',
-          },
-          {
-            name: 'name',
-            type: 'VARCHAR2(50)',
-            isNullable: false,
-          },
-          {
-            name: 'username',
-            type: 'VARCHAR2(50)',
-            isNullable: false,
-          },
-          {
-            name: 'password_hash',
-            type: 'VARCHAR2(200)',
-            isNullable: false,
-          },
-          {
-            name: 'role',
-            type: 'VARCHAR2(20)',
-            isNullable: false,
-            default: "'USER'",
-          },
-          {
-            name: 'department_id',
-            type: 'NUMBER',
-            isNullable: true,
-          },
-          {
-            name: 'email',
-            type: 'VARCHAR2(100)',
-            isNullable: true,
-          },
-          {
-            name: 'position',
-            type: 'VARCHAR2(50)',
-            isNullable: true,
-          },
-          {
-            name: 'created_at',
-            type: 'TIMESTAMP',
-            isNullable: false,
-            default: 'CURRENT_TIMESTAMP',
-          },
-          {
-            name: 'updated_at',
-            type: 'TIMESTAMP',
-            isNullable: false,
-            default: 'CURRENT_TIMESTAMP',
-          },
-          {
-            name: 'deleted_at',
-            type: 'TIMESTAMP',
-            isNullable: true,
-          },
-        ],
-      }),
-      true
-    );
+    await queryRunner.query(`
+      CREATE TABLE EMPLOYEE (
+        ID NUMBER DEFAULT EMPLOYEE_ID_SEQ.NEXTVAL PRIMARY KEY,
+        NAME VARCHAR2(100) NOT NULL,
+        EMAIL VARCHAR2(100) NOT NULL,
+        PHONE VARCHAR2(20),
+        JOB_TITLE VARCHAR2(100),
+        DEPARTMENT_ID NUMBER NOT NULL,
+        POSITION_ID NUMBER NOT NULL,
+        MANAGER_ID NUMBER,
+        HIRED_AT DATE NOT NULL,
+        BIRTHDAY DATE,
+        CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        CREATED_BY_ID NUMBER,
+        UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        UPDATED_BY_ID NUMBER,
+        DELETED_AT TIMESTAMP
+      )
+    `);
 
-    // 3. Foreign Keys
-    await queryRunner.query(
-      `ALTER TABLE EMPLOYEE ADD CONSTRAINT FK_EMPLOYEE_DEPARTMENT FOREIGN KEY ("department_id") REFERENCES DEPARTMENT("id")`
-    );
-
-    // 4. Unique Constraint
-    await queryRunner.query(
-      `ALTER TABLE EMPLOYEE ADD CONSTRAINT UQ_EMPLOYEE_USERNAME UNIQUE ("username")`
-    );
-
-    // 5. Indexes (IDX_EMPLOYEE_USERNAME skipped: UNIQUE constraint already creates an index)
-    await queryRunner.createIndex(
-      'EMPLOYEE',
-      new TableIndex({
-        name: 'IDX_EMPLOYEE_DELETED_AT',
-        columnNames: ['deleted_at'],
-      })
-    );
+    await queryRunner.query(`ALTER TABLE EMPLOYEE ADD CONSTRAINT UQ_EMPLOYEE_EMAIL UNIQUE (EMAIL)`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE ADD CONSTRAINT FK_EMPLOYEE_DEPARTMENT FOREIGN KEY (DEPARTMENT_ID) REFERENCES DEPARTMENT(ID)`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE ADD CONSTRAINT FK_EMPLOYEE_POSITION FOREIGN KEY (POSITION_ID) REFERENCES POSITION(ID)`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE ADD CONSTRAINT FK_EMPLOYEE_MANAGER FOREIGN KEY (MANAGER_ID) REFERENCES EMPLOYEE(ID)`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE ADD CONSTRAINT FK_EMPLOYEE_CREATED_BY FOREIGN KEY (CREATED_BY_ID) REFERENCES EMPLOYEE(ID)`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE ADD CONSTRAINT FK_EMPLOYEE_UPDATED_BY FOREIGN KEY (UPDATED_BY_ID) REFERENCES EMPLOYEE(ID)`);
+    await queryRunner.query(`CREATE INDEX IDX_EMPLOYEE_DELETED_AT ON EMPLOYEE(DELETED_AT)`);
+    await queryRunner.query(`CREATE INDEX IDX_EMPLOYEE_DEPARTMENT_ID ON EMPLOYEE(DEPARTMENT_ID)`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropIndex('EMPLOYEE', 'IDX_EMPLOYEE_DELETED_AT');
-    await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT UQ_EMPLOYEE_USERNAME`);
+    await queryRunner.query(`DROP INDEX IDX_EMPLOYEE_DEPARTMENT_ID`);
+    await queryRunner.query(`DROP INDEX IDX_EMPLOYEE_DELETED_AT`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT FK_EMPLOYEE_UPDATED_BY`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT FK_EMPLOYEE_CREATED_BY`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT FK_EMPLOYEE_MANAGER`);
+    await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT FK_EMPLOYEE_POSITION`);
     await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT FK_EMPLOYEE_DEPARTMENT`);
-    await queryRunner.dropTable('EMPLOYEE');
+    await queryRunner.query(`ALTER TABLE EMPLOYEE DROP CONSTRAINT UQ_EMPLOYEE_EMAIL`);
+    await queryRunner.query(`DROP TABLE EMPLOYEE`);
     await queryRunner.query(`DROP SEQUENCE EMPLOYEE_ID_SEQ`);
   }
 }

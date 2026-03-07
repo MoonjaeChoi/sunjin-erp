@@ -1,244 +1,61 @@
-// Generated: 2026-01-26 22:45:00 KST
+// Generated: 2026-01-26 00:00:00 KST
 
-import {
-  MigrationInterface,
-  QueryRunner,
-  Table,
-  TableIndex,
-  TableForeignKey,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateMaintenanceContractTable20260126000000
-  implements MigrationInterface
-{
+// lowercase columns (quoted raw SQL) — maintenance API uses quoted lowercase identifiers
+export class CreateMaintenanceContractTable20260126000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create sequence for ID generation
-    await queryRunner.query(
-      `CREATE SEQUENCE SEQ_MAINTENANCE_CONTRACT START WITH 1 INCREMENT BY 1 NOCACHE`
-    );
+    await queryRunner.query(`CREATE SEQUENCE SEQ_MAINTENANCE_CONTRACT START WITH 1 INCREMENT BY 1 NOCACHE`);
 
-    await queryRunner.createTable(
-      new Table({
-        name: 'MAINTENANCE_CONTRACT',
-        columns: [
-          {
-            name: 'id',
-            type: 'number',
-            isPrimary: true,
-            isGenerated: true,
-            generationStrategy: 'increment',
-          },
-          {
-            name: 'customer_id',
-            type: 'number',
-            isNullable: false,
-          },
-          {
-            name: 'contract_name',
-            type: 'varchar2',
-            length: '255',
-            isNullable: false,
-          },
-          {
-            name: 'contract_type',
-            type: 'varchar2',
-            length: '255',
-            isNullable: false,
-          },
-          {
-            name: 'start_date',
-            type: 'date',
-            isNullable: false,
-          },
-          {
-            name: 'end_date',
-            type: 'date',
-            isNullable: false,
-          },
-          {
-            name: 'contract_amount',
-            type: 'number',
-            isNullable: true,
-          },
-          {
-            name: 'assigned_employee_id',
-            type: 'number',
-            isNullable: false,
-          },
-          {
-            name: 'contract_status',
-            type: 'varchar2',
-            length: '50',
-            isNullable: false,
-            default: `'활성'`,
-          },
-          {
-            name: 'notes',
-            type: 'clob',
-            isNullable: true,
-          },
-          {
-            name: 'created_by_id',
-            type: 'number',
-            isNullable: false,
-          },
-          {
-            name: 'updated_by_id',
-            type: 'number',
-            isNullable: false,
-          },
-          {
-            name: 'created_at',
-            type: 'timestamp',
-            isNullable: false,
-            default: 'CURRENT_TIMESTAMP',
-          },
-          {
-            name: 'updated_at',
-            type: 'timestamp',
-            isNullable: false,
-            default: 'CURRENT_TIMESTAMP',
-          },
-          {
-            name: 'deleted_at',
-            type: 'timestamp',
-            isNullable: true,
-          },
-        ],
-      }),
-      true
-    );
+    await queryRunner.query(`
+      CREATE TABLE MAINTENANCE_CONTRACT (
+        "id" NUMBER DEFAULT SEQ_MAINTENANCE_CONTRACT.NEXTVAL PRIMARY KEY,
+        "customer_id" NUMBER NOT NULL,
+        "contract_name" VARCHAR2(255) NOT NULL,
+        "contract_type" VARCHAR2(255) NOT NULL,
+        "start_date" DATE NOT NULL,
+        "end_date" DATE NOT NULL,
+        "contract_amount" NUMBER,
+        "assigned_employee_id" NUMBER NOT NULL,
+        "contract_status" VARCHAR2(50) DEFAULT '활성' NOT NULL,
+        "notes" CLOB,
+        "created_by_id" NUMBER NOT NULL,
+        "updated_by_id" NUMBER NOT NULL,
+        "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        "deleted_at" TIMESTAMP
+      )
+    `);
 
-    // CHECK Constraints (must be separate ALTER TABLE to use quoted column names for Oracle)
-    await queryRunner.query(
-      `ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT CHK_MC_STATUS CHECK ("contract_status" IN ('활성', '종료', '갱신예정'))`
-    );
-    await queryRunner.query(
-      `ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT CHK_MC_DATES CHECK ("start_date" <= "end_date")`
-    );
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT CHK_MC_STATUS CHECK ("contract_status" IN ('활성', '종료', '갱신예정'))`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT CHK_MC_DATES CHECK ("start_date" <= "end_date")`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT FK_MC_CUSTOMER FOREIGN KEY ("customer_id") REFERENCES CUSTOMER("id")`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT FK_MC_ASSIGNED_EMPLOYEE FOREIGN KEY ("assigned_employee_id") REFERENCES EMPLOYEE(ID)`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT FK_MC_CREATED_BY FOREIGN KEY ("created_by_id") REFERENCES EMPLOYEE(ID)`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT FK_MC_UPDATED_BY FOREIGN KEY ("updated_by_id") REFERENCES EMPLOYEE(ID)`);
 
-    // Create indexes for common query patterns
-    await queryRunner.createIndex(
-      'MAINTENANCE_CONTRACT',
-      new TableIndex({
-        name: 'idx_mc_customer_id',
-        columnNames: ['customer_id'],
-      })
-    );
-
-    await queryRunner.createIndex(
-      'MAINTENANCE_CONTRACT',
-      new TableIndex({
-        name: 'idx_mc_assigned_employee_id',
-        columnNames: ['assigned_employee_id'],
-      })
-    );
-
-    await queryRunner.createIndex(
-      'MAINTENANCE_CONTRACT',
-      new TableIndex({
-        name: 'idx_mc_status',
-        columnNames: ['contract_status'],
-      })
-    );
-
-    await queryRunner.createIndex(
-      'MAINTENANCE_CONTRACT',
-      new TableIndex({
-        name: 'idx_mc_end_date',
-        columnNames: ['end_date'],
-      })
-    );
-
-    await queryRunner.createIndex(
-      'MAINTENANCE_CONTRACT',
-      new TableIndex({
-        name: 'idx_mc_deleted_at',
-        columnNames: ['deleted_at'],
-      })
-    );
-
-    // Composite indexes for soft-delete filtering
-    await queryRunner.createIndex(
-      'MAINTENANCE_CONTRACT',
-      new TableIndex({
-        name: 'idx_mc_status_enddate',
-        columnNames: ['contract_status', 'end_date'],
-      })
-    );
-
-    await queryRunner.createIndex(
-      'MAINTENANCE_CONTRACT',
-      new TableIndex({
-        name: 'idx_mc_customer_enddate',
-        columnNames: ['customer_id', 'end_date'],
-      })
-    );
-
-    // Foreign Keys (ON DELETE RESTRICT)
-    await queryRunner.createForeignKey(
-      'MAINTENANCE_CONTRACT',
-      new TableForeignKey({
-        name: 'fk_mc_customer',
-        columnNames: ['customer_id'],
-        referencedTableName: 'CUSTOMER',
-        referencedColumnNames: ['id'],
-      })
-    );
-
-    await queryRunner.createForeignKey(
-      'MAINTENANCE_CONTRACT',
-      new TableForeignKey({
-        name: 'fk_mc_assigned_employee',
-        columnNames: ['assigned_employee_id'],
-        referencedTableName: 'EMPLOYEE',
-        referencedColumnNames: ['id'],
-      })
-    );
-
-    await queryRunner.createForeignKey(
-      'MAINTENANCE_CONTRACT',
-      new TableForeignKey({
-        name: 'fk_mc_created_by',
-        columnNames: ['created_by_id'],
-        referencedTableName: 'EMPLOYEE',
-        referencedColumnNames: ['id'],
-      })
-    );
-
-    await queryRunner.createForeignKey(
-      'MAINTENANCE_CONTRACT',
-      new TableForeignKey({
-        name: 'fk_mc_updated_by',
-        columnNames: ['updated_by_id'],
-        referencedTableName: 'EMPLOYEE',
-        referencedColumnNames: ['id'],
-      })
-    );
+    await queryRunner.query(`CREATE INDEX IDX_MC_CUSTOMER_ID ON MAINTENANCE_CONTRACT("customer_id")`);
+    await queryRunner.query(`CREATE INDEX IDX_MC_ASSIGNED_EMPLOYEE_ID ON MAINTENANCE_CONTRACT("assigned_employee_id")`);
+    await queryRunner.query(`CREATE INDEX IDX_MC_STATUS ON MAINTENANCE_CONTRACT("contract_status")`);
+    await queryRunner.query(`CREATE INDEX IDX_MC_END_DATE ON MAINTENANCE_CONTRACT("end_date")`);
+    await queryRunner.query(`CREATE INDEX IDX_MC_DELETED_AT ON MAINTENANCE_CONTRACT("deleted_at")`);
+    await queryRunner.query(`CREATE INDEX IDX_MC_STATUS_ENDDATE ON MAINTENANCE_CONTRACT("contract_status", "end_date")`);
+    await queryRunner.query(`CREATE INDEX IDX_MC_CUSTOMER_ENDDATE ON MAINTENANCE_CONTRACT("customer_id", "end_date")`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const table = await queryRunner.getTable('MAINTENANCE_CONTRACT');
-    if (table) {
-      for (const fk of table.foreignKeys) {
-        await queryRunner.dropForeignKey('MAINTENANCE_CONTRACT', fk);
-      }
-    }
-
-    await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_customer_id');
-    await queryRunner.dropIndex(
-      'MAINTENANCE_CONTRACT',
-      'idx_mc_assigned_employee_id'
-    );
-    await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_status');
-    await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_end_date');
-    await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_deleted_at');
-    await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_status_enddate');
-    await queryRunner.dropIndex('MAINTENANCE_CONTRACT', 'idx_mc_customer_enddate');
-
-    await queryRunner.dropTable('MAINTENANCE_CONTRACT');
-
-    // Drop sequence
+    await queryRunner.query(`DROP INDEX IDX_MC_CUSTOMER_ENDDATE`);
+    await queryRunner.query(`DROP INDEX IDX_MC_STATUS_ENDDATE`);
+    await queryRunner.query(`DROP INDEX IDX_MC_DELETED_AT`);
+    await queryRunner.query(`DROP INDEX IDX_MC_END_DATE`);
+    await queryRunner.query(`DROP INDEX IDX_MC_STATUS`);
+    await queryRunner.query(`DROP INDEX IDX_MC_ASSIGNED_EMPLOYEE_ID`);
+    await queryRunner.query(`DROP INDEX IDX_MC_CUSTOMER_ID`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT DROP CONSTRAINT FK_MC_UPDATED_BY`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT DROP CONSTRAINT FK_MC_CREATED_BY`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT DROP CONSTRAINT FK_MC_ASSIGNED_EMPLOYEE`);
+    await queryRunner.query(`ALTER TABLE MAINTENANCE_CONTRACT DROP CONSTRAINT FK_MC_CUSTOMER`);
+    await queryRunner.query(`DROP TABLE MAINTENANCE_CONTRACT`);
     await queryRunner.query(`DROP SEQUENCE SEQ_MAINTENANCE_CONTRACT`);
   }
 }

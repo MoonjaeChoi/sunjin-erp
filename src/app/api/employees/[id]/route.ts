@@ -522,7 +522,7 @@ export async function DELETE(
 
     // 3a. 프로젝트 담당자
     const projectCount = await executeQuery<{ CNT: number }>(
-      `SELECT COUNT(*) as CNT FROM PROJECT WHERE ASSIGNED_EMPLOYEE_ID = :id AND DELETED_AT IS NULL`,
+      `SELECT COUNT(*) as CNT FROM PROJECT WHERE "employee_id" = :id AND "deleted_at" IS NULL`,
       { id: employeeId }
     );
     if ((projectCount.rows?.[0]?.CNT || 0) > 0) {
@@ -535,7 +535,7 @@ export async function DELETE(
 
     // 3b. 기술지원 담당자
     const techSupportCount = await executeQuery<{ CNT: number }>(
-      `SELECT COUNT(*) as CNT FROM TECH_SUPPORT WHERE ASSIGNED_EMPLOYEE_ID = :id AND DELETED_AT IS NULL`,
+      `SELECT COUNT(*) as CNT FROM TECH_SUPPORT WHERE "employee_id" = :id AND "deleted_at" IS NULL`,
       { id: employeeId }
     );
     if ((techSupportCount.rows?.[0]?.CNT || 0) > 0) {
@@ -548,7 +548,7 @@ export async function DELETE(
 
     // 3c. 업무(Task) 담당자
     const taskCount = await executeQuery<{ CNT: number }>(
-      `SELECT COUNT(*) as CNT FROM TASK WHERE ASSIGNED_EMPLOYEE_ID = :id AND DELETED_AT IS NULL`,
+      `SELECT COUNT(*) as CNT FROM TASK WHERE "employee_id" = :id AND "deleted_at" IS NULL`,
       { id: employeeId }
     );
     if ((taskCount.rows?.[0]?.CNT || 0) > 0) {
@@ -561,7 +561,7 @@ export async function DELETE(
 
     // 3d. 이슈 담당자
     const issueCount = await executeQuery<{ CNT: number }>(
-      `SELECT COUNT(*) as CNT FROM ISSUE WHERE ASSIGNED_EMPLOYEE_ID = :id AND DELETED_AT IS NULL`,
+      `SELECT COUNT(*) as CNT FROM ISSUE WHERE "assigned_employee_id" = :id AND "deleted_at" IS NULL`,
       { id: employeeId }
     );
     if ((issueCount.rows?.[0]?.CNT || 0) > 0) {
