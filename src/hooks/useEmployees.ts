@@ -112,7 +112,7 @@ export function useEmployees(
     queryKey: employeeQueryKeys.list(params),
     queryFn: async () => {
       const response = await fetchAPI<EmployeeListResponse>(
-        `/api/employees?${queryString.toString()}`
+        `/sunjin/api/employees?${queryString.toString()}`
       );
       return response;
     },
@@ -128,7 +128,7 @@ export function useEmployee(id: number | null): UseQueryResult<EmployeeDetail, E
   return useQuery({
     queryKey: employeeQueryKeys.detail(id || 0),
     queryFn: async () => {
-      const response = await fetchAPI<EmployeeDetailResponse>(`/api/employees/${id}`);
+      const response = await fetchAPI<EmployeeDetailResponse>(`/sunjin/api/employees/${id}`);
       return response.data;
     },
     enabled: id !== null && id > 0,
@@ -150,7 +150,7 @@ export function useCreateEmployee(): UseMutationResult<
   return useMutation({
     mutationFn: async (data: CreateEmployeeRequest) => {
       const response = await fetchAPI<{ message: string; data: { id: number; name: string; email: string } }>(
-        '/api/employees',
+        '/sunjin/api/employees',
         {
           method: 'POST',
           body: JSON.stringify(data),
@@ -175,7 +175,7 @@ export function useUpdateEmployee(
 
   return useMutation({
     mutationFn: async (data: UpdateEmployeeRequest) => {
-      await fetchAPI(`/api/employees/${id}`, {
+      await fetchAPI(`/sunjin/api/employees/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });
@@ -197,7 +197,7 @@ export function useDeleteEmployee(): UseMutationResult<void, Error, number> {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      await fetchAPI(`/api/employees/${id}`, {
+      await fetchAPI(`/sunjin/api/employees/${id}`, {
         method: 'DELETE',
       });
     },
@@ -226,7 +226,7 @@ export function useEmployeeHistory(
     queryKey: employeeQueryKeys.history(employeeId, params),
     queryFn: async () => {
       const response = await fetchAPI<EmployeeHistoryResponse>(
-        `/api/employees/${employeeId}/history?${queryString.toString()}`
+        `/sunjin/api/employees/${employeeId}/history?${queryString.toString()}`
       );
       return response;
     },
@@ -250,7 +250,7 @@ export function useCreateAccount(
   return useMutation({
     mutationFn: async (data: CreateAccountRequest) => {
       const response = await fetchAPI<{ message: string; data: CreateAccountResponse }>(
-        `/api/employees/${employeeId}/accounts`,
+        `/sunjin/api/employees/${employeeId}/accounts`,
         {
           method: 'POST',
           body: JSON.stringify(data),
@@ -276,7 +276,7 @@ export function useUpdateAccountRole(
 
   return useMutation({
     mutationFn: async (data: UpdateAccountRoleRequest) => {
-      await fetchAPI(`/api/employees/${employeeId}/accounts/${accountId}/role`, {
+      await fetchAPI(`/sunjin/api/employees/${employeeId}/accounts/${accountId}/role`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });
@@ -298,7 +298,7 @@ export function useDeactivateEmployee(
 
   return useMutation({
     mutationFn: async () => {
-      await fetchAPI(`/api/employees/${employeeId}/deactivate`, {
+      await fetchAPI(`/sunjin/api/employees/${employeeId}/deactivate`, {
         method: 'POST',
       });
     },
@@ -320,7 +320,7 @@ export function useReactivateEmployee(
 
   return useMutation({
     mutationFn: async () => {
-      await fetchAPI(`/api/employees/${employeeId}/reactivate`, {
+      await fetchAPI(`/sunjin/api/employees/${employeeId}/reactivate`, {
         method: 'POST',
       });
     },
@@ -343,7 +343,7 @@ export function useDepartments(): UseQueryResult<DepartmentWithChildren[], Error
   return useQuery({
     queryKey: departmentQueryKeys.list(),
     queryFn: async () => {
-      const response = await fetchAPI<{ data: DepartmentWithChildren[] }>('/api/departments');
+      const response = await fetchAPI<{ data: DepartmentWithChildren[] }>('/sunjin/api/departments');
       return response.data;
     },
     staleTime: 30 * 60 * 1000, // 30분
@@ -358,7 +358,7 @@ export function useDepartment(id: number | null): UseQueryResult<Department & { 
   return useQuery({
     queryKey: departmentQueryKeys.detail(id || 0),
     queryFn: async () => {
-      const response = await fetchAPI<{ data: Department & { employeeCount: number } }>(`/api/departments/${id}`);
+      const response = await fetchAPI<{ data: Department & { employeeCount: number } }>(`/sunjin/api/departments/${id}`);
       return response.data;
     },
     enabled: id !== null && id > 0,
@@ -378,7 +378,7 @@ export function useCreateDepartment(): UseMutationResult<
 
   return useMutation({
     mutationFn: async (data: CreateDepartmentRequest) => {
-      const response = await fetchAPI<{ message: string; data: Department }>('/api/departments', {
+      const response = await fetchAPI<{ message: string; data: Department }>('/sunjin/api/departments', {
         method: 'POST',
         body: JSON.stringify(data),
       });
@@ -402,7 +402,7 @@ export function useUpdateDepartment(
   return useMutation({
     mutationFn: async (data: UpdateDepartmentRequest) => {
       const response = await fetchAPI<{ message: string; data: Department }>(
-        `/api/departments/${id}`,
+        `/sunjin/api/departments/${id}`,
         {
           method: 'PUT',
           body: JSON.stringify(data),
@@ -426,7 +426,7 @@ export function useDeleteDepartment(): UseMutationResult<void, Error, number> {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      await fetchAPI(`/api/departments/${id}`, {
+      await fetchAPI(`/sunjin/api/departments/${id}`, {
         method: 'DELETE',
       });
     },
@@ -449,7 +449,7 @@ export function usePositions(): UseQueryResult<Position[], Error> {
   return useQuery({
     queryKey: positionQueryKeys.list(),
     queryFn: async () => {
-      const response = await fetchAPI<{ data: Position[] }>('/api/positions');
+      const response = await fetchAPI<{ data: Position[] }>('/sunjin/api/positions');
       return response.data;
     },
     staleTime: 30 * 60 * 1000, // 30분
@@ -464,7 +464,7 @@ export function usePosition(id: number | null): UseQueryResult<Position & { empl
   return useQuery({
     queryKey: positionQueryKeys.detail(id || 0),
     queryFn: async () => {
-      const response = await fetchAPI<{ data: Position & { employeeCount: number } }>(`/api/positions/${id}`);
+      const response = await fetchAPI<{ data: Position & { employeeCount: number } }>(`/sunjin/api/positions/${id}`);
       return response.data;
     },
     enabled: id !== null && id > 0,
@@ -480,7 +480,7 @@ export function useCreatePosition(): UseMutationResult<Position, Error, CreatePo
 
   return useMutation({
     mutationFn: async (data: CreatePositionRequest) => {
-      const response = await fetchAPI<{ message: string; data: Position }>('/api/positions', {
+      const response = await fetchAPI<{ message: string; data: Position }>('/sunjin/api/positions', {
         method: 'POST',
         body: JSON.stringify(data),
       });
@@ -504,7 +504,7 @@ export function useUpdatePosition(
   return useMutation({
     mutationFn: async (data: Partial<CreatePositionRequest>) => {
       const response = await fetchAPI<{ message: string; data: Position }>(
-        `/api/positions/${id}`,
+        `/sunjin/api/positions/${id}`,
         {
           method: 'PUT',
           body: JSON.stringify(data),
@@ -528,7 +528,7 @@ export function useDeletePosition(): UseMutationResult<void, Error, number> {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      await fetchAPI(`/api/positions/${id}`, {
+      await fetchAPI(`/sunjin/api/positions/${id}`, {
         method: 'DELETE',
       });
     },

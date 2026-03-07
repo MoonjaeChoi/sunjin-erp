@@ -94,7 +94,7 @@ export function useCustomers(
       if (params?.sortBy) urlParams.append('sortBy', params.sortBy);
       if (params?.sortOrder) urlParams.append('sortOrder', params.sortOrder);
 
-      return fetchAPI<CustomerListResponse>(`/api/customers?${urlParams.toString()}`);
+      return fetchAPI<CustomerListResponse>(`/sunjin/api/customers?${urlParams.toString()}`);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
@@ -112,7 +112,7 @@ export function useCustomer(id: number | null): UseQueryResult<CustomerDetailRes
   return useQuery({
     queryKey: customerQueryKeys.detail(id || 0),
     queryFn: async () => {
-      const response = await fetchAPI<{ data: CustomerDetailResponse }>(`/api/customers/${id}`);
+      const response = await fetchAPI<{ data: CustomerDetailResponse }>(`/sunjin/api/customers/${id}`);
       return response.data;
     },
     enabled: id !== null,
@@ -141,7 +141,7 @@ export function useCustomerSearch(
       });
 
       const response = await fetchAPI<CustomerListResponse>(
-        `/api/customers?${params.toString()}`
+        `/sunjin/api/customers?${params.toString()}`
       );
       return response.data;
     },
@@ -165,7 +165,7 @@ export function useCustomerContacts(
     queryKey: customerQueryKeys.contacts(customerId || 0),
     queryFn: async () => {
       return fetchAPI<CustomerContactListResponse>(
-        `/api/customers/${customerId}/contacts`
+        `/sunjin/api/customers/${customerId}/contacts`
       );
     },
     enabled: customerId !== null,
@@ -199,7 +199,7 @@ export function useCustomerHistory(
       if (params?.sortOrder) urlParams.append('sortOrder', params.sortOrder);
 
       return fetchAPI<CustomerHistoryListResponse>(
-        `/api/customers/${customerId}/history?${urlParams.toString()}`
+        `/sunjin/api/customers/${customerId}/history?${urlParams.toString()}`
       );
     },
     enabled: customerId !== null,
@@ -223,7 +223,7 @@ export function useCustomerMutations() {
   const createCustomerMutation = useMutation({
     mutationFn: async (data: CreateCustomerRequest) => {
       const response = await fetchAPI<{ data: CustomerResponse; message: string }>(
-        '/api/customers',
+        '/sunjin/api/customers',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -244,7 +244,7 @@ export function useCustomerMutations() {
   const updateCustomerMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateCustomerRequest }) => {
       const response = await fetchAPI<{ data: CustomerResponse; message: string }>(
-        `/api/customers/${id}`,
+        `/sunjin/api/customers/${id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -266,7 +266,7 @@ export function useCustomerMutations() {
   const deleteCustomerMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await fetchAPI<{ data: CustomerDeleteResponse; message: string }>(
-        `/api/customers/${id}`,
+        `/sunjin/api/customers/${id}`,
         { method: 'DELETE' }
       );
       return response.data;
@@ -290,7 +290,7 @@ export function useCustomerMutations() {
       data: CreateCustomerContactRequest;
     }) => {
       const response = await fetchAPI<{ data: CustomerContactResponse; message: string }>(
-        `/api/customers/${customerId}/contacts`,
+        `/sunjin/api/customers/${customerId}/contacts`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -319,7 +319,7 @@ export function useCustomerMutations() {
       data: UpdateCustomerContactRequest;
     }) => {
       const response = await fetchAPI<{ data: CustomerContactResponse; message: string }>(
-        `/api/customers/${customerId}/contacts/${contactId}`,
+        `/sunjin/api/customers/${customerId}/contacts/${contactId}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -348,7 +348,7 @@ export function useCustomerMutations() {
       const response = await fetchAPI<{
         data: CustomerContactDeleteResponse;
         message: string;
-      }>(`/api/customers/${customerId}/contacts/${contactId}`, { method: 'DELETE' });
+      }>(`/sunjin/api/customers/${customerId}/contacts/${contactId}`, { method: 'DELETE' });
       return response.data;
     },
     onSuccess: (_, { customerId }) => {

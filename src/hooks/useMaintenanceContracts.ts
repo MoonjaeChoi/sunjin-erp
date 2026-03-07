@@ -96,7 +96,7 @@ export function useMaintenanceContractList(
       if (order) params.append('order', order);
 
       return fetchAPI<ContractListResponse>(
-        `/api/maintenance?${params.toString()}`
+        `/sunjin/api/maintenance?${params.toString()}`
       );
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -117,7 +117,7 @@ export function useMaintenanceContractDetail(
   return useQuery({
     queryKey: maintenanceQueryKeys.detail(id || 0),
     queryFn: async () => {
-      return fetchAPI<ContractDetailResponse>(`/api/maintenance/${id}`);
+      return fetchAPI<ContractDetailResponse>(`/sunjin/api/maintenance/${id}`);
     },
     enabled: id !== null,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -136,7 +136,7 @@ export function useMaintenanceContractStats(): UseQueryResult<ContractStatsRespo
   return useQuery({
     queryKey: maintenanceQueryKeys.stats(),
     queryFn: async () => {
-      return fetchAPI<ContractStatsResponse>(`/api/maintenance/stats`);
+      return fetchAPI<ContractStatsResponse>(`/sunjin/api/maintenance/stats`);
     },
     staleTime: 15 * 60 * 1000, // 15 minutes
     gcTime: 20 * 60 * 1000, // 20 minutes
@@ -164,7 +164,7 @@ export function useMaintenanceContractAttachments(
       });
 
       return fetchAPI(
-        `/api/maintenance/${contractId}/attachments?${params.toString()}`
+        `/sunjin/api/maintenance/${contractId}/attachments?${params.toString()}`
       );
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -189,7 +189,7 @@ export function useMaintenanceContractHistory(contractId: number, page: number =
       });
 
       return fetchAPI(
-        `/api/maintenance/${contractId}/history?${params.toString()}`
+        `/sunjin/api/maintenance/${contractId}/history?${params.toString()}`
       );
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -210,7 +210,7 @@ export function useMaintenanceContractMutations() {
   const createMutation = useMutation({
     mutationFn: async (data: CreateMaintenanceContractRequest) => {
       const response = await fetchAPI<{ data: MaintenanceContractDetail }>(
-        '/api/maintenance',
+        '/sunjin/api/maintenance',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -228,7 +228,7 @@ export function useMaintenanceContractMutations() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateMaintenanceContractRequest }) => {
       const response = await fetchAPI<{ data: MaintenanceContractDetail }>(
-        `/api/maintenance/${id}`,
+        `/sunjin/api/maintenance/${id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -246,7 +246,7 @@ export function useMaintenanceContractMutations() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await fetchAPI(`/api/maintenance/${id}`, { method: 'DELETE' });
+      await fetchAPI(`/sunjin/api/maintenance/${id}`, { method: 'DELETE' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: maintenanceQueryKeys.lists() });
@@ -257,7 +257,7 @@ export function useMaintenanceContractMutations() {
   const changeStatusMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: ChangeStatusRequest }) => {
       const response = await fetchAPI<{ data: MaintenanceContractDetail }>(
-        `/api/maintenance/${id}/status`,
+        `/sunjin/api/maintenance/${id}/status`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -285,7 +285,7 @@ export function useMaintenanceContractMutations() {
       formData.append('file', file);
 
       const response = await fetchAPI<{ id: number; file_name: string; file_size: number; created_at: string }>(
-        `/api/maintenance/${contractId}/attachments`,
+        `/sunjin/api/maintenance/${contractId}/attachments`,
         {
           method: 'POST',
           body: formData,
@@ -301,7 +301,7 @@ export function useMaintenanceContractMutations() {
 
   const deleteAttachmentMutation = useMutation({
     mutationFn: async ({ contractId, attachmentId }: { contractId: number; attachmentId: number }) => {
-      await fetchAPI(`/api/maintenance/${contractId}/attachments/${attachmentId}`, { method: 'DELETE' });
+      await fetchAPI(`/sunjin/api/maintenance/${contractId}/attachments/${attachmentId}`, { method: 'DELETE' });
     },
     onSuccess: (_, { contractId }) => {
       queryClient.invalidateQueries({ queryKey: maintenanceQueryKeys.attachments(contractId) });
