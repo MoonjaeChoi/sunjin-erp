@@ -3,16 +3,15 @@
 import type { Metadata } from 'next';
 import { LoginForm } from './LoginForm';
 
-const BASE_URL = 'https://www.clayve.co.kr/sunjin';
-
 export const metadata: Metadata = {
   title: 'Sunjin Infotech ERP — IT 인프라 통합 업무 관리 시스템',
   description:
     '직원·고객·프로젝트·재고·유지보수까지 — 선진인포텍의 모든 업무를 하나의 플랫폼에서 실시간으로 연결하고 관리합니다.',
-  metadataBase: new URL(BASE_URL),
+  // metadataBase는 도메인만 — basePath(/sunjin)는 Next.js가 자동 prepend
+  metadataBase: new URL('https://www.clayve.co.kr'),
   openGraph: {
     type: 'website',
-    url: BASE_URL,
+    url: 'https://www.clayve.co.kr/sunjin/login',
     siteName: 'Sunjin Infotech ERP',
     title: 'Sunjin Infotech ERP — 업무의 모든 흐름을 하나의 플랫폼으로',
     description:
