@@ -322,27 +322,27 @@ export class UpdateCustomerAndCreateContactHistoryTables20260127230000 implement
     await queryRunner.query(`
       CREATE UNIQUE INDEX idx_customer_name_soft_delete
       ON CUSTOMER("name")
-      WHERE deleted_at IS NULL
+      WHERE "deleted_at" IS NULL
     `);
 
     // 13. 부분 유니크 인덱스 생성 (CUSTOMER_CONTACT primary_contact - 고객당 max 1)
     await queryRunner.query(`
       CREATE UNIQUE INDEX idx_contact_primary_soft_delete
       ON CUSTOMER_CONTACT("customer_id")
-      WHERE primary_contact = 1 AND deleted_at IS NULL
+      WHERE "primary_contact" = 1 AND "deleted_at" IS NULL
     `);
 
-    // 14. Check 제약 조건 추가
+    // 14. Check 제약 조건 추가 (createTable() 테이블 → 컬럼 소문자 quoted)
     await queryRunner.query(`
       ALTER TABLE CUSTOMER_HISTORY
       ADD CONSTRAINT ck_history_change_type
-      CHECK (change_type IN ('CREATE', 'UPDATE', 'DELETE', 'CONTACT_ADD', 'CONTACT_DELETE'))
+      CHECK ("change_type" IN ('CREATE', 'UPDATE', 'DELETE', 'CONTACT_ADD', 'CONTACT_DELETE'))
     `);
 
     await queryRunner.query(`
       ALTER TABLE CUSTOMER
       ADD CONSTRAINT ck_customer_classification
-      CHECK (classification IN ('RESELLER', 'END_USER', 'MAINTENANCE', 'GENERAL'))
+      CHECK ("classification" IN ('RESELLER', 'END_USER', 'MAINTENANCE', 'GENERAL'))
     `);
   }
 
