@@ -1,0 +1,963 @@
+<!-- Generated: 2026-03-07 00:00:00 KST -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunjin Infotech — IT 인프라 통합 솔루션</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    color: #1a1a2e;
+    background: #fff;
+    line-height: 1.6;
+  }
+  a { text-decoration: none; color: inherit; }
+  img { max-width: 100%; }
+
+  /* ── Design Tokens ── */
+  :root {
+    --navy:   #0b1f45;
+    --blue:   #1a56c4;
+    --blue-l: #2d6fe8;
+    --red:    #c8202a;
+    --gray:   #f4f6fb;
+    --text:   #2c2c3a;
+    --muted:  #6b7280;
+    --border: #e2e8f0;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(11,31,69,.10);
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
+  section { padding: 96px 0; }
+
+  /* ══════════════════════════════
+     HEADER / NAV
+  ══════════════════════════════ */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(11,31,69,.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: -.3px;
+  }
+  .logo-mark {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 900; color: #fff; font-style: italic;
+  }
+  .logo span { color: #94b4f0; font-weight: 400; font-size: .95rem; margin-left: 4px; }
+  .nav-links { display: flex; gap: 36px; }
+  .nav-links a {
+    color: rgba(255,255,255,.75); font-size: .9rem; font-weight: 500;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: #fff; }
+  .nav-cta {
+    background: var(--red); color: #fff;
+    padding: 8px 20px; border-radius: 6px;
+    font-size: .875rem; font-weight: 600;
+    transition: background .2s;
+  }
+  .nav-cta:hover { background: #a81920; }
+
+  /* ══════════════════════════════
+     HERO
+  ══════════════════════════════ */
+  .hero {
+    background: var(--navy);
+    padding: 0;
+    min-height: 640px;
+    display: flex; align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Circuit grid background */
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(26,86,196,.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,86,196,.15) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 80% at 60% 50%, black 40%, transparent 100%);
+  }
+  .hero::after {
+    content: '';
+    position: absolute; right: -120px; top: 50%; transform: translateY(-50%);
+    width: 640px; height: 640px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(26,86,196,.25) 0%, transparent 70%);
+  }
+  .hero-inner {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+    padding: 120px 0 100px;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(26,86,196,.25); border: 1px solid rgba(26,86,196,.5);
+    color: #94b4f0; font-size: .8rem; font-weight: 600; letter-spacing: .04em;
+    padding: 6px 14px; border-radius: 100px; margin-bottom: 24px;
+  }
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,.3);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 2px rgba(74,222,128,.3); }
+    50% { box-shadow: 0 0 0 5px rgba(74,222,128,.1); }
+  }
+  .hero h1 {
+    font-size: 3rem; font-weight: 800; color: #fff; line-height: 1.2;
+    letter-spacing: -.04em; margin-bottom: 20px;
+  }
+  .hero h1 em { font-style: normal; color: #5b9cf6; }
+  .hero-sub {
+    color: rgba(255,255,255,.65); font-size: 1.05rem; line-height: 1.75;
+    margin-bottom: 40px; max-width: 460px;
+  }
+  .hero-actions { display: flex; gap: 16px; }
+  .btn-primary {
+    background: var(--red); color: #fff;
+    padding: 14px 28px; border-radius: 8px;
+    font-size: .95rem; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+    transition: all .2s; box-shadow: 0 4px 16px rgba(200,32,42,.4);
+  }
+  .btn-primary:hover { background: #a81920; transform: translateY(-1px); }
+  .btn-ghost {
+    border: 1px solid rgba(255,255,255,.25); color: rgba(255,255,255,.85);
+    padding: 14px 28px; border-radius: 8px;
+    font-size: .95rem; font-weight: 600;
+    transition: all .2s;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,.6); color: #fff; }
+
+  /* Hero visual — product tiles */
+  .hero-visual {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .hero-tile {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 10px; padding: 20px;
+    backdrop-filter: blur(8px);
+    transition: all .3s;
+  }
+  .hero-tile:hover {
+    background: rgba(255,255,255,.1);
+    border-color: rgba(91,156,246,.4);
+    transform: translateY(-2px);
+  }
+  .tile-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-bottom: 12px;
+  }
+  .tile-icon.orange { background: rgba(251,146,60,.15); }
+  .tile-icon.teal   { background: rgba(45,212,191,.15); }
+  .tile-icon.blue   { background: rgba(91,156,246,.15); }
+  .tile-icon.purple { background: rgba(167,139,250,.15); }
+  .tile-icon.green  { background: rgba(74,222,128,.15); }
+  .tile-icon.red    { background: rgba(251,113,133,.15); }
+  .hero-tile h4 { color: #fff; font-size: .875rem; font-weight: 700; margin-bottom: 4px; }
+  .hero-tile p  { color: rgba(255,255,255,.5); font-size: .75rem; line-height: 1.5; }
+
+  /* ══════════════════════════════
+     TRUST BAR
+  ══════════════════════════════ */
+  .trust-bar {
+    background: #f8faff;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 0;
+  }
+  .trust-inner {
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    flex-wrap: wrap;
+  }
+  .trust-label { color: var(--muted); font-size: .8rem; font-weight: 600; letter-spacing: .06em; }
+  .trust-logos {
+    display: flex; align-items: center; gap: 40px; flex-wrap: wrap;
+  }
+  .trust-logo {
+    color: #9ca3af; font-size: .875rem; font-weight: 700; letter-spacing: .02em;
+    opacity: .7; transition: opacity .2s;
+  }
+  .trust-logo:hover { opacity: 1; color: var(--navy); }
+
+  /* ══════════════════════════════
+     PRODUCTS
+  ══════════════════════════════ */
+  #products { background: #fff; }
+  .section-header { text-align: center; margin-bottom: 56px; }
+  .section-tag {
+    display: inline-block;
+    color: var(--blue); font-size: .8rem; font-weight: 700; letter-spacing: .08em;
+    background: rgba(26,86,196,.08); padding: 4px 12px; border-radius: 100px;
+    margin-bottom: 16px;
+  }
+  .section-header h2 {
+    font-size: 2.25rem; font-weight: 800; color: var(--navy);
+    letter-spacing: -.04em; line-height: 1.2; margin-bottom: 16px;
+  }
+  .section-header p { color: var(--muted); font-size: 1rem; max-width: 520px; margin: 0 auto; }
+
+  .products-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  }
+  .product-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    transition: all .3s;
+    position: relative; overflow: hidden;
+    background: #fff;
+  }
+  .product-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--blue);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .3s;
+  }
+  .product-card:hover {
+    border-color: rgba(26,86,196,.3);
+    box-shadow: var(--shadow);
+    transform: translateY(-4px);
+  }
+  .product-card:hover::before { transform: scaleX(1); }
+  .product-icon-wrap {
+    width: 56px; height: 56px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; margin-bottom: 20px;
+  }
+  .product-card h3 {
+    font-size: 1.05rem; font-weight: 700; color: var(--navy);
+    margin-bottom: 10px; letter-spacing: -.02em;
+  }
+  .product-card p { color: var(--muted); font-size: .875rem; line-height: 1.65; margin-bottom: 20px; }
+  .product-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    background: var(--gray); color: #374151;
+    font-size: .72rem; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+  }
+  .product-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--blue); font-size: .825rem; font-weight: 600;
+    margin-top: 20px; transition: gap .2s;
+  }
+  .product-link:hover { gap: 10px; }
+
+  /* ══════════════════════════════
+     WHY US
+  ══════════════════════════════ */
+  #why { background: var(--gray); }
+  .why-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+  }
+  .why-text h2 {
+    font-size: 2.1rem; font-weight: 800; color: var(--navy);
+    letter-spacing: -.04em; line-height: 1.25; margin-bottom: 20px;
+  }
+  .why-text h2 span { color: var(--blue); }
+  .why-text p { color: var(--muted); line-height: 1.75; margin-bottom: 32px; }
+  .why-features { display: flex; flex-direction: column; gap: 20px; }
+  .why-feature {
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .why-feature-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--blue); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .why-feature h4 { font-size: .95rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .why-feature p  { font-size: .845rem; color: var(--muted); line-height: 1.6; }
+
+  /* Stats panel */
+  .why-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .stat-card {
+    background: #fff; border-radius: var(--radius);
+    padding: 32px 24px; text-align: center;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .stat-num {
+    font-size: 2.5rem; font-weight: 900; color: var(--navy);
+    letter-spacing: -.04em; line-height: 1; margin-bottom: 6px;
+  }
+  .stat-num em { font-style: normal; color: var(--blue); }
+  .stat-label { color: var(--muted); font-size: .8rem; font-weight: 600; }
+
+  /* ══════════════════════════════
+     SOLUTIONS (용도별 탭)
+  ══════════════════════════════ */
+  #solutions { background: #fff; }
+  .solutions-tabs {
+    display: flex; gap: 8px; justify-content: center; margin-bottom: 48px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 10px 22px; border-radius: 100px;
+    border: 1.5px solid var(--border);
+    font-size: .875rem; font-weight: 600; color: var(--muted);
+    cursor: pointer; transition: all .2s; background: #fff;
+  }
+  .tab-btn.active, .tab-btn:hover {
+    border-color: var(--blue); color: var(--blue);
+    background: rgba(26,86,196,.06);
+  }
+  .solution-panel {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;
+    background: linear-gradient(135deg, #0b1f45 0%, #1a3a7a 100%);
+    border-radius: 20px; padding: 56px 48px; color: #fff;
+  }
+  .solution-panel h3 {
+    font-size: 1.6rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -.03em;
+  }
+  .solution-panel p { color: rgba(255,255,255,.7); line-height: 1.75; margin-bottom: 28px; }
+  .solution-items { display: flex; flex-direction: column; gap: 12px; }
+  .solution-item {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,.07); border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .solution-item-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: rgba(91,156,246,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem; flex-shrink: 0;
+  }
+  .solution-item p { margin: 0; font-size: .85rem; color: rgba(255,255,255,.85); }
+  .solution-item strong { display: block; color: #fff; font-size: .9rem; margin-bottom: 2px; }
+
+  /* ══════════════════════════════
+     CTA
+  ══════════════════════════════ */
+  .cta-section {
+    background: linear-gradient(135deg, var(--red) 0%, #9b1520 100%);
+    padding: 80px 0; text-align: center;
+  }
+  .cta-section h2 {
+    font-size: 2.25rem; font-weight: 800; color: #fff;
+    letter-spacing: -.04em; margin-bottom: 16px;
+  }
+  .cta-section p { color: rgba(255,255,255,.8); font-size: 1rem; margin-bottom: 36px; }
+  .cta-actions { display: flex; gap: 16px; justify-content: center; }
+  .btn-white {
+    background: #fff; color: var(--red);
+    padding: 14px 32px; border-radius: 8px;
+    font-size: .95rem; font-weight: 700;
+    transition: all .2s; box-shadow: 0 4px 20px rgba(0,0,0,.2);
+  }
+  .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.25); }
+  .btn-outline-white {
+    border: 2px solid rgba(255,255,255,.5); color: #fff;
+    padding: 14px 32px; border-radius: 8px;
+    font-size: .95rem; font-weight: 600;
+    transition: all .2s;
+  }
+  .btn-outline-white:hover { border-color: #fff; }
+
+  /* ══════════════════════════════
+     CONTACT FORM
+  ══════════════════════════════ */
+  #contact { background: var(--gray); }
+  .contact-grid {
+    display: grid; grid-template-columns: 1fr 1.3fr; gap: 64px; align-items: start;
+  }
+  .contact-info h2 {
+    font-size: 2rem; font-weight: 800; color: var(--navy);
+    letter-spacing: -.04em; margin-bottom: 16px;
+  }
+  .contact-info p { color: var(--muted); line-height: 1.75; margin-bottom: 36px; }
+  .contact-details { display: flex; flex-direction: column; gap: 20px; }
+  .contact-detail {
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .contact-detail-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--navy); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem; flex-shrink: 0;
+  }
+  .contact-detail h4 { font-size: .85rem; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+  .contact-detail p  { font-size: .85rem; color: var(--muted); }
+
+  .contact-form {
+    background: #fff; border-radius: 16px; padding: 40px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block; font-size: .8rem; font-weight: 700; color: var(--navy);
+    margin-bottom: 8px; letter-spacing: .02em;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%; padding: 12px 16px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: .9rem; color: var(--text);
+    background: #fff; outline: none;
+    transition: border-color .2s;
+    font-family: inherit;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(26,86,196,.1);
+  }
+  .form-group textarea { resize: vertical; min-height: 100px; }
+  .btn-submit {
+    width: 100%; background: var(--navy); color: #fff;
+    padding: 14px; border-radius: 8px;
+    font-size: .95rem; font-weight: 700; border: none;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-submit:hover { background: var(--blue); }
+
+  /* ══════════════════════════════
+     FOOTER
+  ══════════════════════════════ */
+  footer {
+    background: #060e1f; color: rgba(255,255,255,.5);
+    padding: 56px 0 32px;
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px;
+    margin-bottom: 48px;
+  }
+  .footer-brand .logo { margin-bottom: 14px; }
+  .footer-brand p { font-size: .85rem; line-height: 1.7; max-width: 260px; }
+  .footer-col h5 {
+    color: #fff; font-size: .8rem; font-weight: 700;
+    letter-spacing: .08em; margin-bottom: 16px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: .85rem; color: rgba(255,255,255,.45);
+    transition: color .2s;
+  }
+  .footer-col ul li a:hover { color: #fff; }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding-top: 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .8rem;
+  }
+
+  /* ══════════════════════════════
+     DESIGN ANNOTATION OVERLAY
+  ══════════════════════════════ */
+  .design-note {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #1a1a2e; color: #fff;
+    border-radius: 12px; padding: 16px 20px;
+    font-size: .75rem; max-width: 240px; z-index: 999;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .design-note strong {
+    display: block; color: #5b9cf6; margin-bottom: 8px;
+    font-size: .8rem; letter-spacing: .04em;
+  }
+  .design-note ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .design-note li::before { content: '■ '; font-size: .6rem; }
+  .design-note li span {
+    display: inline-block; width: 12px; height: 12px;
+    border-radius: 3px; vertical-align: middle; margin-right: 6px;
+  }
+
+  /* ══════════════════════════════
+     RESPONSIVE (간략화)
+  ══════════════════════════════ */
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-visual { display: none; }
+    .products-grid { grid-template-columns: 1fr 1fr; }
+    .why-grid, .contact-grid, .footer-grid { grid-template-columns: 1fr; }
+    .solution-panel { grid-template-columns: 1fr; padding: 40px 28px; }
+    .hero h1 { font-size: 2.2rem; }
+    section { padding: 64px 0; }
+  }
+  @media (max-width: 600px) {
+    .products-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════ -->
+<header>
+  <nav class="container">
+    <div class="logo">
+      <div class="logo-mark">S</div>
+      Sunjin Infotech
+      <span>| IT 인프라 통합 솔루션</span>
+    </div>
+    <div class="nav-links">
+      <a href="#products">제품</a>
+      <a href="#why">회사소개</a>
+      <a href="#solutions">솔루션</a>
+      <a href="#contact">문의</a>
+    </div>
+    <a href="#contact" class="nav-cta">제품 문의하기</a>
+  </nav>
+</header>
+
+<!-- ══ HERO ════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-badge">IT Infrastructure Partner</div>
+        <h1>보이는 것부터<br>저장까지,<br><em>인프라의 처음과 끝.</em></h1>
+        <p class="hero-sub">
+          영상 관리·분석, 스토리지, KVM, 네트워크까지
+          6개 제품군을 하나의 파트너에서. 설계부터 유지보수까지
+          Sunjin Infotech가 책임집니다.
+        </p>
+        <div class="hero-actions">
+          <a href="#contact" class="btn-primary">제품 문의하기 →</a>
+          <a href="#products" class="btn-ghost">제품 둘러보기</a>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-tile">
+          <div class="tile-icon orange">📡</div>
+          <h4>UNION Broadcast</h4>
+          <p>네트워크 오디오 방송 시스템</p>
+        </div>
+        <div class="hero-tile">
+          <div class="tile-icon teal">📷</div>
+          <h4>영상 관리</h4>
+          <p>고화질 VMS & 지능형 분석</p>
+        </div>
+        <div class="hero-tile">
+          <div class="tile-icon blue">🔍</div>
+          <h4>영상 분석</h4>
+          <p>관제센터 AI 영상 분석</p>
+        </div>
+        <div class="hero-tile">
+          <div class="tile-icon purple">💾</div>
+          <h4>스토리지</h4>
+          <p>NAS/SAN 기업용 스토리지</p>
+        </div>
+        <div class="hero-tile">
+          <div class="tile-icon green">🖥️</div>
+          <h4>KVM</h4>
+          <p>Soho & Enterprise KVM</p>
+        </div>
+        <div class="hero-tile">
+          <div class="tile-icon red">🌐</div>
+          <h4>유무선 네트워크</h4>
+          <p>IT 인프라 보안 네트워크</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TRUST BAR ════════════════════════════════════════ -->
+<div class="trust-bar">
+  <div class="container">
+    <div class="trust-inner">
+      <span class="trust-label">납품 레퍼런스</span>
+      <div class="trust-logos">
+        <span class="trust-logo">지자체 관제센터</span>
+        <span class="trust-logo">종합병원</span>
+        <span class="trust-logo">방송·미디어사</span>
+        <span class="trust-logo">금융기관</span>
+        <span class="trust-logo">중견·대기업 IT팀</span>
+        <span class="trust-logo">교육기관</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PRODUCTS ═════════════════════════════════════════ -->
+<section id="products">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">PRODUCTS</div>
+      <h2>6개 제품군으로<br>완성하는 통합 인프라</h2>
+      <p>개별 제품 공급부터 시스템 통합 구축까지, 고객의 환경에 맞는 최적 솔루션을 제안합니다.</p>
+    </div>
+
+    <div class="products-grid">
+
+      <div class="product-card">
+        <div class="product-icon-wrap" style="background:#fff4e6;">📡</div>
+        <h3>UNION Broadcast System</h3>
+        <p>접근성·신뢰성·범용성을 갖춘 네트워크 오디오 방송 시스템. 대규모 시설의 방송·안내 인프라를 단일 IP 네트워크로 통합합니다.</p>
+        <div class="product-tags">
+          <span class="tag">IP 방송</span>
+          <span class="tag">학교·병원·공공</span>
+          <span class="tag">긴급방송</span>
+        </div>
+        <a href="#contact" class="product-link">자세히 알아보기 →</a>
+      </div>
+
+      <div class="product-card">
+        <div class="product-icon-wrap" style="background:#e6f4ff;">📷</div>
+        <h3>영상 관리 시스템 (VMS)</h3>
+        <p>고화질 네트워크 카메라, 안정적 영상 표출·녹화, 지능형 영상분석 솔루션을 통합 제공. 관제 효율을 극대화합니다.</p>
+        <div class="product-tags">
+          <span class="tag">CCTV 관제</span>
+          <span class="tag">4K UHD</span>
+          <span class="tag">장기 녹화</span>
+        </div>
+        <a href="#contact" class="product-link">자세히 알아보기 →</a>
+      </div>
+
+      <div class="product-card">
+        <div class="product-icon-wrap" style="background:#e6fff9;">🔍</div>
+        <h3>영상 분석 시스템</h3>
+        <p>통합관제센터 관제화면에 의미 있는 영상을 선별 표출하여 사각지대를 최소화. 업무 집중도와 효율을 혁신적으로 향상시킵니다.</p>
+        <div class="product-tags">
+          <span class="tag">AI 분석</span>
+          <span class="tag">객체 인식</span>
+          <span class="tag">이상행동 감지</span>
+        </div>
+        <a href="#contact" class="product-link">자세히 알아보기 →</a>
+      </div>
+
+      <div class="product-card">
+        <div class="product-icon-wrap" style="background:#f3e6ff;">💾</div>
+        <h3>스토리지 (NAS/SAN)</h3>
+        <p>안정성을 위해 설계된 기업용 고성능 스토리지 솔루션. 확장된 데이터 보호와 관리 기능으로 클라우드부터 온프레미스까지 대응합니다.</p>
+        <div class="product-tags">
+          <span class="tag">NAS/SAN</span>
+          <span class="tag">데이터 보호</span>
+          <span class="tag">클라우드 연동</span>
+        </div>
+        <a href="#contact" class="product-link">자세히 알아보기 →</a>
+      </div>
+
+      <div class="product-card">
+        <div class="product-icon-wrap" style="background:#e6ffe6;">🖥️</div>
+        <h3>KVM 솔루션</h3>
+        <p>서버 운영에 필수적인 Soho & Enterprise KVM 솔루션. 오디오·비디오 전송 솔루션으로 데이터센터와 관제실을 효율적으로 운영합니다.</p>
+        <div class="product-tags">
+          <span class="tag">원격 관리</span>
+          <span class="tag">데이터센터</span>
+          <span class="tag">KVM over IP</span>
+        </div>
+        <a href="#contact" class="product-link">자세히 알아보기 →</a>
+      </div>
+
+      <div class="product-card">
+        <div class="product-icon-wrap" style="background:#fff0f0;">🌐</div>
+        <h3>유무선 네트워크</h3>
+        <p>유·무선 네트워크와 IT 인프라 보안 구축에 필요한 검증된 제품을 공급합니다. 기업 환경에 맞는 최적 네트워크 설계를 지원합니다.</p>
+        <div class="product-tags">
+          <span class="tag">Wi-Fi 6</span>
+          <span class="tag">보안 스위치</span>
+          <span class="tag">방화벽</span>
+        </div>
+        <a href="#contact" class="product-link">자세히 알아보기 →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ WHY US ════════════════════════════════════════════ -->
+<section id="why">
+  <div class="container">
+    <div class="why-grid">
+      <div class="why-text">
+        <div class="section-tag">WHY SUNJIN</div>
+        <h2>단순 유통사가 아닌<br><span>기술 파트너</span>를 선택하세요</h2>
+        <p>제품만 납품하는 곳은 많습니다. 하지만 요구사항 분석부터 설계·시공·유지보수까지 전 과정을 책임지는 곳은 다릅니다.</p>
+        <div class="why-features">
+          <div class="why-feature">
+            <div class="why-feature-icon">🔧</div>
+            <div>
+              <h4>통합 솔루션 설계·구축</h4>
+              <p>영상·스토리지·네트워크를 단일 벤더에서 설계해 호환성 문제와 책임 소재를 없앱니다.</p>
+            </div>
+          </div>
+          <div class="why-feature">
+            <div class="why-feature-icon">🛡️</div>
+            <div>
+              <h4>공공 납품 레퍼런스</h4>
+              <p>지자체·공공기관 관제센터 다수 구축 이력. 조달청 MAS 등록으로 투명한 공공 입찰이 가능합니다.</p>
+            </div>
+          </div>
+          <div class="why-feature">
+            <div class="why-feature-icon">📞</div>
+            <div>
+              <h4>전담 기술 지원 체계</h4>
+              <p>납품 후 유지보수까지 동일한 담당자가 대응. 장애 발생 시 즉각적인 현장 지원이 가능합니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-stats">
+        <div class="stat-card">
+          <div class="stat-num"><em>20</em>+</div>
+          <div class="stat-label">업력 (년)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num"><em>6</em>개</div>
+          <div class="stat-label">통합 제품군</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num"><em>300</em>+</div>
+          <div class="stat-label">납품 레퍼런스</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num"><em>24</em>h</div>
+          <div class="stat-label">기술 지원 대응</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SOLUTIONS ════════════════════════════════════════ -->
+<section id="solutions">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">SOLUTIONS</div>
+      <h2>업종별 최적 솔루션</h2>
+      <p>고객 환경에 맞춰 설계된 검증된 구성을 제안합니다.</p>
+    </div>
+
+    <div class="solutions-tabs">
+      <button class="tab-btn active">🏛️ 공공·관제센터</button>
+      <button class="tab-btn">🏢 기업 IT</button>
+      <button class="tab-btn">📺 방송·미디어</button>
+    </div>
+
+    <div class="solution-panel">
+      <div>
+        <h3>지자체·공공기관<br>통합관제센터 구축</h3>
+        <p>
+          도시 전역 CCTV 영상을 단일 관제화면에서 관리하고
+          AI 분석으로 이상 상황을 자동 감지합니다.
+          나라장터 MAS 계약으로 신속한 조달이 가능합니다.
+        </p>
+        <a href="#contact" class="btn-ghost" style="border-color:rgba(255,255,255,.3);color:#fff;">
+          구축 사례 보기 →
+        </a>
+      </div>
+      <div class="solution-items">
+        <div class="solution-item">
+          <div class="solution-item-icon">📷</div>
+          <div>
+            <strong>영상 관리 시스템 (VMS)</strong>
+            <p>다채널 동시 녹화 및 검색</p>
+          </div>
+        </div>
+        <div class="solution-item">
+          <div class="solution-item-icon">🔍</div>
+          <div>
+            <strong>AI 영상 분석</strong>
+            <p>객체 추적·사각지대 자동 알림</p>
+          </div>
+        </div>
+        <div class="solution-item">
+          <div class="solution-item-icon">💾</div>
+          <div>
+            <strong>대용량 스토리지</strong>
+            <p>90일 이상 장기 보관 NAS/SAN</p>
+          </div>
+        </div>
+        <div class="solution-item">
+          <div class="solution-item-icon">🌐</div>
+          <div>
+            <strong>보안 네트워크</strong>
+            <p>폐쇄망 설계 및 방화벽 구성</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ CTA ══════════════════════════════════════════════ -->
+<div class="cta-section">
+  <div class="container">
+    <h2>지금 바로 기술 상담을 받아보세요</h2>
+    <p>요구사항을 보내주시면 24시간 내 전담 엔지니어가 연락드립니다.</p>
+    <div class="cta-actions">
+      <a href="#contact" class="btn-white">무료 상담 신청</a>
+      <a href="tel:02-0000-0000" class="btn-outline-white">전화 문의: 02-0000-0000</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONTACT ══════════════════════════════════════════ -->
+<section id="contact">
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <div class="section-tag">CONTACT</div>
+        <h2>제품 및 솔루션<br>문의하기</h2>
+        <p>구축 규모나 예산에 관계없이 최적의 솔루션을 제안드립니다. 담당 엔지니어가 직접 검토 후 연락드립니다.</p>
+        <div class="contact-details">
+          <div class="contact-detail">
+            <div class="contact-detail-icon">📍</div>
+            <div>
+              <h4>주소</h4>
+              <p>서울특별시 OO구 OO로 OOO</p>
+            </div>
+          </div>
+          <div class="contact-detail">
+            <div class="contact-detail-icon">📞</div>
+            <div>
+              <h4>대표 전화</h4>
+              <p>02-0000-0000 (평일 09:00~18:00)</p>
+            </div>
+          </div>
+          <div class="contact-detail">
+            <div class="contact-detail-icon">✉️</div>
+            <div>
+              <h4>이메일</h4>
+              <p>info@sunjin.net</p>
+            </div>
+          </div>
+          <div class="contact-detail">
+            <div class="contact-detail-icon">🏛️</div>
+            <div>
+              <h4>조달청 MAS</h4>
+              <p>나라장터 등록 업체 (공공 입찰 대응)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-form">
+        <h3 style="font-size:1.2rem;font-weight:800;color:var(--navy);margin-bottom:24px;">문의 내용을 남겨주세요</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>회사명 *</label>
+            <input type="text" placeholder="(주)선진인포텍">
+          </div>
+          <div class="form-group">
+            <label>담당자명 *</label>
+            <input type="text" placeholder="홍길동">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>연락처 *</label>
+            <input type="tel" placeholder="010-0000-0000">
+          </div>
+          <div class="form-group">
+            <label>이메일</label>
+            <input type="email" placeholder="example@company.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>관심 제품/솔루션</label>
+          <select>
+            <option value="">선택해주세요</option>
+            <option>영상 관리 시스템 (VMS)</option>
+            <option>영상 분석 시스템</option>
+            <option>스토리지 (NAS/SAN)</option>
+            <option>KVM 솔루션</option>
+            <option>유무선 네트워크</option>
+            <option>UNION Broadcast System</option>
+            <option>통합 솔루션 (복수)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>문의 내용</label>
+          <textarea placeholder="구축 환경, 규모, 예산 범위 등을 적어주시면 더 정확한 제안이 가능합니다."></textarea>
+        </div>
+        <button class="btn-submit">문의 보내기 →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-mark">S</div>
+          Sunjin Infotech
+        </div>
+        <p>보이는 것부터 저장까지, IT 인프라의 처음과 끝을 책임지는 파트너</p>
+      </div>
+      <div class="footer-col">
+        <h5>PRODUCTS</h5>
+        <ul>
+          <li><a href="#">영상 관리 시스템</a></li>
+          <li><a href="#">영상 분석 시스템</a></li>
+          <li><a href="#">스토리지</a></li>
+          <li><a href="#">KVM</a></li>
+          <li><a href="#">네트워크</a></li>
+          <li><a href="#">Broadcast</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>COMPANY</h5>
+        <ul>
+          <li><a href="#">회사 소개</a></li>
+          <li><a href="#">연혁</a></li>
+          <li><a href="#">파트너사</a></li>
+          <li><a href="#">채용</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>SUPPORT</h5>
+        <ul>
+          <li><a href="#">기술 문의</a></li>
+          <li><a href="#">제품 카탈로그</a></li>
+          <li><a href="#">나라장터 입찰</a></li>
+          <li><a href="#">원격 지원</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Sunjin Infotech. All rights reserved.</span>
+      <span>사업자등록번호 000-00-00000</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ DESIGN ANNOTATIONS ══════════════════════════════ -->
+<div class="design-note">
+  <strong>🎨 디자인 가이드</strong>
+  <ul>
+    <li><span style="background:#0b1f45;"></span>Navy #0B1F45 — 주색</li>
+    <li><span style="background:#1a56c4;"></span>Blue #1A56C4 — 강조</li>
+    <li><span style="background:#c8202a;"></span>Red #C8202A — CTA</li>
+    <li>폰트: Pretendard / 800·700·400</li>
+  </ul>
+</div>
+
+</body>
+</html>
