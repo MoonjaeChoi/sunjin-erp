@@ -16,7 +16,7 @@ export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(() => makeQueryClient());
 
   return (
-    <SessionProvider refetchOnWindowFocus={true}>
+    <SessionProvider basePath="/sunjin/api/auth" refetchOnWindowFocus={true}>
       <QueryClientProvider client={queryClient}>
         {children}
         <Toaster />
