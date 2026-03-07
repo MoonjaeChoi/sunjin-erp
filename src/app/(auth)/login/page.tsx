@@ -17,12 +17,21 @@ export const metadata: Metadata = {
     description:
       '영상 관리·분석, 스토리지, KVM, 네트워크까지 — 선진인포텍 IT 인프라 통합 업무 관리 시스템. 직원·고객·프로젝트·재고·유지보수를 한 곳에서.',
     locale: 'ko_KR',
+    images: [
+      {
+        url: '/sunjin/nicolas-arnold.jpg',
+        width: 1280,
+        height: 854,
+        alt: 'Sunjin Infotech ERP — IT 인프라 통합 업무 관리 시스템',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Sunjin Infotech ERP — 업무의 모든 흐름을 하나의 플랫폼으로',
     description:
       '영상 관리·분석, 스토리지, KVM, 네트워크까지 — 선진인포텍 IT 인프라 통합 업무 관리 시스템.',
+    images: ['/sunjin/nicolas-arnold.jpg'],
   },
   robots: {
     index: false,
