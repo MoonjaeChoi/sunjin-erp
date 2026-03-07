@@ -98,15 +98,15 @@ export class CreateTaskTable20260124230000 implements MigrationInterface {
       true
     );
 
-    // 3. CHECK Constraints
+    // 3. CHECK Constraints (Oracle: TypeORM creates columns as quoted lowercase, must match)
     await queryRunner.query(
-      `ALTER TABLE TASK ADD CONSTRAINT CHK_TASK_START_TIME CHECK (start_time IS NULL OR (start_time >= 0 AND start_time <= 1439))`
+      `ALTER TABLE TASK ADD CONSTRAINT CHK_TASK_START_TIME CHECK ("start_time" IS NULL OR ("start_time" >= 0 AND "start_time" <= 1439))`
     );
     await queryRunner.query(
-      `ALTER TABLE TASK ADD CONSTRAINT CHK_TASK_END_TIME CHECK (end_time IS NULL OR (end_time >= 0 AND end_time <= 1439))`
+      `ALTER TABLE TASK ADD CONSTRAINT CHK_TASK_END_TIME CHECK ("end_time" IS NULL OR ("end_time" >= 0 AND "end_time" <= 1439))`
     );
     await queryRunner.query(
-      `ALTER TABLE TASK ADD CONSTRAINT CHK_TASK_TIME_ORDER CHECK ((start_time IS NULL OR end_time IS NULL) OR start_time < end_time)`
+      `ALTER TABLE TASK ADD CONSTRAINT CHK_TASK_TIME_ORDER CHECK (("start_time" IS NULL OR "end_time" IS NULL) OR "start_time" < "end_time")`
     );
 
     // 4. Indexes

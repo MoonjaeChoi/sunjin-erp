@@ -130,15 +130,15 @@ export class CreateTechSupportTable20260125053000 implements MigrationInterface 
       })
     );
 
-    // 4. CHECK Constraints
+    // 4. CHECK Constraints (Oracle: TypeORM creates columns as quoted lowercase)
     await queryRunner.query(
-      `ALTER TABLE TECH_SUPPORT ADD CONSTRAINT CHK_TS_START_TIME CHECK (start_time IS NULL OR (start_time >= 0 AND start_time <= 1439))`
+      `ALTER TABLE TECH_SUPPORT ADD CONSTRAINT CHK_TS_START_TIME CHECK ("start_time" IS NULL OR ("start_time" >= 0 AND "start_time" <= 1439))`
     );
     await queryRunner.query(
-      `ALTER TABLE TECH_SUPPORT ADD CONSTRAINT CHK_TS_END_TIME CHECK (end_time IS NULL OR (end_time >= 0 AND end_time <= 1439))`
+      `ALTER TABLE TECH_SUPPORT ADD CONSTRAINT CHK_TS_END_TIME CHECK ("end_time" IS NULL OR ("end_time" >= 0 AND "end_time" <= 1439))`
     );
     await queryRunner.query(
-      `ALTER TABLE TECH_SUPPORT ADD CONSTRAINT CHK_TS_TIME_ORDER CHECK ((start_time IS NULL OR end_time IS NULL) OR start_time < end_time)`
+      `ALTER TABLE TECH_SUPPORT ADD CONSTRAINT CHK_TS_TIME_ORDER CHECK (("start_time" IS NULL OR "end_time" IS NULL) OR "start_time" < "end_time")`
     );
 
     // 5. Indexes

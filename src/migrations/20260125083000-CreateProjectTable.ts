@@ -60,15 +60,15 @@ export class CreateProjectTable20260125083000 implements MigrationInterface {
       `ALTER TABLE PROJECT_ATTACHMENT ADD CONSTRAINT FK_ATTACH_PROJECT FOREIGN KEY (project_id) REFERENCES PROJECT(id)`
     );
 
-    // 5. CHECK Constraints
+    // 5. CHECK Constraints (Oracle: TypeORM creates columns as quoted lowercase)
     await queryRunner.query(
-      `ALTER TABLE PROJECT ADD CONSTRAINT CHK_PROJECT_STATUS CHECK (status IN ('PREPARING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD'))`
+      `ALTER TABLE PROJECT ADD CONSTRAINT CHK_PROJECT_STATUS CHECK ("status" IN ('PREPARING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD'))`
     );
     await queryRunner.query(
-      `ALTER TABLE PROJECT ADD CONSTRAINT CHK_PROJECT_DATE_ORDER CHECK (start_date IS NULL OR end_date IS NULL OR start_date <= end_date)`
+      `ALTER TABLE PROJECT ADD CONSTRAINT CHK_PROJECT_DATE_ORDER CHECK ("start_date" IS NULL OR "end_date" IS NULL OR "start_date" <= "end_date")`
     );
     await queryRunner.query(
-      `ALTER TABLE PROJECT_ATTACHMENT ADD CONSTRAINT CHK_ATTACH_CATEGORY CHECK (category IN ('CONTRACT', 'PROPOSAL', 'QUOTATION', 'REPORT', 'OTHER'))`
+      `ALTER TABLE PROJECT_ATTACHMENT ADD CONSTRAINT CHK_ATTACH_CATEGORY CHECK ("category" IN ('CONTRACT', 'PROPOSAL', 'QUOTATION', 'REPORT', 'OTHER'))`
     );
 
     // 6. Indexes
