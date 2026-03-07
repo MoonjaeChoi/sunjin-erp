@@ -2,7 +2,7 @@
 
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateInventoryTables1737799600000 implements MigrationInterface {
+export class CreateInventoryTables20260128000001 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 1. Sequences 생성
     await queryRunner.query(
@@ -33,11 +33,8 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
       )
     `);
 
-    // 3. INVENTORY 테이블 인덱스 (Oracle XE는 부분 인덱스 미지원)
-    // 고유 인덱스
-    await queryRunner.query(
-      `CREATE UNIQUE INDEX idx_inventory_serial ON INVENTORY(serial_number)`
-    );
+    // 3. INVENTORY 테이블 인덱스
+    // serial_number has inline UNIQUE constraint which auto-creates an index — no separate index needed
 
     // 필터링 성능 인덱스
     await queryRunner.query(
@@ -51,9 +48,6 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
     );
 
     // 검색 성능 인덱스
-    await queryRunner.query(
-      `CREATE INDEX idx_inventory_serial_search ON INVENTORY(serial_number)`
-    );
     await queryRunner.query(
       `CREATE INDEX idx_inventory_model_search ON INVENTORY(model)`
     );
@@ -140,11 +134,9 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
     await queryRunner.query(`DROP INDEX idx_inventory_deleted_at`);
     await queryRunner.query(`DROP INDEX idx_inventory_created_at`);
     await queryRunner.query(`DROP INDEX idx_inventory_model_search`);
-    await queryRunner.query(`DROP INDEX idx_inventory_serial_search`);
     await queryRunner.query(`DROP INDEX idx_inventory_location`);
     await queryRunner.query(`DROP INDEX idx_inventory_category`);
     await queryRunner.query(`DROP INDEX idx_inventory_status`);
-    await queryRunner.query(`DROP INDEX idx_inventory_serial_active`);
 
     await queryRunner.query(`DROP TABLE INVENTORY`);
     await queryRunner.query(`DROP SEQUENCE INVENTORY_SEQ`);
