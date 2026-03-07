@@ -99,9 +99,9 @@ export class UpdateCustomerAndCreateContactHistoryTables20260127230000 implement
     // 3. 기존 category 데이터를 classification으로 복사
     await queryRunner.query(`
       UPDATE CUSTOMER
-      SET classification = category,
-          code = 'CUST-' || LPAD(id, 5, '0')
-      WHERE classification IS NULL
+      SET "classification" = "category",
+          "code" = 'CUST-' || LPAD("id", 5, '0')
+      WHERE "classification" IS NULL
     `);
 
     // 4. CUSTOMER_CONTACT 테이블 생성
