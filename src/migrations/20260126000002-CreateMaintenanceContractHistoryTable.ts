@@ -72,14 +72,13 @@ export class CreateMaintenanceContractHistoryTable20260126000002
             isNullable: true,
           },
         ],
-        checks: [
-          {
-            name: 'CHK_MCH_CHANGE_TYPE',
-            expression: `change_type IN ('갱신', '상태변경', '정보수정')`,
-          },
-        ],
       }),
       true
+    );
+
+    // CHECK Constraints (separate ALTER TABLE to use quoted column names for Oracle)
+    await queryRunner.query(
+      `ALTER TABLE MAINTENANCE_CONTRACT_HISTORY ADD CONSTRAINT CHK_MCH_CHANGE_TYPE CHECK ("change_type" IN ('갱신', '상태변경', '정보수정'))`
     );
 
     // Create indexes

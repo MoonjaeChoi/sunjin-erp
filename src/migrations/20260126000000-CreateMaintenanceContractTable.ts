@@ -105,18 +105,16 @@ export class CreateMaintenanceContractTable20260126000000
             isNullable: true,
           },
         ],
-        checks: [
-          {
-            name: 'CHK_MC_STATUS',
-            expression: `contract_status IN ('활성', '종료', '갱신예정')`,
-          },
-          {
-            name: 'CHK_MC_DATES',
-            expression: 'start_date <= end_date',
-          },
-        ],
       }),
       true
+    );
+
+    // CHECK Constraints (must be separate ALTER TABLE to use quoted column names for Oracle)
+    await queryRunner.query(
+      `ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT CHK_MC_STATUS CHECK ("contract_status" IN ('활성', '종료', '갱신예정'))`
+    );
+    await queryRunner.query(
+      `ALTER TABLE MAINTENANCE_CONTRACT ADD CONSTRAINT CHK_MC_DATES CHECK ("start_date" <= "end_date")`
     );
 
     // Create indexes for common query patterns
