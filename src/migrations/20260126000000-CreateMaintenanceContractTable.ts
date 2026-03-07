@@ -185,7 +185,6 @@ export class CreateMaintenanceContractTable20260126000000
         columnNames: ['customer_id'],
         referencedTableName: 'CUSTOMER',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -196,7 +195,6 @@ export class CreateMaintenanceContractTable20260126000000
         columnNames: ['assigned_employee_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -207,7 +205,6 @@ export class CreateMaintenanceContractTable20260126000000
         columnNames: ['created_by_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -218,7 +215,6 @@ export class CreateMaintenanceContractTable20260126000000
         columnNames: ['updated_by_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
   }

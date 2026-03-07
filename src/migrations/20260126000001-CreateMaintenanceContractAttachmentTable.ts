@@ -104,7 +104,6 @@ export class CreateMaintenanceContractAttachmentTable20260126000001
         columnNames: ['maintenance_contract_id'],
         referencedTableName: 'MAINTENANCE_CONTRACT',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -115,7 +114,6 @@ export class CreateMaintenanceContractAttachmentTable20260126000001
         columnNames: ['uploaded_by_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
   }

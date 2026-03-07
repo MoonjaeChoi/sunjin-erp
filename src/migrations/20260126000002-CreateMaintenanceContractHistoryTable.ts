@@ -131,7 +131,6 @@ export class CreateMaintenanceContractHistoryTable20260126000002
         columnNames: ['maintenance_contract_id'],
         referencedTableName: 'MAINTENANCE_CONTRACT',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -142,7 +141,6 @@ export class CreateMaintenanceContractHistoryTable20260126000002
         columnNames: ['changed_by_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
   }

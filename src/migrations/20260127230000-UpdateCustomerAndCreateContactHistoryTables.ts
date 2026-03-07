@@ -230,7 +230,6 @@ export class UpdateCustomerAndCreateContactHistoryTables20260127230000 implement
         columnNames: ['created_by_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -241,7 +240,6 @@ export class UpdateCustomerAndCreateContactHistoryTables20260127230000 implement
         columnNames: ['updated_by_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -253,7 +251,6 @@ export class UpdateCustomerAndCreateContactHistoryTables20260127230000 implement
         columnNames: ['customer_id'],
         referencedTableName: 'CUSTOMER',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -265,7 +262,6 @@ export class UpdateCustomerAndCreateContactHistoryTables20260127230000 implement
         columnNames: ['customer_id'],
         referencedTableName: 'CUSTOMER',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
@@ -277,7 +273,6 @@ export class UpdateCustomerAndCreateContactHistoryTables20260127230000 implement
         columnNames: ['changed_by_id'],
         referencedTableName: 'EMPLOYEE',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
       })
     );
 
