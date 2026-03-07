@@ -36,42 +36,42 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
     // 3. INVENTORY 테이블 인덱스 (Oracle XE는 부분 인덱스 미지원)
     // 고유 인덱스
     await queryRunner.query(
-      `CREATE UNIQUE INDEX idx_inventory_serial ON INVENTORY("serial_number")`
+      `CREATE UNIQUE INDEX idx_inventory_serial ON INVENTORY(serial_number)`
     );
 
     // 필터링 성능 인덱스
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_status ON INVENTORY("current_status")`
+      `CREATE INDEX idx_inventory_status ON INVENTORY(current_status)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_category ON INVENTORY("category")`
+      `CREATE INDEX idx_inventory_category ON INVENTORY(category)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_location ON INVENTORY("current_location")`
+      `CREATE INDEX idx_inventory_location ON INVENTORY(current_location)`
     );
 
     // 검색 성능 인덱스
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_serial_search ON INVENTORY("serial_number")`
+      `CREATE INDEX idx_inventory_serial_search ON INVENTORY(serial_number)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_model_search ON INVENTORY("model")`
+      `CREATE INDEX idx_inventory_model_search ON INVENTORY(model)`
     );
 
     // 감사 및 정렬 인덱스
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_created_at ON INVENTORY("created_at")`
+      `CREATE INDEX idx_inventory_created_at ON INVENTORY(created_at)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_deleted_at ON INVENTORY("deleted_at")`
+      `CREATE INDEX idx_inventory_deleted_at ON INVENTORY(deleted_at)`
     );
 
     // 4. INVENTORY 외래키 추가
     await queryRunner.query(
-      `ALTER TABLE INVENTORY ADD CONSTRAINT FK_INVENTORY_CREATED_BY FOREIGN KEY ("created_by_id") REFERENCES EMPLOYEE("id")`
+      `ALTER TABLE INVENTORY ADD CONSTRAINT FK_INVENTORY_CREATED_BY FOREIGN KEY (created_by_id) REFERENCES EMPLOYEE("id")`
     );
     await queryRunner.query(
-      `ALTER TABLE INVENTORY ADD CONSTRAINT FK_INVENTORY_UPDATED_BY FOREIGN KEY ("updated_by_id") REFERENCES EMPLOYEE("id")`
+      `ALTER TABLE INVENTORY ADD CONSTRAINT FK_INVENTORY_UPDATED_BY FOREIGN KEY (updated_by_id) REFERENCES EMPLOYEE("id")`
     );
 
     // 5. INVENTORY_HISTORY 테이블 생성 (불변 감사 추적 - deleted_at 없음)
@@ -94,21 +94,21 @@ export class CreateInventoryTables1737799600000 implements MigrationInterface {
 
     // 6. INVENTORY_HISTORY 테이블 인덱스
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_history_inventory_id ON INVENTORY_HISTORY("inventory_id")`
+      `CREATE INDEX idx_inventory_history_inventory_id ON INVENTORY_HISTORY(inventory_id)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_history_changed_at ON INVENTORY_HISTORY("changed_at")`
+      `CREATE INDEX idx_inventory_history_changed_at ON INVENTORY_HISTORY(changed_at)`
     );
     await queryRunner.query(
-      `CREATE INDEX idx_inventory_history_change_type ON INVENTORY_HISTORY("change_type")`
+      `CREATE INDEX idx_inventory_history_change_type ON INVENTORY_HISTORY(change_type)`
     );
 
     // 7. INVENTORY_HISTORY 외래키 추가
     await queryRunner.query(
-      `ALTER TABLE INVENTORY_HISTORY ADD CONSTRAINT FK_INVENTORY_HISTORY_INVENTORY FOREIGN KEY ("inventory_id") REFERENCES INVENTORY("id")`
+      `ALTER TABLE INVENTORY_HISTORY ADD CONSTRAINT FK_INVENTORY_HISTORY_INVENTORY FOREIGN KEY (inventory_id) REFERENCES INVENTORY(id)`
     );
     await queryRunner.query(
-      `ALTER TABLE INVENTORY_HISTORY ADD CONSTRAINT FK_INVENTORY_HISTORY_CHANGED_BY FOREIGN KEY ("changed_by_id") REFERENCES EMPLOYEE("id")`
+      `ALTER TABLE INVENTORY_HISTORY ADD CONSTRAINT FK_INVENTORY_HISTORY_CHANGED_BY FOREIGN KEY (changed_by_id) REFERENCES EMPLOYEE("id")`
     );
   }
 
