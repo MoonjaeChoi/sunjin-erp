@@ -3,8 +3,32 @@
 import type { Metadata } from 'next';
 import { LoginForm } from './LoginForm';
 
+const BASE_URL = 'https://www.clayve.co.kr/sunjin';
+
 export const metadata: Metadata = {
-  title: 'Sunjin ERP — 선진 업무 관리 시스템',
+  title: 'Sunjin Infotech ERP — IT 인프라 통합 업무 관리 시스템',
+  description:
+    '직원·고객·프로젝트·재고·유지보수까지 — 선진인포텍의 모든 업무를 하나의 플랫폼에서 실시간으로 연결하고 관리합니다.',
+  metadataBase: new URL(BASE_URL),
+  openGraph: {
+    type: 'website',
+    url: BASE_URL,
+    siteName: 'Sunjin Infotech ERP',
+    title: 'Sunjin Infotech ERP — 업무의 모든 흐름을 하나의 플랫폼으로',
+    description:
+      '영상 관리·분석, 스토리지, KVM, 네트워크까지 — 선진인포텍 IT 인프라 통합 업무 관리 시스템. 직원·고객·프로젝트·재고·유지보수를 한 곳에서.',
+    locale: 'ko_KR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sunjin Infotech ERP — 업무의 모든 흐름을 하나의 플랫폼으로',
+    description:
+      '영상 관리·분석, 스토리지, KVM, 네트워크까지 — 선진인포텍 IT 인프라 통합 업무 관리 시스템.',
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const features = [
