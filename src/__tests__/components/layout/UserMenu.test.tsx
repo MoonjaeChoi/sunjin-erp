@@ -52,6 +52,6 @@ describe('UserMenu', () => {
     await user.click(screen.getByText('홍길동'));
     await user.click(screen.getByText('로그아웃'));
 
-    expect(mockSignOut).toHaveBeenCalledWith({ callbackUrl: '/login' });
+    expect(mockSignOut).toHaveBeenCalledWith({ callbackUrl: '/sunjin/login' });
   });
 });

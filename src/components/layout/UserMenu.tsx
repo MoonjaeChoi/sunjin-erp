@@ -34,7 +34,7 @@ export function UserMenu({ session }: UserMenuProps) {
   const initials = name.slice(0, 2);
 
   async function handleLogout() {
-    await signOut({ callbackUrl: '/login' });
+    await signOut({ callbackUrl: '/sunjin/login' });
   }
 
   return (
