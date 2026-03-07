@@ -43,8 +43,8 @@ export async function GET(
 
     // 4. 계약 조회
     const contractResult = await executeQuerySingle(
-      `SELECT MC.id, MC.customer_id, MC.contract_name, MC.contract_type, MC.start_date, MC.end_date, MC.assigned_employee_id, MC.contract_amount, MC.contract_status, MC.notes, MC.created_at, MC.updated_at, MC.created_by_id, MC.updated_by_id FROM "MAINTENANCE_CONTRACT" MC
-       WHERE MC.id = :id AND MC.deleted_at IS NULL`,
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACT" MC
+       WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
 
@@ -56,19 +56,19 @@ export async function GET(
       );
     }
 
-    // Oracle returns UPPERCASE column names
+    // lowercase quoted columns → lowercase keys in result rows
     const contract = contractResult as any;
 
     // 6. 고객 정보 조회
     const customerResult = await executeQuerySingle(
       'SELECT "id", "name" FROM "CUSTOMER" WHERE "id" = :id AND "deleted_at" IS NULL',
-      { id: contract.CUSTOMER_ID }
+      { id: contract.customer_id }
     );
 
     // 7. 담당자 정보 조회 (EMPLOYEE 테이블은 UPPERCASE 컬럼 사용)
     const employeeResult = await executeQuerySingle(
       'SELECT ID, NAME FROM EMPLOYEE WHERE ID = :id AND DELETED_AT IS NULL',
-      { id: contract.ASSIGNED_EMPLOYEE_ID }
+      { id: contract.assigned_employee_id }
     );
 
     // 8. 첨부파일 조회
@@ -89,38 +89,38 @@ export async function GET(
       { contract_id: contractId }
     );
 
-    // 10. 응답 구성 (Oracle returns UPPERCASE column names, CUSTOMER는 quoted lowercase, EMPLOYEE는 UPPERCASE)
+    // 10. 응답 구성 (lowercase quoted columns → lowercase keys; EMPLOYEE는 UPPERCASE)
     const response = {
-      id: contract.ID,
-      customer_id: contract.CUSTOMER_ID,
+      id: contract.id,
+      customer_id: contract.customer_id,
       customer: customerResult ? { id: (customerResult as any).id, name: (customerResult as any).name } : null,
-      contract_name: contract.CONTRACT_NAME,
-      contract_type: contract.CONTRACT_TYPE,
-      start_date: contract.START_DATE,
-      end_date: contract.END_DATE,
-      assigned_employee_id: contract.ASSIGNED_EMPLOYEE_ID,
+      contract_name: contract.contract_name,
+      contract_type: contract.contract_type,
+      start_date: contract.start_date,
+      end_date: contract.end_date,
+      assigned_employee_id: contract.assigned_employee_id,
       assignedEmployee: employeeResult ? { id: (employeeResult as any).ID, name: (employeeResult as any).NAME } : null,
-      contract_amount: contract.CONTRACT_AMOUNT,
-      contract_status: contract.CONTRACT_STATUS,
-      notes: contract.NOTES,
-      created_at: contract.CREATED_AT,
-      updated_at: contract.UPDATED_AT,
-      created_by_id: contract.CREATED_BY_ID,
-      updated_by_id: contract.UPDATED_BY_ID,
+      contract_amount: contract.contract_amount,
+      contract_status: contract.contract_status,
+      notes: contract.notes,
+      created_at: contract.created_at,
+      updated_at: contract.updated_at,
+      created_by_id: contract.created_by_id,
+      updated_by_id: contract.updated_by_id,
       attachments: attachmentsResult.rows.map((a: any) => ({
-        id: a.ID,
-        file_name: a.FILE_NAME,
-        file_path: a.FILE_PATH,
-        file_size: a.FILE_SIZE,
-        created_at: a.CREATED_AT,
-        uploaded_by_id: a.UPLOADED_BY_ID,
+        id: a.id,
+        file_name: a.file_name,
+        file_path: a.file_path,
+        file_size: a.file_size,
+        created_at: a.created_at,
+        uploaded_by_id: a.uploaded_by_id,
       })),
       histories: historiesResult.rows.map((h: any) => ({
-        id: h.ID,
-        change_type: h.CHANGE_TYPE,
-        reason: h.REASON,
-        changed_by_id: h.CHANGED_BY_ID,
-        changed_at: h.CHANGED_AT,
+        id: h.id,
+        change_type: h.change_type,
+        reason: h.reason,
+        changed_by_id: h.changed_by_id,
+        changed_at: h.changed_at,
       })),
     };
 
@@ -199,8 +199,8 @@ export async function PUT(
 
     // 6. 기존 계약 조회
     const existingContract = await executeQuerySingle(
-      `SELECT MC.id, MC.customer_id, MC.contract_name, MC.contract_type, MC.start_date, MC.end_date, MC.assigned_employee_id, MC.contract_amount, MC.contract_status, MC.notes, MC.created_at, MC.updated_at, MC.created_by_id, MC.updated_by_id FROM "MAINTENANCE_CONTRACT" MC
-       WHERE MC.id = :id AND MC.deleted_at IS NULL`,
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACT" MC
+       WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
 
@@ -251,7 +251,7 @@ export async function PUT(
       }
 
       // 시작일이 종료일보다 크지 않아야 함
-      if (existing.START_DATE && new Date(existing.START_DATE) > endDateObj) {
+      if (existing.start_date && new Date(existing.start_date) > endDateObj) {
         return NextResponse.json(
           {
             error: 'Validation Error',
@@ -363,30 +363,30 @@ export async function PUT(
 
     // 10. 수정된 계약 조회 및 반환
     const updatedContract = await executeQuerySingle(
-      `SELECT MC.id, MC.customer_id, MC.contract_name, MC.contract_type, MC.start_date, MC.end_date, MC.assigned_employee_id, MC.contract_amount, MC.contract_status, MC.notes, MC.created_at, MC.updated_at, MC.created_by_id, MC.updated_by_id FROM "MAINTENANCE_CONTRACT" MC WHERE MC.id = :id`,
+      `SELECT MC."id", MC."customer_id", MC."contract_name", MC."contract_type", MC."start_date", MC."end_date", MC."assigned_employee_id", MC."contract_amount", MC."contract_status", MC."notes", MC."created_at", MC."updated_at", MC."created_by_id", MC."updated_by_id" FROM "MAINTENANCE_CONTRACT" MC WHERE MC."id" = :id`,
       { id: contractId }
     );
 
-    // Oracle returns UPPERCASE column names
+    // lowercase quoted columns → lowercase keys in result rows
     const updated = updatedContract as any;
 
     return NextResponse.json(
       {
         data: {
-          id: updated.ID,
-          customer_id: updated.CUSTOMER_ID,
-          contract_name: updated.CONTRACT_NAME,
-          contract_type: updated.CONTRACT_TYPE,
-          start_date: updated.START_DATE,
-          end_date: updated.END_DATE,
-          assigned_employee_id: updated.ASSIGNED_EMPLOYEE_ID,
-          contract_amount: updated.CONTRACT_AMOUNT,
-          contract_status: updated.CONTRACT_STATUS,
-          notes: updated.NOTES,
-          created_at: updated.CREATED_AT,
-          updated_at: updated.UPDATED_AT,
-          created_by_id: updated.CREATED_BY_ID,
-          updated_by_id: updated.UPDATED_BY_ID,
+          id: updated.id,
+          customer_id: updated.customer_id,
+          contract_name: updated.contract_name,
+          contract_type: updated.contract_type,
+          start_date: updated.start_date,
+          end_date: updated.end_date,
+          assigned_employee_id: updated.assigned_employee_id,
+          contract_amount: updated.contract_amount,
+          contract_status: updated.contract_status,
+          notes: updated.notes,
+          created_at: updated.created_at,
+          updated_at: updated.updated_at,
+          created_by_id: updated.created_by_id,
+          updated_by_id: updated.updated_by_id,
         },
         message: '유지보수 계약이 수정되었습니다.',
       },
@@ -439,8 +439,7 @@ export async function DELETE(
 
     // 4. 계약 존재 여부 확인
     const existingContract = await executeQuerySingle(
-      `SELECT MC.id, MC.customer_id, MC.contract_name, MC.contract_type, MC.start_date, MC.end_date, MC.assigned_employee_id, MC.contract_amount, MC.contract_status, MC.notes, MC.created_at, MC.updated_at, MC.created_by_id, MC.updated_by_id FROM "MAINTENANCE_CONTRACT" MC
-       WHERE MC.id = :id AND MC.deleted_at IS NULL`,
+      `SELECT MC."id" FROM "MAINTENANCE_CONTRACT" MC WHERE MC."id" = :id AND MC."deleted_at" IS NULL`,
       { id: contractId }
     );
 

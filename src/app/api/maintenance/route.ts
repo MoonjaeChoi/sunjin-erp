@@ -44,53 +44,53 @@ export async function GET(request: NextRequest) {
     const startDateTo = searchParams.get('startDateTo') || undefined;
     const endDateFrom = searchParams.get('endDateFrom') || undefined;
     const endDateTo = searchParams.get('endDateTo') || undefined;
-    const sortBy = searchParams.get('sortBy') || 'MC.CREATED_AT';
+    const sortBy = searchParams.get('sortBy') || 'MC."created_at"';
     const sortOrder = (searchParams.get('order') || 'DESC') as 'ASC' | 'DESC';
 
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20')));
 
     // 4. Raw SQL 쿼리 구성
-    let whereClause = 'WHERE MC.deleted_at IS NULL';
+    let whereClause = 'WHERE MC."deleted_at" IS NULL';
     const params: any = {};
 
     if (status) {
-      whereClause += ' AND MC.contract_status = :status';
+      whereClause += ' AND MC."contract_status" = :status';
       params.status = status;
     }
 
     if (customerId) {
-      whereClause += ' AND MC.customer_id = :customerId';
+      whereClause += ' AND MC."customer_id" = :customerId';
       params.customerId = customerId;
     }
 
     if (assignedEmployeeId) {
-      whereClause += ' AND MC.assigned_employee_id = :assignedEmployeeId';
+      whereClause += ' AND MC."assigned_employee_id" = :assignedEmployeeId';
       params.assignedEmployeeId = assignedEmployeeId;
     }
 
     if (contractNameSearch) {
-      whereClause += ' AND LOWER(MC.contract_name) LIKE LOWER(:contractNameSearch)';
+      whereClause += ' AND LOWER(MC."contract_name") LIKE LOWER(:contractNameSearch)';
       params.contractNameSearch = `%${contractNameSearch}%`;
     }
 
     if (startDateFrom) {
-      whereClause += ' AND MC.start_date >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND MC."start_date" >= TO_DATE(:startDateFrom, \'YYYY-MM-DD\')';
       params.startDateFrom = startDateFrom;
     }
 
     if (startDateTo) {
-      whereClause += ' AND MC.start_date <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND MC."start_date" <= TO_DATE(:startDateTo, \'YYYY-MM-DD\')';
       params.startDateTo = startDateTo;
     }
 
     if (endDateFrom) {
-      whereClause += ' AND MC.end_date >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
+      whereClause += ' AND MC."end_date" >= TO_DATE(:endDateFrom, \'YYYY-MM-DD\')';
       params.endDateFrom = endDateFrom;
     }
 
     if (endDateTo) {
-      whereClause += ' AND MC.end_date <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
+      whereClause += ' AND MC."end_date" <= TO_DATE(:endDateTo, \'YYYY-MM-DD\')';
       params.endDateTo = endDateTo;
     }
 
@@ -106,20 +106,20 @@ export async function GET(request: NextRequest) {
     // 6. 목록 조회
     const sql = `
       SELECT
-        MC.id,
-        MC.customer_id,
-        MC.contract_name,
-        MC.contract_type,
-        MC.start_date,
-        MC.end_date,
-        MC.assigned_employee_id,
-        MC.contract_amount,
-        MC.contract_status,
-        MC.notes,
-        MC.created_at,
-        MC.updated_at,
-        MC.created_by_id,
-        MC.updated_by_id
+        MC."id",
+        MC."customer_id",
+        MC."contract_name",
+        MC."contract_type",
+        MC."start_date",
+        MC."end_date",
+        MC."assigned_employee_id",
+        MC."contract_amount",
+        MC."contract_status",
+        MC."notes",
+        MC."created_at",
+        MC."updated_at",
+        MC."created_by_id",
+        MC."updated_by_id"
       FROM "MAINTENANCE_CONTRACT" MC
       ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
@@ -132,25 +132,25 @@ export async function GET(request: NextRequest) {
       limit,
     });
 
-    // 7. 응답 반환 (Oracle returns UPPERCASE column names)
+    // 7. 응답 반환 (lowercase quoted columns → lowercase keys in result rows)
     const totalPages = Math.ceil(total / limit);
     return NextResponse.json(
       {
         data: contractsResult.rows.map((c: any) => ({
-          id: c.ID,
-          customer_id: c.CUSTOMER_ID,
-          contract_name: c.CONTRACT_NAME,
-          contract_type: c.CONTRACT_TYPE,
-          start_date: c.START_DATE,
-          end_date: c.END_DATE,
-          assigned_employee_id: c.ASSIGNED_EMPLOYEE_ID,
-          contract_amount: c.CONTRACT_AMOUNT,
-          contract_status: c.CONTRACT_STATUS,
-          notes: c.NOTES,
-          created_at: c.CREATED_AT,
-          updated_at: c.UPDATED_AT,
-          created_by_id: c.CREATED_BY_ID,
-          updated_by_id: c.UPDATED_BY_ID,
+          id: c.id,
+          customer_id: c.customer_id,
+          contract_name: c.contract_name,
+          contract_type: c.contract_type,
+          start_date: c.start_date,
+          end_date: c.end_date,
+          assigned_employee_id: c.assigned_employee_id,
+          contract_amount: c.contract_amount,
+          contract_status: c.contract_status,
+          notes: c.notes,
+          created_at: c.created_at,
+          updated_at: c.updated_at,
+          created_by_id: c.created_by_id,
+          updated_by_id: c.updated_by_id,
         })),
         pagination: {
           page,
@@ -351,22 +351,22 @@ export async function POST(request: NextRequest) {
       { id: contractId }
     );
 
-    // Oracle returns UPPERCASE column names
+    // lowercase quoted columns → lowercase keys in result rows
     return NextResponse.json(
       {
         data: {
-          id: (contract as any)?.ID,
-          customer_id: (contract as any)?.CUSTOMER_ID,
-          contract_name: (contract as any)?.CONTRACT_NAME,
-          contract_type: (contract as any)?.CONTRACT_TYPE,
-          start_date: (contract as any)?.START_DATE,
-          end_date: (contract as any)?.END_DATE,
-          assigned_employee_id: (contract as any)?.ASSIGNED_EMPLOYEE_ID,
-          contract_amount: (contract as any)?.CONTRACT_AMOUNT,
-          contract_status: (contract as any)?.CONTRACT_STATUS,
-          notes: (contract as any)?.NOTES,
-          created_at: (contract as any)?.CREATED_AT,
-          updated_at: (contract as any)?.UPDATED_AT,
+          id: (contract as any)?.id,
+          customer_id: (contract as any)?.customer_id,
+          contract_name: (contract as any)?.contract_name,
+          contract_type: (contract as any)?.contract_type,
+          start_date: (contract as any)?.start_date,
+          end_date: (contract as any)?.end_date,
+          assigned_employee_id: (contract as any)?.assigned_employee_id,
+          contract_amount: (contract as any)?.contract_amount,
+          contract_status: (contract as any)?.contract_status,
+          notes: (contract as any)?.notes,
+          created_at: (contract as any)?.created_at,
+          updated_at: (contract as any)?.updated_at,
         },
         message: '유지보수 계약이 생성되었습니다.',
       },
