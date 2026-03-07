@@ -12,7 +12,7 @@ interface UpdateTaskParams {
 }
 
 async function updateTask({ id, data }: UpdateTaskParams): Promise<TaskRecord> {
-  const res = await fetch(`/api/tasks/${id}`, {
+  const res = await fetch(`/sunjin/api/tasks/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),

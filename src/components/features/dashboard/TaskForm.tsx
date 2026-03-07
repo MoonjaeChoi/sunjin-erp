@@ -32,7 +32,7 @@ import { CreateTaskDto, TaskListItem } from '@/types/dashboard';
 import { timeStringToMinutes, minutesToTimeString, isTimeOverlap } from '@/lib/utils/time';
 
 async function fetchTask(id: number): Promise<TaskListItem> {
-  const res = await fetch(`/api/tasks/${id}`);
+  const res = await fetch(`/sunjin/api/tasks/${id}`);
   if (!res.ok) throw new Error('Failed to fetch task');
   return res.json();
 }

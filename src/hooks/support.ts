@@ -33,7 +33,7 @@ export function useTechSupportSearchQuery(params: TechSupportSearchParams) {
           searchParams.set(key, String(value));
         }
       });
-      const res = await fetch(`/api/support?${searchParams}`);
+      const res = await fetch(`/sunjin/api/support?${searchParams}`);
       if (!res.ok) throw new Error('Failed to fetch');
       return res.json() as Promise<TechSupportSearchResponse>;
     },
@@ -46,7 +46,7 @@ export function useTechSupportDetailQuery(id: number | null) {
   return useQuery({
     queryKey: techSupportKeys.detail(id!),
     queryFn: async () => {
-      const res = await fetch(`/api/support/${id}`);
+      const res = await fetch(`/sunjin/api/support/${id}`);
       if (!res.ok) throw new Error('Failed to fetch');
       return res.json() as Promise<TechSupportRecord>;
     },
@@ -60,7 +60,7 @@ export function useCreateTechSupportMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreateTechSupportRequest) => {
-      const res = await fetch('/api/support', {
+      const res = await fetch('/sunjin/api/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -81,7 +81,7 @@ export function useUpdateTechSupportMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateTechSupportRequest }) => {
-      const res = await fetch(`/api/support/${id}`, {
+      const res = await fetch(`/sunjin/api/support/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -103,7 +103,7 @@ export function useDeleteTechSupportMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/support/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/sunjin/api/support/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
     },
     onSuccess: () => {
@@ -118,7 +118,7 @@ export function useUploadAttachmentMutation() {
     mutationFn: async ({ id, file }: { id: number; file: File }) => {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`/api/support/${id}/attachment`, {
+      const res = await fetch(`/sunjin/api/support/${id}/attachment`, {
         method: 'POST',
         body: formData,
       });
@@ -138,7 +138,7 @@ export function useDeleteAttachmentMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/support/${id}/attachment`, { method: 'DELETE' });
+      const res = await fetch(`/sunjin/api/support/${id}/attachment`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete attachment');
     },
     onSuccess: (_, id) => {

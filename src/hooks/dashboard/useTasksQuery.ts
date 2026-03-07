@@ -15,7 +15,7 @@ async function fetchTasks(filters: TaskFilters): Promise<TaskListResponse> {
   if (filters.type) params.set('type', filters.type);
   if (filters.status) params.set('status', filters.status);
 
-  const res = await fetch(`/api/tasks?${params.toString()}`);
+  const res = await fetch(`/sunjin/api/tasks?${params.toString()}`);
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw { status: res.status, ...error };

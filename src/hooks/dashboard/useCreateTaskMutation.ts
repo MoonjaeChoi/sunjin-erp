@@ -8,7 +8,7 @@ import { TaskStatus } from '@/types/task';
 import { taskKeys } from './queryKeys';
 
 async function createTask(dto: CreateTaskDto) {
-  const res = await fetch('/api/tasks', {
+  const res = await fetch('/sunjin/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),

@@ -18,7 +18,7 @@ export function useCustomerListQuery() {
   return useQuery({
     queryKey: customerKeys.list(),
     queryFn: async () => {
-      const res = await fetch('/api/customers/list');
+      const res = await fetch('/sunjin/api/customers/list');
       if (!res.ok) throw new Error('Failed to fetch customers');
       return res.json() as Promise<CustomerListResponse>;
     },

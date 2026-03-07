@@ -25,7 +25,7 @@ async function fetchTaskSearch(params: TaskSearchParams): Promise<TaskSearchResp
   if (params.employee_id) searchParams.set('employee_id', String(params.employee_id));
   if (params.customer_id) searchParams.set('customer_id', String(params.customer_id));
 
-  const res = await fetch(`/api/tasks?${searchParams.toString()}`);
+  const res = await fetch(`/sunjin/api/tasks?${searchParams.toString()}`);
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw new Error(error.error || 'Failed to fetch tasks');

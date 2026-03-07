@@ -61,7 +61,7 @@ export function useProjectListQuery(params: ProjectSearchParams) {
         searchParams.set('keyword', params.keyword);
       }
 
-      const res = await fetch(`/api/projects?${searchParams.toString()}`);
+      const res = await fetch(`/sunjin/api/projects?${searchParams.toString()}`);
       if (!res.ok) {
         throw new Error('Failed to fetch projects');
       }
@@ -85,7 +85,7 @@ export function useProjectDetailQuery(id: number | null) {
       if (!id) {
         throw new Error('Project ID is required');
       }
-      const res = await fetch(`/api/projects/${id}`);
+      const res = await fetch(`/sunjin/api/projects/${id}`);
       if (!res.ok) {
         throw new Error('Failed to fetch project detail');
       }
@@ -115,7 +115,7 @@ export function useProjectSummaryQuery(params: Partial<ProjectSearchParams> = {}
         searchParams.set('employee_id', String(params.employee_id));
       }
 
-      const res = await fetch(`/api/projects/summary?${searchParams.toString()}`);
+      const res = await fetch(`/sunjin/api/projects/summary?${searchParams.toString()}`);
       if (!res.ok) {
         throw new Error('Failed to fetch project summary');
       }
@@ -136,7 +136,7 @@ export function useCreateProjectMutation() {
 
   return useMutation({
     mutationFn: async (data: CreateProjectRequest): Promise<{ id: number }> => {
-      const res = await fetch('/api/projects', {
+      const res = await fetch('/sunjin/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -172,7 +172,7 @@ export function useUpdateProjectMutation() {
       id: number;
       data: UpdateProjectRequest;
     }): Promise<void> => {
-      const res = await fetch(`/api/projects/${id}`, {
+      const res = await fetch(`/sunjin/api/projects/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -202,7 +202,7 @@ export function useDeleteProjectMutation() {
 
   return useMutation({
     mutationFn: async (id: number): Promise<void> => {
-      const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/sunjin/api/projects/${id}`, { method: 'DELETE' });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || 'Failed to delete project');
@@ -235,7 +235,7 @@ export function useToggleChecklistMutation() {
       stage: ProjectStage;
       completed: boolean;
     }): Promise<ProjectChecklistToggleResponse> => {
-      const res = await fetch(`/api/projects/${projectId}/checklist`, {
+      const res = await fetch(`/sunjin/api/projects/${projectId}/checklist`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage, completed }),
@@ -311,7 +311,7 @@ export function useUploadProjectAttachmentMutation() {
       formData.append('file', file);
       formData.append('category', category);
 
-      const res = await fetch(`/api/projects/${projectId}/attachments`, {
+      const res = await fetch(`/sunjin/api/projects/${projectId}/attachments`, {
         method: 'POST',
         body: formData,
       });
@@ -345,7 +345,7 @@ export function useDeleteProjectAttachmentMutation() {
       projectId: number;
       attachmentId: number;
     }): Promise<void> => {
-      const res = await fetch(`/api/projects/${projectId}/attachments/${attachmentId}`, {
+      const res = await fetch(`/sunjin/api/projects/${projectId}/attachments/${attachmentId}`, {
         method: 'DELETE',
       });
       if (!res.ok) {
@@ -368,7 +368,7 @@ export function useDeleteProjectAttachmentMutation() {
 export function useGenerateProjectCodeMutation() {
   return useMutation({
     mutationFn: async (): Promise<GenerateProjectCodeResponse> => {
-      const res = await fetch('/api/projects/generate-code', { method: 'POST' });
+      const res = await fetch('/sunjin/api/projects/generate-code', { method: 'POST' });
       if (!res.ok) {
         throw new Error('Failed to generate project code');
       }

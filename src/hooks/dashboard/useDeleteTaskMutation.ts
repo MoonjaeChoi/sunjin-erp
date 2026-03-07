@@ -7,7 +7,7 @@ import { TaskListResponse } from '@/types/dashboard';
 import { taskKeys } from './queryKeys';
 
 async function deleteTask(id: number) {
-  const res = await fetch(`/api/tasks/${id}`, {
+  const res = await fetch(`/sunjin/api/tasks/${id}`, {
     method: 'DELETE',
   });
   if (!res.ok) {

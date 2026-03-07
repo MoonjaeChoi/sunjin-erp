@@ -51,7 +51,7 @@ async function fetchInventoryList(
   if (params.sortBy) queryString.append('sortBy', params.sortBy);
   if (params.order) queryString.append('order', params.order);
 
-  const response = await fetch(`/api/inventory?${queryString}`, {
+  const response = await fetch(`/sunjin/api/inventory?${queryString}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -64,7 +64,7 @@ async function fetchInventoryList(
 }
 
 async function fetchInventoryDetail(id: number): Promise<InventoryDetail> {
-  const response = await fetch(`/api/inventory/${id}`, {
+  const response = await fetch(`/sunjin/api/inventory/${id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -77,7 +77,7 @@ async function fetchInventoryDetail(id: number): Promise<InventoryDetail> {
 }
 
 async function fetchInventoryStats(): Promise<InventoryStats> {
-  const response = await fetch('/api/inventory/stats', {
+  const response = await fetch('/sunjin/api/inventory/stats', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -136,7 +136,7 @@ export function useCreateInventoryMutation() {
 
   return useMutation({
     mutationFn: async (data: CreateInventoryRequest) => {
-      const response = await fetch('/api/inventory', {
+      const response = await fetch('/sunjin/api/inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -161,7 +161,7 @@ export function useCheckoutInventoryMutation(id: number) {
 
   return useMutation({
     mutationFn: async (data: CheckoutInventoryRequest) => {
-      const response = await fetch(`/api/inventory/${id}/checkout`, {
+      const response = await fetch(`/sunjin/api/inventory/${id}/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -187,7 +187,7 @@ export function useCheckinInventoryMutation(id: number) {
 
   return useMutation({
     mutationFn: async (data: CheckinInventoryRequest) => {
-      const response = await fetch(`/api/inventory/${id}/checkin`, {
+      const response = await fetch(`/sunjin/api/inventory/${id}/checkin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -213,7 +213,7 @@ export function useRelocateInventoryMutation(id: number) {
 
   return useMutation({
     mutationFn: async (data: RelocateInventoryRequest) => {
-      const response = await fetch(`/api/inventory/${id}/relocate`, {
+      const response = await fetch(`/sunjin/api/inventory/${id}/relocate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -238,7 +238,7 @@ export function useStatusChangeInventoryMutation(id: number) {
 
   return useMutation({
     mutationFn: async (data: StatusChangeInventoryRequest) => {
-      const response = await fetch(`/api/inventory/${id}/status-change`, {
+      const response = await fetch(`/sunjin/api/inventory/${id}/status-change`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -264,7 +264,7 @@ export function useUpdateInventoryMutation(id: number) {
 
   return useMutation({
     mutationFn: async (data: UpdateInventoryRequest) => {
-      const response = await fetch(`/api/inventory/${id}`, {
+      const response = await fetch(`/sunjin/api/inventory/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -289,7 +289,7 @@ export function useDeleteInventoryMutation(id: number) {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/inventory/${id}`, {
+      const response = await fetch(`/sunjin/api/inventory/${id}`, {
         method: 'DELETE',
       });
 

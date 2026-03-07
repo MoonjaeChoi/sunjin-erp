@@ -14,7 +14,7 @@ async function fetchTeamTasks(
     date_from: dateFrom,
     date_to: dateTo,
   });
-  const res = await fetch(`/api/dashboard/team?${params.toString()}`);
+  const res = await fetch(`/sunjin/api/dashboard/team?${params.toString()}`);
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw { status: res.status, ...error };

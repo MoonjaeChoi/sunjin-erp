@@ -49,7 +49,7 @@ async function fetchIssueList(
   if (params.sort_by) queryString.append('sort_by', params.sort_by);
   if (params.sort_order) queryString.append('sort_order', params.sort_order);
 
-  const response = await fetch(`/api/issues?${queryString}`, {
+  const response = await fetch(`/sunjin/api/issues?${queryString}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -62,7 +62,7 @@ async function fetchIssueList(
 }
 
 async function fetchIssueDetail(id: number): Promise<IssueDetailResponse> {
-  const response = await fetch(`/api/issues/${id}`, {
+  const response = await fetch(`/sunjin/api/issues/${id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -90,7 +90,7 @@ async function fetchIssueSummary(
   if (params?.date_to) queryString.append('date_to', params.date_to);
   if (params?.keyword) queryString.append('keyword', params.keyword);
 
-  const response = await fetch(`/api/issues/summary?${queryString}`, {
+  const response = await fetch(`/sunjin/api/issues/summary?${queryString}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -149,7 +149,7 @@ export function useCreateIssueMutation() {
 
   return useMutation({
     mutationFn: async (data: CreateIssueRequest) => {
-      const response = await fetch('/api/issues', {
+      const response = await fetch('/sunjin/api/issues', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -174,7 +174,7 @@ export function useUpdateIssueMutation(id: number) {
 
   return useMutation({
     mutationFn: async (data: UpdateIssueRequest) => {
-      const response = await fetch(`/api/issues/${id}`, {
+      const response = await fetch(`/sunjin/api/issues/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -200,7 +200,7 @@ export function useDeleteIssueMutation(id: number) {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/issues/${id}`, {
+      const response = await fetch(`/sunjin/api/issues/${id}`, {
         method: 'DELETE',
       });
 
@@ -224,7 +224,7 @@ export function useRollbackIssueMutation(id: number) {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/issues/${id}/rollback`, {
+      const response = await fetch(`/sunjin/api/issues/${id}/rollback`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -251,7 +251,7 @@ export function useUploadAttachmentMutation(id: number) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`/api/issues/${id}/attachments`, {
+      const response = await fetch(`/sunjin/api/issues/${id}/attachments`, {
         method: 'POST',
         body: formData,
       });
@@ -273,7 +273,7 @@ export function useDeleteAttachmentMutation(id: number, attachmentId: number) {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/issues/${id}/attachments/${attachmentId}`, {
+      const response = await fetch(`/sunjin/api/issues/${id}/attachments/${attachmentId}`, {
         method: 'DELETE',
       });
 

@@ -42,7 +42,7 @@ async function fetchNoticeList(params: NoticeListParams): Promise<NoticeListResp
   if (params.endDate) queryString.append('endDate', params.endDate);
   if (params.authorId) queryString.append('authorId', params.authorId.toString());
 
-  const response = await fetch(`/api/notices?${queryString}`, {
+  const response = await fetch(`/sunjin/api/notices?${queryString}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -56,7 +56,7 @@ async function fetchNoticeList(params: NoticeListParams): Promise<NoticeListResp
 }
 
 async function fetchNoticeDetail(id: number): Promise<{ data: NoticeDetail }> {
-  const response = await fetch(`/api/notices/${id}`, {
+  const response = await fetch(`/sunjin/api/notices/${id}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -70,7 +70,7 @@ async function fetchNoticeDetail(id: number): Promise<{ data: NoticeDetail }> {
 }
 
 async function fetchComments(noticeId: number): Promise<CommentListResponse> {
-  const response = await fetch(`/api/notices/${noticeId}/comments`, {
+  const response = await fetch(`/sunjin/api/notices/${noticeId}/comments`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -88,7 +88,7 @@ async function fetchNoticeStats(params?: { startDate?: string; endDate?: string 
   if (params?.startDate) queryString.append('startDate', params.startDate);
   if (params?.endDate) queryString.append('endDate', params.endDate);
 
-  const response = await fetch(`/api/notices/stats?${queryString}`, {
+  const response = await fetch(`/sunjin/api/notices/stats?${queryString}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -152,7 +152,7 @@ export function useCreateNotice() {
 
   return useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await fetch('/api/notices', {
+      const response = await fetch('/sunjin/api/notices', {
         method: 'POST',
         body: formData,
       });
@@ -176,7 +176,7 @@ export function useUpdateNotice() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateNoticeRequest }) => {
-      const response = await fetch(`/api/notices/${id}`, {
+      const response = await fetch(`/sunjin/api/notices/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -201,7 +201,7 @@ export function useDeleteNotice() {
 
   return useMutation({
     mutationFn: async ({ id, reason }: { id: number; reason?: string }) => {
-      const response = await fetch(`/api/notices/${id}`, {
+      const response = await fetch(`/sunjin/api/notices/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason }),
@@ -227,7 +227,7 @@ export function useCreateComment() {
 
   return useMutation({
     mutationFn: async ({ noticeId, data }: { noticeId: number; data: CreateCommentRequest }) => {
-      const response = await fetch(`/api/notices/${noticeId}/comments`, {
+      const response = await fetch(`/sunjin/api/notices/${noticeId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -261,7 +261,7 @@ export function useUpdateComment() {
       commentId: number;
       data: UpdateCommentRequest;
     }) => {
-      const response = await fetch(`/api/notices/${noticeId}/comments/${commentId}`, {
+      const response = await fetch(`/sunjin/api/notices/${noticeId}/comments/${commentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -285,7 +285,7 @@ export function useDeleteComment() {
 
   return useMutation({
     mutationFn: async ({ noticeId, commentId }: { noticeId: number; commentId: number }) => {
-      const response = await fetch(`/api/notices/${noticeId}/comments/${commentId}`, {
+      const response = await fetch(`/sunjin/api/notices/${noticeId}/comments/${commentId}`, {
         method: 'DELETE',
       });
 
@@ -309,7 +309,7 @@ export function useDeleteAttachment() {
 
   return useMutation({
     mutationFn: async ({ noticeId, attachmentId }: { noticeId: number; attachmentId: number }) => {
-      const response = await fetch(`/api/notices/${noticeId}/attachments/${attachmentId}`, {
+      const response = await fetch(`/sunjin/api/notices/${noticeId}/attachments/${attachmentId}`, {
         method: 'DELETE',
       });
 

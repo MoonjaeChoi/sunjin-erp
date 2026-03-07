@@ -7,7 +7,7 @@ import { TaskRecord } from '@/types/task-search';
 import { taskSearchKeys } from './queryKeys';
 
 async function fetchTaskDetail(id: number): Promise<TaskRecord> {
-  const res = await fetch(`/api/tasks/${id}`);
+  const res = await fetch(`/sunjin/api/tasks/${id}`);
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw new Error(error.error || 'Failed to fetch task');

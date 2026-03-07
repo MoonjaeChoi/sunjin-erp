@@ -30,7 +30,7 @@ export function useEmployeeListQuery() {
   return useQuery({
     queryKey: employeeKeys.dropdown(),
     queryFn: async (): Promise<EmployeeListResponse> => {
-      const res = await fetch('/api/employees/list');
+      const res = await fetch('/sunjin/api/employees/list');
       if (!res.ok) {
         throw new Error('Failed to fetch employees');
       }
