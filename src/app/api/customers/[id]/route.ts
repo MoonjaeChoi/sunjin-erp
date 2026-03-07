@@ -99,13 +99,13 @@ export async function GET(
     // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     const sql = `
       SELECT
-        c."id" as ID, c."name" as NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
-        c.CREATED_BY_ID as CREATEDBYID, c.UPDATED_BY_ID as UPDATEDBYID,
+        c."id" as ID, c."name" as NAME, c."code", c."classification", c."address", c."phone", c."email", c."memo",
+        c."created_by_id" as CREATEDBYID, c."updated_by_id" as UPDATEDBYID,
         CB.NAME as CREATEDBYNAME, UB.NAME as UPDATEDBYNAME,
         c."created_at" as CREATEDAT, c."updated_at" as UPDATEDAT
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE CB ON c.CREATED_BY_ID = CB.ID
-      LEFT JOIN EMPLOYEE UB ON c.UPDATED_BY_ID = UB.ID
+      LEFT JOIN EMPLOYEE CB ON c."created_by_id" = CB.ID
+      LEFT JOIN EMPLOYEE UB ON c."updated_by_id" = UB.ID
       WHERE c."id" = :id AND c."deleted_at" IS NULL
     `;
 
@@ -124,12 +124,12 @@ export async function GET(
     const response: CustomerDetailResponse = {
       id: customer.ID,
       name: customer.NAME,
-      code: customer.CODE,
-      classification: customer.CLASSIFICATION,
-      address: customer.ADDRESS,
-      phone: customer.PHONE,
-      email: customer.EMAIL,
-      memo: customer.MEMO,
+      code: customer.code,
+      classification: customer.classification,
+      address: customer.address,
+      phone: customer.phone,
+      email: customer.email,
+      memo: customer.memo,
       createdAt: customer.CREATEDAT,
       createdById: customer.CREATEDBYID || null,
       updatedAt: customer.UPDATEDAT,
@@ -190,13 +190,13 @@ export async function PUT(
     // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
     const existingSql = `
       SELECT
-        c."id" as ID, c."name" as NAME, c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
-        c.CREATED_BY_ID as CREATEDBYID, c.UPDATED_BY_ID as UPDATEDBYID,
+        c."id" as ID, c."name" as NAME, c."code", c."classification", c."address", c."phone", c."email", c."memo",
+        c."created_by_id" as CREATEDBYID, c."updated_by_id" as UPDATEDBYID,
         CB.NAME as CREATEDBYNAME, UB.NAME as UPDATEDBYNAME,
         c."created_at" as CREATEDAT, c."updated_at" as UPDATEDAT
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE CB ON c.CREATED_BY_ID = CB.ID
-      LEFT JOIN EMPLOYEE UB ON c.UPDATED_BY_ID = UB.ID
+      LEFT JOIN EMPLOYEE CB ON c."created_by_id" = CB.ID
+      LEFT JOIN EMPLOYEE UB ON c."updated_by_id" = UB.ID
       WHERE c."id" = :id AND c."deleted_at" IS NULL
     `;
 
@@ -220,34 +220,34 @@ export async function PUT(
     if (body.address !== undefined) {
       const sanitized = body.address ? sanitizeHtml(body.address.trim()) : null;
       updateFields.address = sanitized;
-      updateColumns.push(`address = :address`);
+      updateColumns.push(`"address" = :address`);
       params.address = sanitized;
     }
 
     if (body.phone !== undefined) {
       const sanitized = body.phone ? body.phone.trim() : null;
       updateFields.phone = sanitized;
-      updateColumns.push(`phone = :phone`);
+      updateColumns.push(`"phone" = :phone`);
       params.phone = sanitized;
     }
 
     if (body.email !== undefined) {
       const sanitized = body.email ? body.email.trim() : null;
       updateFields.email = sanitized;
-      updateColumns.push(`email = :email`);
+      updateColumns.push(`"email" = :email`);
       params.email = sanitized;
     }
 
     if (body.memo !== undefined) {
       const sanitized = body.memo ? sanitizeHtml(body.memo.trim()) : null;
       updateFields.memo = sanitized;
-      updateColumns.push(`memo = :memo`);
+      updateColumns.push(`"memo" = :memo`);
       params.memo = sanitized;
     }
 
     if (body.classification !== undefined) {
       updateFields.classification = body.classification;
-      updateColumns.push(`classification = :classification`);
+      updateColumns.push(`"classification" = :classification`);
       params.classification = body.classification;
     }
 
@@ -256,12 +256,12 @@ export async function PUT(
       const response: CustomerDetailResponse = {
         id: currentCustomer.ID,
         name: currentCustomer.NAME,
-        code: currentCustomer.CODE,
-        classification: currentCustomer.CLASSIFICATION,
-        address: currentCustomer.ADDRESS,
-        phone: currentCustomer.PHONE,
-        email: currentCustomer.EMAIL,
-        memo: currentCustomer.MEMO,
+        code: currentCustomer.code,
+        classification: currentCustomer.classification,
+        address: currentCustomer.address,
+        phone: currentCustomer.phone,
+        email: currentCustomer.email,
+        memo: currentCustomer.memo,
         createdAt: currentCustomer.CREATEDAT,
         createdById: currentCustomer.CREATEDBYID || null,
         updatedAt: currentCustomer.UPDATEDAT,
@@ -277,7 +277,7 @@ export async function PUT(
       );
     }
 
-    updateColumns.push(`UPDATED_BY_ID = :userId`);
+    updateColumns.push(`"updated_by_id" = :userId`);
     updateColumns.push(`"updated_at" = :now`);
 
     const updateSql = `
@@ -293,35 +293,35 @@ export async function PUT(
 
     if (updateFields.address !== undefined) {
       changedFieldsJson.address = {
-        before: currentCustomer.ADDRESS,
+        before: currentCustomer.address,
         after: updateFields.address,
       };
     }
 
     if (updateFields.phone !== undefined) {
       changedFieldsJson.phone = {
-        before: currentCustomer.PHONE,
+        before: currentCustomer.phone,
         after: updateFields.phone,
       };
     }
 
     if (updateFields.email !== undefined) {
       changedFieldsJson.email = {
-        before: currentCustomer.EMAIL,
+        before: currentCustomer.email,
         after: updateFields.email,
       };
     }
 
     if (updateFields.memo !== undefined) {
       changedFieldsJson.memo = {
-        before: currentCustomer.MEMO,
+        before: currentCustomer.memo,
         after: updateFields.memo,
       };
     }
 
     if (updateFields.classification !== undefined) {
       changedFieldsJson.classification = {
-        before: currentCustomer.CLASSIFICATION,
+        before: currentCustomer.classification,
         after: updateFields.classification,
       };
     }
@@ -351,12 +351,12 @@ export async function PUT(
     const response: CustomerDetailResponse = {
       id: updatedCustomer.ID,
       name: updatedCustomer.NAME,
-      code: updatedCustomer.CODE,
-      classification: updatedCustomer.CLASSIFICATION,
-      address: updatedCustomer.ADDRESS,
-      phone: updatedCustomer.PHONE,
-      email: updatedCustomer.EMAIL,
-      memo: updatedCustomer.MEMO,
+      code: updatedCustomer.code,
+      classification: updatedCustomer.classification,
+      address: updatedCustomer.address,
+      phone: updatedCustomer.phone,
+      email: updatedCustomer.email,
+      memo: updatedCustomer.memo,
       createdAt: updatedCustomer.CREATEDAT,
       createdById: updatedCustomer.CREATEDBYID || null,
       updatedAt: updatedCustomer.UPDATEDAT,
@@ -497,7 +497,7 @@ export async function DELETE(
     const now = new Date();
     const deleteSql = `
       UPDATE CUSTOMER
-      SET "deleted_at" = :now, UPDATED_BY_ID = :userId, "updated_at" = :now
+      SET "deleted_at" = :now, "updated_by_id" = :userId, "updated_at" = :now
       WHERE "id" = :id
     `;
 

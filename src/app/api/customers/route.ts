@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
     // 검색: name 또는 code
     if (search && search.trim().length > 0) {
       const searchTerm = `%${search.trim().toUpperCase()}%`;
-      whereClauses.push(`(UPPER(c."name") LIKE :search OR UPPER(c.CODE) LIKE :search)`);
+      whereClauses.push(`(UPPER(c."name") LIKE :search OR UPPER(c."code") LIKE :search)`);
     }
 
     // 분류 필터
@@ -144,14 +144,14 @@ export async function GET(request: NextRequest) {
       const classificationPlaceholders = classification
         .map((_, idx) => `:classification${idx}`)
         .join(',');
-      whereClauses.push(`c.CLASSIFICATION IN (${classificationPlaceholders})`);
+      whereClauses.push(`c."classification" IN (${classificationPlaceholders})`);
     }
 
     // 담당자 필터
     if (managerId) {
       const managerIdNum = parseInt(managerId, 10);
       if (!isNaN(managerIdNum)) {
-        whereClauses.push('c.CREATED_BY_ID = :managerId');
+        whereClauses.push('c."created_by_id" = :managerId');
       }
     }
 
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
     const validSortBy = VALID_SORT_BY.includes(sortBy) ? sortBy : 'name';
     const sortColumnMap: { [key: string]: string } = {
       name: 'c."name"',
-      code: 'c.CODE',
+      code: 'c."code"',
       createdAt: 'c."created_at"',
       updatedAt: 'c."updated_at"',
     };
@@ -198,14 +198,14 @@ export async function GET(request: NextRequest) {
 
     // 목록 조회
     const offset = (page - 1) * limit;
-    // EMPLOYEE 테이블은 UPPERCASE 컬럼 사용
+    // CUSTOMER: lowercase quoted columns; EMPLOYEE: UPPERCASE columns
     const dataSql = `
       SELECT
-        c."id", c."name", c.CODE, c.CLASSIFICATION, c.ADDRESS, c.PHONE, c.EMAIL, c.MEMO,
-        c.CREATED_BY_ID as managerId, E.NAME as managerName,
+        c."id", c."name", c."code", c."classification", c."address", c."phone", c."email", c."memo",
+        c."created_by_id" as managerId, E.NAME as managerName,
         c."created_at" as createdAt, c."updated_at" as updatedAt, c."deleted_at" as deletedAt
       FROM CUSTOMER c
-      LEFT JOIN EMPLOYEE E ON c.CREATED_BY_ID = E.ID
+      LEFT JOIN EMPLOYEE E ON c."created_by_id" = E.ID
       ${whereClause}
       ${orderClause}
       OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
@@ -213,17 +213,17 @@ export async function GET(request: NextRequest) {
 
     const customerResult = await executeQuery(dataSql, params);
 
-    // Oracle returns UPPERCASE column names for unquoted columns/aliases
+    // quoted lowercase columns → lowercase keys; unquoted aliases → uppercase
     const response: CustomersListResponse = {
       data: customerResult.rows.map((customer: any) => ({
         id: customer.id,
         name: customer.name,
-        code: customer.CODE,
-        classification: customer.CLASSIFICATION,
-        address: customer.ADDRESS,
-        phone: customer.PHONE,
-        email: customer.EMAIL,
-        memo: customer.MEMO,
+        code: customer.code,
+        classification: customer.classification,
+        address: customer.address,
+        phone: customer.phone,
+        email: customer.email,
+        memo: customer.memo,
         managerId: customer.MANAGERID || null,
         managerName: customer.MANAGERNAME || 'Unknown',
         createdAt: customer.CREATEDAT,
@@ -316,8 +316,8 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const insertSql = `
       INSERT INTO CUSTOMER (
-        "name", CODE, "category", CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
-        CREATED_BY_ID, UPDATED_BY_ID, "created_at", "updated_at"
+        "name", "code", "category", "classification", "address", "phone", "email", "memo",
+        "created_by_id", "updated_by_id", "created_at", "updated_at"
       ) VALUES (
         :name, :code, :classification, :classification, :address, :phone, :email, :memo,
         :userId, :userId, :now, :now
@@ -338,10 +338,10 @@ export async function POST(request: NextRequest) {
 
     // 8. 새로 생성된 고객 조회 (code로 조회 - unique)
     const selectSql = `
-      SELECT "id", "name", CODE, CLASSIFICATION, ADDRESS, PHONE, EMAIL, MEMO,
-             CREATED_BY_ID as MANAGERID, "created_at" as CREATEDAT, "updated_at" as UPDATEDAT
+      SELECT "id", "name", "code", "classification", "address", "phone", "email", "memo",
+             "created_by_id" as MANAGERID, "created_at" as CREATEDAT, "updated_at" as UPDATEDAT
       FROM CUSTOMER
-      WHERE CODE = :code AND "deleted_at" IS NULL
+      WHERE "code" = :code AND "deleted_at" IS NULL
     `;
     const selectResult = await executeQuery(selectSql, { code: customerCode });
     const newCustomer = selectResult.rows[0];
@@ -372,18 +372,18 @@ export async function POST(request: NextRequest) {
     });
 
     // 10. 응답 반환 (201 Created)
-    // Oracle returns UPPERCASE column names for unquoted columns/aliases
+    // lowercase quoted columns → lowercase keys; unquoted aliases → uppercase
     return NextResponse.json(
       {
         data: {
           id: newCustomer.id,
           name: newCustomer.name,
-          code: newCustomer.CODE,
-          classification: newCustomer.CLASSIFICATION,
-          address: newCustomer.ADDRESS,
-          phone: newCustomer.PHONE,
-          email: newCustomer.EMAIL,
-          memo: newCustomer.MEMO,
+          code: newCustomer.code,
+          classification: newCustomer.classification,
+          address: newCustomer.address,
+          phone: newCustomer.phone,
+          email: newCustomer.email,
+          memo: newCustomer.memo,
           managerId: newCustomer.MANAGERID,
           createdAt: newCustomer.CREATEDAT,
           updatedAt: newCustomer.UPDATEDAT,

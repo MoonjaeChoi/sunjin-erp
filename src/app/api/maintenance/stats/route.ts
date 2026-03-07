@@ -32,20 +32,20 @@ export async function GET(request: NextRequest) {
     // 3. 상태별 계약 수 조회
     const statusStatsResult = await executeQuery(`
       SELECT
-        MC.contract_status,
-        COUNT(*) as COUNT
+        MC."contract_status",
+        COUNT(*) as CNT
       FROM "MAINTENANCE_CONTRACT" MC
-      WHERE MC.deleted_at IS NULL
-      GROUP BY MC.contract_status
+      WHERE MC."deleted_at" IS NULL
+      GROUP BY MC."contract_status"
     `);
 
-    // Oracle returns UPPERCASE column names
+    // lowercase quoted columns → lowercase keys; unquoted alias CNT → uppercase CNT
     const byStatus: Record<string, number> = {};
     let total = 0;
 
     for (const row of statusStatsResult.rows) {
-      const status = (row as any)?.CONTRACT_STATUS;
-      const count = parseInt((row as any)?.COUNT || '0');
+      const status = (row as any)?.contract_status;
+      const count = parseInt((row as any)?.CNT || '0');
       if (status) {
         byStatus[status] = count;
         total += count;
@@ -59,13 +59,13 @@ export async function GET(request: NextRequest) {
 
     const expiringContractsResult = await executeQuery(`
       SELECT
-        MC.id,
-        MC.end_date
+        MC."id",
+        MC."end_date"
       FROM "MAINTENANCE_CONTRACT" MC
-      WHERE MC.deleted_at IS NULL
-      AND MC.contract_status = '활성'
-      AND MC.end_date <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
-      AND MC.end_date >= TO_DATE(:today, 'YYYY-MM-DD')
+      WHERE MC."deleted_at" IS NULL
+      AND MC."contract_status" = '활성'
+      AND MC."end_date" <= TO_DATE(:sixtyDaysLater, 'YYYY-MM-DD')
+      AND MC."end_date" >= TO_DATE(:today, 'YYYY-MM-DD')
     `, {
       today: today.toISOString().split('T')[0],
       sixtyDaysLater: sixtyDaysLater.toISOString().split('T')[0],
@@ -75,8 +75,7 @@ export async function GET(request: NextRequest) {
     let expiringIn60Days = 0;
 
     for (const contract of expiringContractsResult.rows) {
-      // Oracle returns UPPERCASE column names
-      const endDate = new Date((contract as any)?.END_DATE);
+      const endDate = new Date((contract as any)?.end_date);
 
       if (endDate <= thirtyDaysLater && endDate >= today) {
         expiringIn30Days++;
