@@ -321,14 +321,14 @@ export class UpdateCustomerAndCreateContactHistoryTables20260127230000 implement
     // 12. 부분 유니크 인덱스 생성 (CUSTOMER name - soft delete 제외)
     await queryRunner.query(`
       CREATE UNIQUE INDEX idx_customer_name_soft_delete
-      ON CUSTOMER(name)
+      ON CUSTOMER("name")
       WHERE deleted_at IS NULL
     `);
 
     // 13. 부분 유니크 인덱스 생성 (CUSTOMER_CONTACT primary_contact - 고객당 max 1)
     await queryRunner.query(`
       CREATE UNIQUE INDEX idx_contact_primary_soft_delete
-      ON CUSTOMER_CONTACT(customer_id)
+      ON CUSTOMER_CONTACT("customer_id")
       WHERE primary_contact = 1 AND deleted_at IS NULL
     `);
 

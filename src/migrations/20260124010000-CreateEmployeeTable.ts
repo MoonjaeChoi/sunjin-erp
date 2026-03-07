@@ -80,12 +80,12 @@ export class CreateEmployeeTable20260125020000 implements MigrationInterface {
 
     // 3. Foreign Keys
     await queryRunner.query(
-      `ALTER TABLE EMPLOYEE ADD CONSTRAINT FK_EMPLOYEE_DEPARTMENT FOREIGN KEY (department_id) REFERENCES DEPARTMENT(id)`
+      `ALTER TABLE EMPLOYEE ADD CONSTRAINT FK_EMPLOYEE_DEPARTMENT FOREIGN KEY ("department_id") REFERENCES DEPARTMENT("id")`
     );
 
     // 4. Unique Constraint
     await queryRunner.query(
-      `ALTER TABLE EMPLOYEE ADD CONSTRAINT UQ_EMPLOYEE_USERNAME UNIQUE (username)`
+      `ALTER TABLE EMPLOYEE ADD CONSTRAINT UQ_EMPLOYEE_USERNAME UNIQUE ("username")`
     );
 
     // 5. Indexes

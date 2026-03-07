@@ -51,13 +51,13 @@ export class CreateProjectTable20260125083000 implements MigrationInterface {
 
     // 4. Foreign Keys
     await queryRunner.query(
-      `ALTER TABLE PROJECT ADD CONSTRAINT FK_PROJECT_CUSTOMER FOREIGN KEY (customer_id) REFERENCES CUSTOMER(id)`
+      `ALTER TABLE PROJECT ADD CONSTRAINT FK_PROJECT_CUSTOMER FOREIGN KEY ("customer_id") REFERENCES CUSTOMER("id")`
     );
     await queryRunner.query(
-      `ALTER TABLE PROJECT ADD CONSTRAINT FK_PROJECT_EMPLOYEE FOREIGN KEY (employee_id) REFERENCES EMPLOYEE(id)`
+      `ALTER TABLE PROJECT ADD CONSTRAINT FK_PROJECT_EMPLOYEE FOREIGN KEY ("employee_id") REFERENCES EMPLOYEE("id")`
     );
     await queryRunner.query(
-      `ALTER TABLE PROJECT_ATTACHMENT ADD CONSTRAINT FK_ATTACH_PROJECT FOREIGN KEY (project_id) REFERENCES PROJECT(id)`
+      `ALTER TABLE PROJECT_ATTACHMENT ADD CONSTRAINT FK_ATTACH_PROJECT FOREIGN KEY ("project_id") REFERENCES PROJECT("id")`
     );
 
     // 5. CHECK Constraints (Oracle: TypeORM creates columns as quoted lowercase)
@@ -72,12 +72,12 @@ export class CreateProjectTable20260125083000 implements MigrationInterface {
     );
 
     // 6. Indexes
-    await queryRunner.query(`CREATE INDEX IDX_PROJECT_CUSTOMER ON PROJECT(customer_id)`);
-    await queryRunner.query(`CREATE INDEX IDX_PROJECT_EMPLOYEE ON PROJECT(employee_id)`);
-    await queryRunner.query(`CREATE INDEX IDX_PROJECT_STATUS ON PROJECT(status)`);
-    await queryRunner.query(`CREATE UNIQUE INDEX IDX_PROJECT_CODE ON PROJECT(project_code)`);
-    await queryRunner.query(`CREATE INDEX IDX_PROJECT_DELETED_AT ON PROJECT(deleted_at)`);
-    await queryRunner.query(`CREATE INDEX IDX_PROJECT_ATTACH_PROJECT ON PROJECT_ATTACHMENT(project_id)`);
+    await queryRunner.query(`CREATE INDEX IDX_PROJECT_CUSTOMER ON PROJECT("customer_id")`);
+    await queryRunner.query(`CREATE INDEX IDX_PROJECT_EMPLOYEE ON PROJECT("employee_id")`);
+    await queryRunner.query(`CREATE INDEX IDX_PROJECT_STATUS ON PROJECT("status")`);
+    await queryRunner.query(`CREATE UNIQUE INDEX IDX_PROJECT_CODE ON PROJECT("project_code")`);
+    await queryRunner.query(`CREATE INDEX IDX_PROJECT_DELETED_AT ON PROJECT("deleted_at")`);
+    await queryRunner.query(`CREATE INDEX IDX_PROJECT_ATTACH_PROJECT ON PROJECT_ATTACHMENT("project_id")`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
